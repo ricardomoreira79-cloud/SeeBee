@@ -382,7 +382,7 @@
     };
 
     // Armazena todos os trajetos salvos (no dispositivo)
-    const STORAGE_KEY = "iscas_trajetos_v1"; // chave pode ficar assim, é só interna
+    const STORAGE_KEY = "iscas_trajetos_v1"; // chave interna
 
     /************************************************************
      * INICIALIZAÇÃO
@@ -395,7 +395,7 @@
     });
 
     function initMap() {
-      // Mapa inicial, centro aproximado no Brasil
+      // Mapa inicial, centro aproximado no Brasil (fallback)
       map = L.map("map").setView([-15.0, -56.0], 5);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -406,6 +406,28 @@
       pathPolyline = L.polyline([], { weight: 4 }).addTo(map);
       trapsLayerGroup = L.layerGroup().addTo(map);
       monitorLine = L.polyline([], { weight: 2, dashArray: "5,5" }).addTo(map);
+
+      // ✅ Ao carregar, tenta centralizar no ponto atual com zoom
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            map.setView([latitude, longitude], 16);
+
+            // Cria marcador inicial na posição do usuário;
+            // depois ele será reaproveitado pelo tracking/monitoramento.
+            currentMarker = L.marker([latitude, longitude]).addTo(map);
+          },
+          (err) => {
+            console.log("Não foi possível centralizar pela localização inicial:", err);
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 5000,
+            timeout: 15000,
+          }
+        );
+      }
     }
 
     function bindUI() {
@@ -448,7 +470,6 @@
           showRouteOnMap(route);
           updateRouteInfo(route);
           renderTrapList(route);
-          // se mudar de trajeto durante monitoramento, interrompe
           if (monitorState.active && monitorState.routeId !== id) {
             stopMonitoringRoute();
           }
@@ -504,12 +525,12 @@
         goToNextTrap();
       });
 
-      // Quando o usuário escolhe/tira a foto, tratamos no evento change
+      // Foto selecionada
       photoInput.addEventListener("change", handlePhotoSelected);
     }
 
     /************************************************************
-     * FUNÇÕES DE ARMAZENAMENTO
+     * ARMAZENAMENTO
      ************************************************************/
     function getAllRoutes() {
       try {
@@ -536,7 +557,6 @@
       const routeSelect = document.getElementById("routeSelect");
       const routes = getAllRoutes();
 
-      // Limpa e repopula o select
       routeSelect.innerHTML = '<option value="">Selecione um trajeto…</option>';
 
       routes.forEach((r) => {
@@ -544,17 +564,17 @@
           r.path && r.path.length > 0
             ? formatDateTime(new Date(r.path[0].timestamp))
             : formatDateTime(new Date(r.createdAt));
-        const totalIscas = r.traps ? r.traps.length : 0;
+        const totalNinhos = r.traps ? r.traps.length : 0;
 
         const opt = document.createElement("option");
         opt.value = r.id;
-        opt.textContent = `${r.name} – ${totalIscas} ninho(s) – ${inicioStr}`;
+        opt.textContent = `${r.name} – ${totalNinhos} ninho(s) – ${inicioStr}`;
         routeSelect.appendChild(opt);
       });
     }
 
     /************************************************************
-     * CONTROLE DO TRAJETO (GPS - GRAVAÇÃO)
+     * CONTROLE DO TRAJETO (GRAVAÇÃO)
      ************************************************************/
     function startTracking() {
       if (!("geolocation" in navigator)) {
@@ -594,7 +614,6 @@
       status.textContent = "Gravando trajeto… caminhando com GPS ligado.";
       toggleTrackingButtons(true);
 
-      // Inicia o watchPosition
       watchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
@@ -605,17 +624,14 @@
           };
           currentRoute.path.push(point);
 
-          // Atualiza linha no mapa
           pathPolyline.addLatLng([latitude, longitude]);
 
-          // Atualiza marcador de posição atual
           if (currentMarker) {
             currentMarker.setLatLng([latitude, longitude]);
           } else {
             currentMarker = L.marker([latitude, longitude]).addTo(map);
           }
 
-          // Ajusta o mapa para mostrar a posição atual
           map.setView([latitude, longitude], 16);
         },
         (err) => {
@@ -646,17 +662,12 @@
       status.textContent = "Trajeto encerrado.";
 
       if (currentRoute && currentRoute.path.length > 0) {
-        // Salva a rota atual
         addRoute(currentRoute);
-
-        // Recarrega a lista de trajetos salvos
         loadRoutesFromStorage();
 
-        // Seleciona automaticamente o trajeto recém-salvo no <select>
         const routeSelect = document.getElementById("routeSelect");
         routeSelect.value = currentRoute.id;
 
-        // Mostra a rota no mapa e o resumo abaixo
         showRouteOnMap(currentRoute);
         updateRouteInfo(currentRoute);
         renderTrapList(currentRoute);
@@ -666,7 +677,6 @@
         alert("Nenhum ponto foi registrado. Trajeto não será salvo.");
       }
 
-      // Limpa o objeto em memória
       currentRoute = null;
     }
 
@@ -694,7 +704,8 @@
     /************************************************************
      * MARCAR PONTO DE NINHO (COM FOTO)
      ************************************************************/
-    let pendingTrapPosition = null; // guarda posição enquanto espera foto
+    let pendingTrapPosition = null;
+
     function handleMarkTrap() {
       if (!currentRoute) return;
 
@@ -773,7 +784,7 @@
         lng,
         timestamp: new Date().toISOString(),
         note,
-        photo: photoDataUrl, // pode ser null
+        photo: photoDataUrl,
       };
 
       currentRoute.traps.push(trap);
@@ -841,8 +852,7 @@
         return;
       }
 
-      const totalPontos = route.path ? route.path.length : 0;
-      const totalIscas = route.traps ? route.traps.length : 0;
+      const totalNinhos = route.traps ? route.traps.length : 0;
 
       let inicioStr = "-";
       let fimStr = "-";
@@ -858,8 +868,7 @@
         <div><strong>${escapeHtml(route.name)}</strong></div>
         <div>Início do trajeto: <strong>${inicioStr}</strong></div>
         <div>Fim do trajeto: <strong>${fimStr}</strong></div>
-        <div>Pontos do caminho (GPS): <strong>${totalPontos}</strong></div>
-        <div>Nº de ninhos marcados: <strong>${totalIscas}</strong></div>
+        <div>Nº de ninhos marcados: <strong>${totalNinhos}</strong></div>
       `;
     }
 
