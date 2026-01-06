@@ -106,12 +106,6 @@
       color: white;
     }
 
-    .btn-primary.outline {
-      background: transparent;
-      color: var(--primary-dark);
-      border: 1px solid var(--primary);
-    }
-
     .btn-secondary {
       background: #e5e7e9;
       color: #333;
@@ -292,7 +286,7 @@
     let watchId = null;
     let currentRoute = null;
 
-    // Armazena todos os trajetos salvos
+    // Armazena todos os trajetos salvos (no dispositivo)
     const STORAGE_KEY = "iscas_trajetos_v1";
 
     /************************************************************
@@ -485,13 +479,27 @@
       status.textContent = "Trajeto encerrado.";
 
       if (currentRoute && currentRoute.path.length > 0) {
+        // Salva a rota atual
         addRoute(currentRoute);
+
+        // Recarrega a lista de trajetos salvos
         loadRoutesFromStorage();
+
+        // Seleciona automaticamente o trajeto recém-salvo no <select>
+        const routeSelect = document.getElementById("routeSelect");
+        routeSelect.value = currentRoute.id;
+
+        // Mostra a rota no mapa e o resumo abaixo
+        showRouteOnMap(currentRoute);
+        updateRouteInfo(currentRoute);
+        renderTrapList(currentRoute);
+
         alert("Trajeto salvo com sucesso!");
       } else {
         alert("Nenhum ponto foi registrado. Trajeto não será salvo.");
       }
 
+      // Limpa o objeto em memória
       currentRoute = null;
     }
 
@@ -659,15 +667,26 @@
         return;
       }
 
-      const dt = formatDateTime(new Date(route.createdAt));
       const totalPontos = route.path ? route.path.length : 0;
       const totalIscas = route.traps ? route.traps.length : 0;
 
+      // Início e fim do trajeto (com base nos timestamps do path)
+      let inicioStr = "-";
+      let fimStr = "-";
+
+      if (route.path && route.path.length > 0) {
+        const inicio = new Date(route.path[0].timestamp);
+        const fim = new Date(route.path[route.path.length - 1].timestamp);
+        inicioStr = formatDateTime(inicio);
+        fimStr = formatDateTime(fim);
+      }
+
       infoDiv.innerHTML = `
         <div><strong>${escapeHtml(route.name)}</strong></div>
-        <div>Iniciado em: <strong>${dt}</strong></div>
-        <div>Pontos de trajeto: <strong>${totalPontos}</strong></div>
-        <div>Pontos de isca: <strong>${totalIscas}</strong></div>
+        <div>Início do trajeto: <strong>${inicioStr}</strong></div>
+        <div>Fim do trajeto: <strong>${fimStr}</strong></div>
+        <div>Pontos do caminho (GPS): <strong>${totalPontos}</strong></div>
+        <div>Nº de iscas marcadas: <strong>${totalIscas}</strong></div>
       `;
     }
 
@@ -696,7 +715,7 @@
         if (trap.photo) {
           const img = document.createElement("img");
           img.src = trap.photo;
-          img.alt = "Foto da isca";
+          img.alt="Foto da isca";
           img.className = "photo-thumb";
           item.appendChild(img);
         }
