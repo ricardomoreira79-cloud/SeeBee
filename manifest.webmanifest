@@ -1,0 +1,23 @@
+{
+  "name": "Iscas de Abelhas – Rastreador de Trajeto",
+  "short_name": "Iscas Abelhas",
+  "description": "Registre trajetos na mata e marque pontos de isca com GPS e foto para consulta futura.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#145a32",
+  "theme_color": "#145a32",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

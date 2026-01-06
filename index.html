@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Iscas de Abelhas - Rastreador de Trajeto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Cor da barra do navegador / PWA -->
+  <meta name="theme-color" content="#145a32" />
+
+  <!-- Manifesto PWA -->
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <!-- Leaflet (mapa) -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  </script>
+
+  <style>
+    :root {
+      --primary: #145a32;
+      --primary-dark: #0b3d21;
+      --accent: #f1c40f;
+      --bg: #f4f6f7;
+      --border-radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      flex: 1;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 10px 12px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    button:active {
+      transform: scale(0.97);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) inset;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary.outline {
+      background: transparent;
+      color: var(--primary-dark);
+      border: 1px solid var(--primary);
+    }
+
+    .btn-secondary {
+      background: #e5e7e9;
+      color: #333;
+    }
+
+    .btn-danger {
+      background: #c0392b;
+      color: white;
+    }
+
+    .btn-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #status {
+      font-size: 0.85rem;
+      margin-top: 6px;
+      color: #555;
+    }
+
+    label {
+      font-size: 0.85rem;
+      margin-right: 6px;
+    }
+
+    select {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #ccc;
+      font-size: 0.85rem;
+      max-width: 100%;
+    }
+
+    #map {
+      width: 100%;
+      height: 55vh;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+
+    .info {
+      font-size: 0.8rem;
+      color: #555;
+    }
+
+    .info strong {
+      color: #222;
+    }
+
+    .trap-list {
+      max-height: 160px;
+      overflow-y: auto;
+      margin-top: 6px;
+      padding-left: 16px;
+      font-size: 0.8rem;
+    }
+
+    .trap-item {
+      margin-bottom: 4px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      background: #eaf2f8;
+      color: #1b4f72;
+      margin-left: 4px;
+    }
+
+    .photo-thumb {
+      max-width: 100px;
+      max-height: 80px;
+      display: block;
+      margin-top: 4px;
+      border-radius: 8px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      color: #777;
+    }
+
+    @media (min-width: 768px) {
+      main {
+        flex-direction: row;
+      }
+
+      #map {
+        height: 70vh;
+      }
+
+      .left,
+      .right {
+        flex: 1;
+      }
+
+      .left {
+        max-width: 380px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Iscas de Abelhas – Rastreador</h1>
+    <p>Registre seus trajetos, marque pontos de isca com foto e consulte depois.</p>
+  </header>
+
+  <main>
+    <section class="left">
+      <div class="card">
+        <div class="controls">
+          <button id="btnStartStop" class="btn-primary">
+            ▶ Iniciar trajeto
+          </button>
+
+          <button id="btnMarkTrap" class="btn-secondary btn-disabled" disabled>
+            📍 Marcar ponto de isca
+          </button>
+        </div>
+
+        <div id="status">
+          Aguardando início do trajeto…
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 8px;">
+        <div style="margin-bottom: 6px;">
+          <label for="routeSelect"><strong>Trajetos salvos:</strong></label>
+          <select id="routeSelect">
+            <option value="">Selecione um trajeto…</option>
+          </select>
+        </div>
+        <div class="info" id="routeInfo">
+          Nenhum trajeto selecionado.
+        </div>
+        <div class="trap-list" id="trapList">
+          <!-- lista de pontos de isca -->
+        </div>
+      </div>
+    </section>
+
+    <section class="right">
+      <div class="card" style="padding: 0;">
+        <div id="map"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Webapp didático – dados salvos apenas no seu navegador (localStorage).
+  </footer>
+
+  <!-- Input de foto oculto (usado ao marcar isca) -->
+  <input
+    type="file"
+    id="photoInput"
+    accept="image/*"
+    capture="environment"
+    style="display: none;"
+  />
+
+  <script>
+    /************************************************************
+     * ESTADO GLOBAL
+     ************************************************************/
+    let map;
+    let pathPolyline;
+    let currentMarker;
+    let trapsLayerGroup;
+
+    let isTracking = false;
+    let watchId = null;
+    let currentRoute = null;
+
+    // Armazena todos os trajetos salvos
+    const STORAGE_KEY = "iscas_trajetos_v1";
+
+    /************************************************************
+     * INICIALIZAÇÃO
+     ************************************************************/
+    document.addEventListener("DOMContentLoaded", () => {
+      initMap();
+      bindUI();
+      loadRoutesFromStorage();
+    });
+
+    function initMap() {
+      // Mapa inicial, centro aproximado no Brasil
+      map = L.map("map").setView([-15.0, -56.0], 5);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "© OpenStreetMap contributors",
+      }).addTo(map);
+
+      pathPolyline = L.polyline([], { weight: 4 }).addTo(map);
+      trapsLayerGroup = L.layerGroup().addTo(map);
+    }
+
+    function bindUI() {
+      const btnStartStop = document.getElementById("btnStartStop");
+      const btnMarkTrap = document.getElementById("btnMarkTrap");
+      const routeSelect = document.getElementById("routeSelect");
+      const photoInput = document.getElementById("photoInput");
+
+      btnStartStop.addEventListener("click", () => {
+        if (!isTracking) {
+          startTracking();
+        } else {
+          stopTracking();
+        }
+      });
+
+      btnMarkTrap.addEventListener("click", () => {
+        if (!isTracking || !currentRoute) {
+          alert("Inicie um trajeto antes de marcar pontos de isca.");
+          return;
+        }
+        handleMarkTrap();
+      });
+
+      routeSelect.addEventListener("change", () => {
+        const id = routeSelect.value;
+        if (!id) {
+          clearMapLayers();
+          updateRouteInfo(null);
+          return;
+        }
+        const routes = getAllRoutes();
+        const route = routes.find((r) => r.id === id);
+        if (route) {
+          showRouteOnMap(route);
+          updateRouteInfo(route);
+          renderTrapList(route);
+        }
+      });
+
+      // Quando o usuário escolhe/tira a foto, tratamos no evento change
+      photoInput.addEventListener("change", handlePhotoSelected);
+    }
+
+    /************************************************************
+     * FUNÇÕES DE ARMAZENAMENTO
+     ************************************************************/
+    function getAllRoutes() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        return JSON.parse(raw);
+      } catch (e) {
+        console.error("Erro ao ler localStorage:", e);
+        return [];
+      }
+    }
+
+    function saveAllRoutes(routes) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
+    }
+
+    function addRoute(route) {
+      const routes = getAllRoutes();
+      routes.push(route);
+      saveAllRoutes(routes);
+    }
+
+    function loadRoutesFromStorage() {
+      const routeSelect = document.getElementById("routeSelect");
+      const routes = getAllRoutes();
+
+      // Limpa e repopula o select
+      routeSelect.innerHTML = '<option value="">Selecione um trajeto…</option>';
+
+      routes.forEach((r) => {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = `${r.name} - ${formatDateTime(new Date(r.createdAt))}`;
+        routeSelect.appendChild(opt);
+      });
+    }
+
+    /************************************************************
+     * CONTROLE DO TRAJETO (GPS)
+     ************************************************************/
+    function startTracking() {
+      if (!("geolocation" in navigator)) {
+        alert("Seu navegador não suporta Geolocalização.");
+        return;
+      }
+
+      const name = prompt("Nome para este trajeto (ex: Matas do Sítio A):", "");
+      if (!name) {
+        alert("Trajeto não iniciado (nome é obrigatório).");
+        return;
+      }
+
+      isTracking = true;
+      currentRoute = {
+        id: "route_" + Date.now(),
+        name: name,
+        createdAt: new Date().toISOString(),
+        path: [],
+        traps: [],
+      };
+
+      pathPolyline.setLatLngs([]);
+      trapsLayerGroup.clearLayers();
+      if (currentMarker) {
+        map.removeLayer(currentMarker);
+        currentMarker = null;
+      }
+
+      const status = document.getElementById("status");
+      status.textContent = "Gravando trajeto… caminhando com GPS ligado.";
+      toggleTrackingButtons(true);
+
+      // Inicia o watchPosition
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          const point = {
+            lat: latitude,
+            lng: longitude,
+            timestamp: new Date().toISOString(),
+          };
+          currentRoute.path.push(point);
+
+          // Atualiza linha no mapa
+          pathPolyline.addLatLng([latitude, longitude]);
+
+          // Atualiza marcador de posição atual
+          if (currentMarker) {
+            currentMarker.setLatLng([latitude, longitude]);
+          } else {
+            currentMarker = L.marker([latitude, longitude]).addTo(map);
+          }
+
+          // Ajusta o mapa para mostrar a posição atual
+          map.setView([latitude, longitude], 16);
+        },
+        (err) => {
+          console.error("Erro no watchPosition:", err);
+          alert("Não foi possível obter sua localização: " + err.message);
+          stopTracking();
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 1000,
+          timeout: 20000,
+        }
+      );
+    }
+
+    function stopTracking() {
+      if (!isTracking) return;
+
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+
+      isTracking = false;
+      toggleTrackingButtons(false);
+
+      const status = document.getElementById("status");
+      status.textContent = "Trajeto encerrado.";
+
+      if (currentRoute && currentRoute.path.length > 0) {
+        addRoute(currentRoute);
+        loadRoutesFromStorage();
+        alert("Trajeto salvo com sucesso!");
+      } else {
+        alert("Nenhum ponto foi registrado. Trajeto não será salvo.");
+      }
+
+      currentRoute = null;
+    }
+
+    function toggleTrackingButtons(tracking) {
+      const btnStartStop = document.getElementById("btnStartStop");
+      const btnMarkTrap = document.getElementById("btnMarkTrap");
+
+      if (tracking) {
+        btnStartStop.textContent = "■ Encerrar trajeto";
+        btnStartStop.classList.remove("btn-primary");
+        btnStartStop.classList.add("btn-danger");
+
+        btnMarkTrap.disabled = false;
+        btnMarkTrap.classList.remove("btn-disabled");
+      } else {
+        btnStartStop.textContent = "▶ Iniciar trajeto";
+        btnStartStop.classList.remove("btn-danger");
+        btnStartStop.classList.add("btn-primary");
+
+        btnMarkTrap.disabled = true;
+        btnMarkTrap.classList.add("btn-disabled");
+      }
+    }
+
+    /************************************************************
+     * MARCAR PONTO DE ISCA (COM FOTO)
+     ************************************************************/
+    let pendingTrapPosition = null; // guarda posição enquanto espera foto
+    function handleMarkTrap() {
+      if (!currentRoute) return;
+
+      const lastPoint = currentRoute.path[currentRoute.path.length - 1];
+
+      const finishMark = (lat, lng) => {
+        pendingTrapPosition = { lat, lng, timestamp: new Date().toISOString() };
+        // Abre input de foto
+        document.getElementById("photoInput").click();
+      };
+
+      if (lastPoint) {
+        finishMark(lastPoint.lat, lastPoint.lng);
+      } else {
+        // Se ainda não há pontos no trajeto, tenta pegar posição atual
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            finishMark(latitude, longitude);
+          },
+          (err) => {
+            alert("Não foi possível obter a localização para marcar o ponto: " + err.message);
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 15000,
+          }
+        );
+      }
+    }
+
+    function handlePhotoSelected(event) {
+      const file = event.target.files[0];
+      if (!pendingTrapPosition) {
+        // estado inconsistente, apenas limpa input
+        event.target.value = "";
+        return;
+      }
+
+      const note = prompt("Alguma observação sobre esta isca? (opcional)", "") || "";
+
+      if (!file) {
+        // Usuário cancelou a seleção de foto, ainda assim podemos registrar o ponto sem foto
+        registerTrap(pendingTrapPosition.lat, pendingTrapPosition.lng, null, note);
+        pendingTrapPosition = null;
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const photoDataUrl = e.target.result;
+        registerTrap(pendingTrapPosition.lat, pendingTrapPosition.lng, photoDataUrl, note);
+        pendingTrapPosition = null;
+        event.target.value = "";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function registerTrap(lat, lng, photoDataUrl, note) {
+      if (!currentRoute) return;
+
+      const trap = {
+        id: "trap_" + Date.now(),
+        lat,
+        lng,
+        timestamp: new Date().toISOString(),
+        note,
+        photo: photoDataUrl, // pode ser null
+      };
+
+      currentRoute.traps.push(trap);
+
+      // Adiciona marcador no mapa
+      const popupHtml = createTrapPopupHtml(trap);
+      const marker = L.marker([lat, lng]).addTo(trapsLayerGroup);
+      marker.bindPopup(popupHtml);
+
+      alert("Ponto de isca registrado!");
+    }
+
+    function createTrapPopupHtml(trap) {
+      const dt = formatDateTime(new Date(trap.timestamp));
+      let html = `<div><strong>Ponto de isca</strong><br/><small>${dt}</small>`;
+      if (trap.note) {
+        html += `<br/><em>${escapeHtml(trap.note)}</em>`;
+      }
+      if (trap.photo) {
+        html += `<br/><img src="${trap.photo}" alt="Foto da isca" style="max-width:120px;max-height:90px;margin-top:4px;border-radius:6px;" />`;
+      }
+      html += `</div>`;
+      return html;
+    }
+
+    /************************************************************
+     * EXIBIÇÃO NO MAPA / LISTA
+     ************************************************************/
+    function clearMapLayers() {
+      pathPolyline.setLatLngs([]);
+      trapsLayerGroup.clearLayers();
+      if (currentMarker) {
+        map.removeLayer(currentMarker);
+        currentMarker = null;
+      }
+    }
+
+    function showRouteOnMap(route) {
+      clearMapLayers();
+
+      if (!route.path || route.path.length === 0) return;
+
+      const latlngs = route.path.map((p) => [p.lat, p.lng]);
+      pathPolyline.setLatLngs(latlngs);
+
+      // Posição final como marcador "atual"
+      const last = latlngs[latlngs.length - 1];
+      currentMarker = L.marker(last).addTo(map);
+
+      // Pontos de isca
+      if (route.traps && route.traps.length > 0) {
+        route.traps.forEach((trap) => {
+          const marker = L.marker([trap.lat, trap.lng]).addTo(trapsLayerGroup);
+          marker.bindPopup(createTrapPopupHtml(trap));
+        });
+      }
+
+      // Ajusta mapa para mostrar todo o trajeto
+      const bounds = L.latLngBounds(latlngs);
+      map.fitBounds(bounds, { padding: [20, 20] });
+    }
+
+    function updateRouteInfo(route) {
+      const infoDiv = document.getElementById("routeInfo");
+      if (!route) {
+        infoDiv.textContent = "Nenhum trajeto selecionado.";
+        document.getElementById("trapList").innerHTML = "";
+        return;
+      }
+
+      const dt = formatDateTime(new Date(route.createdAt));
+      const totalPontos = route.path ? route.path.length : 0;
+      const totalIscas = route.traps ? route.traps.length : 0;
+
+      infoDiv.innerHTML = `
+        <div><strong>${escapeHtml(route.name)}</strong></div>
+        <div>Iniciado em: <strong>${dt}</strong></div>
+        <div>Pontos de trajeto: <strong>${totalPontos}</strong></div>
+        <div>Pontos de isca: <strong>${totalIscas}</strong></div>
+      `;
+    }
+
+    function renderTrapList(route) {
+      const listDiv = document.getElementById("trapList");
+      listDiv.innerHTML = "";
+      if (!route.traps || route.traps.length === 0) {
+        listDiv.textContent = "Nenhum ponto de isca registrado neste trajeto.";
+        return;
+      }
+
+      route.traps.forEach((trap, idx) => {
+        const dt = formatDateTime(new Date(trap.timestamp));
+        const item = document.createElement("div");
+        item.className = "trap-item";
+        item.innerHTML = `
+          <strong>Isca ${idx + 1}</strong>
+          <span class="badge">${trap.lat.toFixed(5)}, ${trap.lng.toFixed(5)}</span><br/>
+          <small>${dt}</small><br/>
+          ${
+            trap.note
+              ? `<em>${escapeHtml(trap.note)}</em><br/>`
+              : ""
+          }
+        `;
+        if (trap.photo) {
+          const img = document.createElement("img");
+          img.src = trap.photo;
+          img.alt = "Foto da isca";
+          img.className = "photo-thumb";
+          item.appendChild(img);
+        }
+        listDiv.appendChild(item);
+      });
+    }
+
+    /************************************************************
+     * HELPERS
+     ************************************************************/
+    function formatDateTime(d) {
+      if (!(d instanceof Date) || isNaN(d)) return "";
+      const dia = String(d.getDate()).padStart(2, "0");
+      const mes = String(d.getMonth() + 1).padStart(2, "0");
+      const ano = d.getFullYear();
+      const hora = String(d.getHours()).padStart(2, "0");
+      const min = String(d.getMinutes()).padStart(2, "0");
+      return `${dia}/${mes}/${ano} ${hora}:${min}`;
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Registro do Service Worker para PWA
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("./sw.js")
+          .then((reg) => {
+            console.log("Service Worker registrado com sucesso:", reg.scope);
+          })
+          .catch((err) => {
+            console.warn("Falha ao registrar Service Worker:", err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
