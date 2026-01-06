@@ -309,11 +309,22 @@
           <button id="btnDeleteRoute" class="btn-secondary btn-small">
             🗑️ Excluir trajeto
           </button>
+          <button id="btnMonitorRoute" class="btn-secondary btn-small">
+            📡 Monitorar iscas
+          </button>
+          <button id="btnNextTrap" class="btn-secondary btn-small btn-disabled" disabled>
+            ➡ Próxima isca
+          </button>
         </div>
 
         <div class="info" id="routeInfo" style="margin-top: 8px;">
           Nenhum trajeto selecionado.
         </div>
+
+        <div class="info" id="monitorInfo" style="margin-top: 6px;">
+          Monitoramento de iscas inativo.
+        </div>
+
         <div class="trap-list" id="trapList">
           <!-- lista de pontos de isca -->
         </div>
@@ -354,10 +365,21 @@
     let pathPolyline;
     let currentMarker;
     let trapsLayerGroup;
+    let monitorLine; // linha entre posição atual e próxima isca
 
     let isTracking = false;
     let watchId = null;
     let currentRoute = null;
+
+    // Estado do monitoramento de iscas
+    const monitorState = {
+      active: false,
+      routeId: null,
+      visited: [],
+      currentTrapId: null,
+      watchId: null,
+      currentPosition: null,
+    };
 
     // Armazena todos os trajetos salvos (no dispositivo)
     const STORAGE_KEY = "iscas_trajetos_v1";
@@ -383,6 +405,7 @@
 
       pathPolyline = L.polyline([], { weight: 4 }).addTo(map);
       trapsLayerGroup = L.layerGroup().addTo(map);
+      monitorLine = L.polyline([], { weight: 2, dashArray: "5,5" }).addTo(map);
     }
 
     function bindUI() {
@@ -392,6 +415,8 @@
       const photoInput = document.getElementById("photoInput");
       const btnRenameRoute = document.getElementById("btnRenameRoute");
       const btnDeleteRoute = document.getElementById("btnDeleteRoute");
+      const btnMonitorRoute = document.getElementById("btnMonitorRoute");
+      const btnNextTrap = document.getElementById("btnNextTrap");
 
       btnStartStop.addEventListener("click", () => {
         if (!isTracking) {
@@ -414,6 +439,7 @@
         if (!id) {
           clearMapLayers();
           updateRouteInfo(null);
+          updateMonitorInfo("Monitoramento de iscas inativo.");
           return;
         }
         const routes = getAllRoutes();
@@ -422,6 +448,10 @@
           showRouteOnMap(route);
           updateRouteInfo(route);
           renderTrapList(route);
+          // se mudar de trajeto durante monitoramento, interrompe
+          if (monitorState.active && monitorState.routeId !== id) {
+            stopMonitoringRoute();
+          }
         }
       });
 
@@ -432,6 +462,10 @@
         if (!id) {
           alert("Selecione um trajeto para renomear.");
           return;
+        }
+        // se estiver monitorando esse trajeto, para o monitoramento
+        if (monitorState.active) {
+          stopMonitoringRoute();
         }
         renameRoute(id);
       });
@@ -444,7 +478,32 @@
           alert("Selecione um trajeto para excluir.");
           return;
         }
+        // se estiver monitorando esse trajeto, para o monitoramento
+        if (monitorState.active && monitorState.routeId === id) {
+          stopMonitoringRoute();
+        }
         deleteRoute(id);
+      });
+
+      // Monitorar iscas
+      btnMonitorRoute.addEventListener("click", () => {
+        const select = document.getElementById("routeSelect");
+        const id = select.value;
+        if (!id) {
+          alert("Selecione um trajeto para monitorar.");
+          return;
+        }
+
+        if (!monitorState.active) {
+          startMonitoringRoute(id);
+        } else {
+          stopMonitoringRoute();
+        }
+      });
+
+      // Próxima isca
+      btnNextTrap.addEventListener("click", () => {
+        goToNextTrap();
       });
 
       // Quando o usuário escolhe/tira a foto, tratamos no evento change
@@ -483,9 +542,10 @@
       routeSelect.innerHTML = '<option value="">Selecione um trajeto…</option>';
 
       routes.forEach((r) => {
-        const inicioStr = (r.path && r.path.length > 0)
-          ? formatDateTime(new Date(r.path[0].timestamp))
-          : formatDateTime(new Date(r.createdAt));
+        const inicioStr =
+          r.path && r.path.length > 0
+            ? formatDateTime(new Date(r.path[0].timestamp))
+            : formatDateTime(new Date(r.createdAt));
         const totalIscas = r.traps ? r.traps.length : 0;
 
         const opt = document.createElement("option");
@@ -496,11 +556,16 @@
     }
 
     /************************************************************
-     * CONTROLE DO TRAJETO (GPS)
+     * CONTROLE DO TRAJETO (GPS - GRAVAÇÃO)
      ************************************************************/
     function startTracking() {
       if (!("geolocation" in navigator)) {
         alert("Seu navegador não suporta Geolocalização.");
+        return;
+      }
+
+      if (monitorState.active) {
+        alert("Pare o monitoramento de iscas antes de iniciar um novo trajeto.");
         return;
       }
 
@@ -521,6 +586,7 @@
 
       pathPolyline.setLatLngs([]);
       trapsLayerGroup.clearLayers();
+      monitorLine.setLatLngs([]);
       if (currentMarker) {
         map.removeLayer(currentMarker);
         currentMarker = null;
@@ -733,8 +799,6 @@
         html += `<br/><em>${escapeHtml(trap.note)}</em>`;
       }
       if (trap.photo) {
-        // Aqui usamos apenas miniatura; o zoom é tratado na lista, mas se quiser
-        // poderia ser expandido depois também.
         html += `<br/><img src="${trap.photo}" alt="Foto da isca" style="max-width:120px;max-height:90px;margin-top:4px;border-radius:6px;" />`;
       }
       html += `</div>`;
@@ -747,6 +811,7 @@
     function clearMapLayers() {
       pathPolyline.setLatLngs([]);
       trapsLayerGroup.clearLayers();
+      monitorLine.setLatLngs([]);
       if (currentMarker) {
         map.removeLayer(currentMarker);
         currentMarker = null;
@@ -896,9 +961,228 @@
       updateRouteInfo(null);
       const trapList = document.getElementById("trapList");
       trapList.innerHTML = "Nenhum trajeto selecionado.";
+      updateMonitorInfo("Monitoramento de iscas inativo.");
 
       const status = document.getElementById("status");
       status.textContent = "Trajeto excluído.";
+    }
+
+    /************************************************************
+     * MONITORAMENTO DE ISCAS (GUIA ISCA POR ISCA)
+     ************************************************************/
+    function startMonitoringRoute(routeId) {
+      if (!("geolocation" in navigator)) {
+        alert("Seu navegador não suporta Geolocalização.");
+        return;
+      }
+
+      const routes = getAllRoutes();
+      const route = routes.find((r) => r.id === routeId);
+      if (!route) {
+        alert("Trajeto não encontrado.");
+        return;
+      }
+
+      if (!route.traps || route.traps.length === 0) {
+        alert("Este trajeto não possui pontos de isca registrados.");
+        return;
+      }
+
+      if (isTracking) {
+        alert("Pare a gravação de trajeto antes de iniciar o monitoramento de iscas.");
+        return;
+      }
+
+      monitorState.active = true;
+      monitorState.routeId = routeId;
+      monitorState.visited = [];
+      monitorState.currentTrapId = null;
+      monitorState.currentPosition = null;
+      monitorLine.setLatLngs([]);
+
+      const btnMonitorRoute = document.getElementById("btnMonitorRoute");
+      const btnNextTrap = document.getElementById("btnNextTrap");
+      btnMonitorRoute.textContent = "⏹ Parar monitoramento";
+      btnNextTrap.disabled = false;
+      btnNextTrap.classList.remove("btn-disabled");
+
+      updateMonitorInfo("Monitorando iscas… aguardando posição GPS.");
+
+      // Inicia monitoramento de posição
+      monitorState.watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          monitorState.currentPosition = { lat: latitude, lng: longitude };
+
+          // Atualiza marcador de posição atual no mapa
+          if (currentMarker) {
+            currentMarker.setLatLng([latitude, longitude]);
+          } else {
+            currentMarker = L.marker([latitude, longitude]).addTo(map);
+          }
+
+          // Se ainda não temos isca alvo, escolhe a mais próxima
+          const routesNow = getAllRoutes();
+          const rNow = routesNow.find((r) => r.id === monitorState.routeId);
+          if (!rNow || !rNow.traps || rNow.traps.length === 0) {
+            updateMonitorInfo("Nenhuma isca encontrada neste trajeto.");
+            return;
+          }
+
+          if (!monitorState.currentTrapId) {
+            selectNearestTrap(rNow);
+          } else {
+            // Atualiza distância até a isca atual
+            const trap = rNow.traps.find((t) => t.id === monitorState.currentTrapId);
+            if (trap) {
+              updateMonitorTargetUI(trap);
+            }
+          }
+        },
+        (err) => {
+          console.error("Erro no monitoramento de iscas (GPS):", err);
+          alert("Não foi possível obter sua localização para monitorar as iscas: " + err.message);
+          stopMonitoringRoute();
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 1000,
+          timeout: 20000,
+        }
+      );
+    }
+
+    function stopMonitoringRoute() {
+      if (!monitorState.active) return;
+
+      if (monitorState.watchId !== null) {
+        navigator.geolocation.clearWatch(monitorState.watchId);
+        monitorState.watchId = null;
+      }
+
+      monitorState.active = false;
+      monitorState.routeId = null;
+      monitorState.visited = [];
+      monitorState.currentTrapId = null;
+      monitorState.currentPosition = null;
+      monitorLine.setLatLngs([]);
+
+      const btnMonitorRoute = document.getElementById("btnMonitorRoute");
+      const btnNextTrap = document.getElementById("btnNextTrap");
+      btnMonitorRoute.textContent = "📡 Monitorar iscas";
+      btnNextTrap.disabled = true;
+      btnNextTrap.classList.add("btn-disabled");
+
+      updateMonitorInfo("Monitoramento de iscas inativo.");
+    }
+
+    function updateMonitorInfo(text) {
+      const monitorDiv = document.getElementById("monitorInfo");
+      monitorDiv.textContent = text;
+    }
+
+    function selectNearestTrap(route) {
+      const pos = monitorState.currentPosition;
+      const traps = route.traps || [];
+      if (traps.length === 0) {
+        updateMonitorInfo("Nenhum ponto de isca registrado neste trajeto.");
+        return;
+      }
+
+      // Filtra iscas ainda não visitadas nesta sessão
+      const remaining = traps.filter(
+        (t) => !monitorState.visited.includes(t.id)
+      );
+
+      if (remaining.length === 0) {
+        updateMonitorInfo("Todas as iscas deste trajeto já foram visitadas nesta sessão.");
+        stopMonitoringRoute();
+        return;
+      }
+
+      let chosen;
+      if (!pos) {
+        // Sem posição ainda: segue ordem cronológica (primeira não visitada)
+        chosen = remaining[0];
+      } else {
+        // Escolhe a mais próxima da posição atual
+        let minDist = Infinity;
+        remaining.forEach((t) => {
+          const d = distanceInMeters(pos.lat, pos.lng, t.lat, t.lng);
+          if (d < minDist) {
+            minDist = d;
+            chosen = t;
+          }
+        });
+      }
+
+      if (chosen) {
+        monitorState.currentTrapId = chosen.id;
+        updateMonitorTargetUI(chosen);
+      }
+    }
+
+    function updateMonitorTargetUI(trap) {
+      const pos = monitorState.currentPosition;
+      if (!pos) {
+        updateMonitorInfo("Monitorando iscas… aguardando posição GPS.");
+        return;
+      }
+
+      const dist = distanceInMeters(pos.lat, pos.lng, trap.lat, trap.lng);
+      const dir = bearingToDirection(pos.lat, pos.lng, trap.lat, trap.lng);
+
+      // Atualiza linha no mapa
+      monitorLine.setLatLngs([
+        [pos.lat, pos.lng],
+        [trap.lat, trap.lng],
+      ]);
+
+      // Centraliza de forma confortável
+      const bounds = L.latLngBounds(
+        [pos.lat, pos.lng],
+        [trap.lat, trap.lng]
+      );
+      map.fitBounds(bounds, { padding: [30, 30] });
+
+      updateMonitorInfo(
+        `Próxima isca: coordenadas (${trap.lat.toFixed(
+          5
+        )}, ${trap.lng.toFixed(
+          5
+        )}) – aprox. ${dist.toFixed(1)} m – direção ${dir}.` +
+          " Ao chegar, toque em 'Próxima isca' para seguir para a próxima."
+      );
+    }
+
+    function goToNextTrap() {
+      if (!monitorState.active) {
+        alert("Inicie o monitoramento de iscas primeiro.");
+        return;
+      }
+      const routes = getAllRoutes();
+      const route = routes.find((r) => r.id === monitorState.routeId);
+      if (!route) {
+        alert("Trajeto não encontrado.");
+        stopMonitoringRoute();
+        return;
+      }
+
+      if (!monitorState.currentTrapId) {
+        // ainda não escolheu nenhuma, tenta escolher agora
+        selectNearestTrap(route);
+        return;
+      }
+
+      // Marca a atual como visitada
+      if (!monitorState.visited.includes(monitorState.currentTrapId)) {
+        monitorState.visited.push(monitorState.currentTrapId);
+      }
+      monitorState.currentTrapId = null;
+      monitorLine.setLatLngs([]);
+
+      // Escolhe a próxima
+      selectNearestTrap(route);
     }
 
     /************************************************************
@@ -922,7 +1206,6 @@
       modal.classList.add("visible");
     }
 
-    // Deixa acessível globalmente, se precisar
     window.openPhotoModal = openPhotoModal;
 
     /************************************************************
@@ -945,6 +1228,41 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+    }
+
+    // Distância em metros (fórmula de Haversine)
+    function distanceInMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000; // raio da Terra em metros
+      const toRad = (x) => (x * Math.PI) / 180;
+
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+          Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    // Direção aproximada (N, NE, E, SE, S, SW, W, NW)
+    function bearingToDirection(lat1, lon1, lat2, lon2) {
+      const toRad = (x) => (x * Math.PI) / 180;
+      const toDeg = (x) => (x * 180) / Math.PI;
+
+      const dLon = toRad(lon2 - lon1);
+      const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+      const x =
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) -
+        Math.sin(toRad(lat1)) * Math.sin(toRad(lat2)) * Math.cos(dLon);
+      let brng = toDeg(Math.atan2(y, x));
+      brng = (brng + 360) % 360;
+
+      const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+      const idx = Math.round(brng / 45) % 8;
+      return dirs[idx];
     }
 
     // Registro do Service Worker para PWA
