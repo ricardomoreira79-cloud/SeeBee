@@ -121,6 +121,11 @@
       cursor: not-allowed;
     }
 
+    .btn-small {
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+
     #status {
       font-size: 0.85rem;
       margin-top: 6px;
@@ -138,6 +143,21 @@
       border: 1px solid #ccc;
       font-size: 0.85rem;
       max-width: 100%;
+    }
+
+    .route-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .route-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
     }
 
     #map {
@@ -165,7 +185,7 @@
     }
 
     .trap-item {
-      margin-bottom: 4px;
+      margin-bottom: 8px;
     }
 
     .badge {
@@ -184,6 +204,7 @@
       display: block;
       margin-top: 4px;
       border-radius: 8px;
+      cursor: zoom-in;
     }
 
     footer {
@@ -191,6 +212,40 @@
       padding: 4px 8px;
       font-size: 0.7rem;
       color: #777;
+    }
+
+    /* Modal de foto ampliada */
+    .photo-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 10px;
+    }
+
+    .photo-modal.visible {
+      display: flex;
+    }
+
+    .photo-modal img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .photo-modal-hint {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #eee;
+      font-size: 0.8rem;
+      text-align: center;
+      opacity: 0.8;
     }
 
     @media (min-width: 768px) {
@@ -238,13 +293,25 @@
       </div>
 
       <div class="card" style="margin-top: 8px;">
-        <div style="margin-bottom: 6px;">
-          <label for="routeSelect"><strong>Trajetos salvos:</strong></label>
-          <select id="routeSelect">
-            <option value="">Selecione um trajeto…</option>
-          </select>
+        <div class="route-header" style="margin-bottom: 6px;">
+          <div>
+            <label for="routeSelect"><strong>Trajetos salvos:</strong></label>
+            <select id="routeSelect">
+              <option value="">Selecione um trajeto…</option>
+            </select>
+          </div>
         </div>
-        <div class="info" id="routeInfo">
+
+        <div class="route-actions">
+          <button id="btnRenameRoute" class="btn-secondary btn-small">
+            ✏️ Renomear trajeto
+          </button>
+          <button id="btnDeleteRoute" class="btn-secondary btn-small">
+            🗑️ Excluir trajeto
+          </button>
+        </div>
+
+        <div class="info" id="routeInfo" style="margin-top: 8px;">
           Nenhum trajeto selecionado.
         </div>
         <div class="trap-list" id="trapList">
@@ -273,6 +340,12 @@
     style="display: none;"
   />
 
+  <!-- Modal para foto ampliada -->
+  <div id="photoModal" class="photo-modal">
+    <img id="photoModalImg" src="" alt="Foto ampliada da isca" />
+    <div class="photo-modal-hint">Toque em qualquer lugar para fechar</div>
+  </div>
+
   <script>
     /************************************************************
      * ESTADO GLOBAL
@@ -295,6 +368,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       initMap();
       bindUI();
+      setupPhotoModal();
       loadRoutesFromStorage();
     });
 
@@ -316,6 +390,8 @@
       const btnMarkTrap = document.getElementById("btnMarkTrap");
       const routeSelect = document.getElementById("routeSelect");
       const photoInput = document.getElementById("photoInput");
+      const btnRenameRoute = document.getElementById("btnRenameRoute");
+      const btnDeleteRoute = document.getElementById("btnDeleteRoute");
 
       btnStartStop.addEventListener("click", () => {
         if (!isTracking) {
@@ -347,6 +423,28 @@
           updateRouteInfo(route);
           renderTrapList(route);
         }
+      });
+
+      // Renomear trajeto
+      btnRenameRoute.addEventListener("click", () => {
+        const select = document.getElementById("routeSelect");
+        const id = select.value;
+        if (!id) {
+          alert("Selecione um trajeto para renomear.");
+          return;
+        }
+        renameRoute(id);
+      });
+
+      // Excluir trajeto
+      btnDeleteRoute.addEventListener("click", () => {
+        const select = document.getElementById("routeSelect");
+        const id = select.value;
+        if (!id) {
+          alert("Selecione um trajeto para excluir.");
+          return;
+        }
+        deleteRoute(id);
       });
 
       // Quando o usuário escolhe/tira a foto, tratamos no evento change
@@ -385,9 +483,14 @@
       routeSelect.innerHTML = '<option value="">Selecione um trajeto…</option>';
 
       routes.forEach((r) => {
+        const inicioStr = (r.path && r.path.length > 0)
+          ? formatDateTime(new Date(r.path[0].timestamp))
+          : formatDateTime(new Date(r.createdAt));
+        const totalIscas = r.traps ? r.traps.length : 0;
+
         const opt = document.createElement("option");
         opt.value = r.id;
-        opt.textContent = `${r.name} - ${formatDateTime(new Date(r.createdAt))}`;
+        opt.textContent = `${r.name} – ${totalIscas} isca(s) – ${inicioStr}`;
         routeSelect.appendChild(opt);
       });
     }
@@ -549,7 +652,10 @@
             finishMark(latitude, longitude);
           },
           (err) => {
-            alert("Não foi possível obter a localização para marcar o ponto: " + err.message);
+            alert(
+              "Não foi possível obter a localização para marcar o ponto: " +
+                err.message
+            );
           },
           {
             enableHighAccuracy: true,
@@ -568,11 +674,17 @@
         return;
       }
 
-      const note = prompt("Alguma observação sobre esta isca? (opcional)", "") || "";
+      const note =
+        prompt("Alguma observação sobre esta isca? (opcional)", "") || "";
 
       if (!file) {
         // Usuário cancelou a seleção de foto, ainda assim podemos registrar o ponto sem foto
-        registerTrap(pendingTrapPosition.lat, pendingTrapPosition.lng, null, note);
+        registerTrap(
+          pendingTrapPosition.lat,
+          pendingTrapPosition.lng,
+          null,
+          note
+        );
         pendingTrapPosition = null;
         return;
       }
@@ -580,7 +692,12 @@
       const reader = new FileReader();
       reader.onload = function (e) {
         const photoDataUrl = e.target.result;
-        registerTrap(pendingTrapPosition.lat, pendingTrapPosition.lng, photoDataUrl, note);
+        registerTrap(
+          pendingTrapPosition.lat,
+          pendingTrapPosition.lng,
+          photoDataUrl,
+          note
+        );
         pendingTrapPosition = null;
         event.target.value = "";
       };
@@ -616,6 +733,8 @@
         html += `<br/><em>${escapeHtml(trap.note)}</em>`;
       }
       if (trap.photo) {
+        // Aqui usamos apenas miniatura; o zoom é tratado na lista, mas se quiser
+        // poderia ser expandido depois também.
         html += `<br/><img src="${trap.photo}" alt="Foto da isca" style="max-width:120px;max-height:90px;margin-top:4px;border-radius:6px;" />`;
       }
       html += `</div>`;
@@ -715,13 +834,96 @@
         if (trap.photo) {
           const img = document.createElement("img");
           img.src = trap.photo;
-          img.alt="Foto da isca";
+          img.alt = "Foto da isca";
           img.className = "photo-thumb";
+          img.addEventListener("click", () => {
+            openPhotoModal(trap.photo);
+          });
           item.appendChild(img);
         }
         listDiv.appendChild(item);
       });
     }
+
+    /************************************************************
+     * RENOMEAR / EXCLUIR TRAJETO
+     ************************************************************/
+    function renameRoute(routeId) {
+      const routes = getAllRoutes();
+      const idx = routes.findIndex((r) => r.id === routeId);
+      if (idx === -1) {
+        alert("Trajeto não encontrado.");
+        return;
+      }
+
+      const currentName = routes[idx].name || "";
+      const newName = prompt("Novo nome para este trajeto:", currentName);
+      if (!newName) {
+        return; // cancelado
+      }
+
+      routes[idx].name = newName;
+      saveAllRoutes(routes);
+      loadRoutesFromStorage();
+
+      const routeSelect = document.getElementById("routeSelect");
+      routeSelect.value = routeId;
+
+      const updatedRoute = routes[idx];
+      showRouteOnMap(updatedRoute);
+      updateRouteInfo(updatedRoute);
+      renderTrapList(updatedRoute);
+    }
+
+    function deleteRoute(routeId) {
+      const routes = getAllRoutes();
+      const route = routes.find((r) => r.id === routeId);
+      if (!route) {
+        alert("Trajeto não encontrado.");
+        return;
+      }
+
+      const ok = confirm(
+        `Deseja realmente excluir o trajeto "${route.name}"?\nEssa ação não pode ser desfeita.`
+      );
+      if (!ok) return;
+
+      const newRoutes = routes.filter((r) => r.id !== routeId);
+      saveAllRoutes(newRoutes);
+      loadRoutesFromStorage();
+
+      clearMapLayers();
+      updateRouteInfo(null);
+      const trapList = document.getElementById("trapList");
+      trapList.innerHTML = "Nenhum trajeto selecionado.";
+
+      const status = document.getElementById("status");
+      status.textContent = "Trajeto excluído.";
+    }
+
+    /************************************************************
+     * MODAL DE FOTO AMPLIADA
+     ************************************************************/
+    function setupPhotoModal() {
+      const modal = document.getElementById("photoModal");
+      if (!modal) return;
+
+      modal.addEventListener("click", () => {
+        modal.classList.remove("visible");
+      });
+    }
+
+    function openPhotoModal(src) {
+      const modal = document.getElementById("photoModal");
+      const img = document.getElementById("photoModalImg");
+      if (!modal || !img) return;
+
+      img.src = src;
+      modal.classList.add("visible");
+    }
+
+    // Deixa acessível globalmente, se precisar
+    window.openPhotoModal = openPhotoModal;
 
     /************************************************************
      * HELPERS
