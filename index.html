@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Iscas de Abelhas - Rastreador de Trajeto</title>
+  <title>Ninhos de Abelhas - Rastreador de Trajeto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Cor da barra do navegador / PWA -->
@@ -270,8 +270,8 @@
 </head>
 <body>
   <header>
-    <h1>Iscas de Abelhas – Rastreador</h1>
-    <p>Registre seus trajetos, marque pontos de isca com foto e consulte depois.</p>
+    <h1>Ninhos de Abelhas – Rastreador</h1>
+    <p>Registre seus trajetos, marque pontos de ninhos com foto e consulte depois.</p>
   </header>
 
   <main>
@@ -283,7 +283,7 @@
           </button>
 
           <button id="btnMarkTrap" class="btn-secondary btn-disabled" disabled>
-            📍 Marcar ponto de isca
+            📍 Marcar ponto de ninho
           </button>
         </div>
 
@@ -310,10 +310,10 @@
             🗑️ Excluir trajeto
           </button>
           <button id="btnMonitorRoute" class="btn-secondary btn-small">
-            📡 Monitorar iscas
+            📡 Monitorar ninhos
           </button>
           <button id="btnNextTrap" class="btn-secondary btn-small btn-disabled" disabled>
-            ➡ Próxima isca
+            ➡ Próximo ninho
           </button>
         </div>
 
@@ -322,11 +322,11 @@
         </div>
 
         <div class="info" id="monitorInfo" style="margin-top: 6px;">
-          Monitoramento de iscas inativo.
+          Monitoramento de ninhos inativo.
         </div>
 
         <div class="trap-list" id="trapList">
-          <!-- lista de pontos de isca -->
+          <!-- lista de pontos de ninhos -->
         </div>
       </div>
     </section>
@@ -342,7 +342,7 @@
     Webapp didático – dados salvos apenas no seu navegador (localStorage).
   </footer>
 
-  <!-- Input de foto oculto (usado ao marcar isca) -->
+  <!-- Input de foto oculto (usado ao marcar ninho) -->
   <input
     type="file"
     id="photoInput"
@@ -353,7 +353,7 @@
 
   <!-- Modal para foto ampliada -->
   <div id="photoModal" class="photo-modal">
-    <img id="photoModalImg" src="" alt="Foto ampliada da isca" />
+    <img id="photoModalImg" src="" alt="Foto ampliada do ninho" />
     <div class="photo-modal-hint">Toque em qualquer lugar para fechar</div>
   </div>
 
@@ -365,13 +365,13 @@
     let pathPolyline;
     let currentMarker;
     let trapsLayerGroup;
-    let monitorLine; // linha entre posição atual e próxima isca
+    let monitorLine; // linha entre posição atual e próximo ninho
 
     let isTracking = false;
     let watchId = null;
     let currentRoute = null;
 
-    // Estado do monitoramento de iscas
+    // Estado do monitoramento de ninhos
     const monitorState = {
       active: false,
       routeId: null,
@@ -382,7 +382,7 @@
     };
 
     // Armazena todos os trajetos salvos (no dispositivo)
-    const STORAGE_KEY = "iscas_trajetos_v1";
+    const STORAGE_KEY = "iscas_trajetos_v1"; // chave pode ficar assim, é só interna
 
     /************************************************************
      * INICIALIZAÇÃO
@@ -428,7 +428,7 @@
 
       btnMarkTrap.addEventListener("click", () => {
         if (!isTracking || !currentRoute) {
-          alert("Inicie um trajeto antes de marcar pontos de isca.");
+          alert("Inicie um trajeto antes de marcar pontos de ninho.");
           return;
         }
         handleMarkTrap();
@@ -439,7 +439,7 @@
         if (!id) {
           clearMapLayers();
           updateRouteInfo(null);
-          updateMonitorInfo("Monitoramento de iscas inativo.");
+          updateMonitorInfo("Monitoramento de ninhos inativo.");
           return;
         }
         const routes = getAllRoutes();
@@ -463,7 +463,6 @@
           alert("Selecione um trajeto para renomear.");
           return;
         }
-        // se estiver monitorando esse trajeto, para o monitoramento
         if (monitorState.active) {
           stopMonitoringRoute();
         }
@@ -478,14 +477,13 @@
           alert("Selecione um trajeto para excluir.");
           return;
         }
-        // se estiver monitorando esse trajeto, para o monitoramento
         if (monitorState.active && monitorState.routeId === id) {
           stopMonitoringRoute();
         }
         deleteRoute(id);
       });
 
-      // Monitorar iscas
+      // Monitorar ninhos
       btnMonitorRoute.addEventListener("click", () => {
         const select = document.getElementById("routeSelect");
         const id = select.value;
@@ -501,7 +499,7 @@
         }
       });
 
-      // Próxima isca
+      // Próximo ninho
       btnNextTrap.addEventListener("click", () => {
         goToNextTrap();
       });
@@ -550,7 +548,7 @@
 
         const opt = document.createElement("option");
         opt.value = r.id;
-        opt.textContent = `${r.name} – ${totalIscas} isca(s) – ${inicioStr}`;
+        opt.textContent = `${r.name} – ${totalIscas} ninho(s) – ${inicioStr}`;
         routeSelect.appendChild(opt);
       });
     }
@@ -565,7 +563,7 @@
       }
 
       if (monitorState.active) {
-        alert("Pare o monitoramento de iscas antes de iniciar um novo trajeto.");
+        alert("Pare o monitoramento de ninhos antes de iniciar um novo trajeto.");
         return;
       }
 
@@ -694,7 +692,7 @@
     }
 
     /************************************************************
-     * MARCAR PONTO DE ISCA (COM FOTO)
+     * MARCAR PONTO DE NINHO (COM FOTO)
      ************************************************************/
     let pendingTrapPosition = null; // guarda posição enquanto espera foto
     function handleMarkTrap() {
@@ -704,14 +702,12 @@
 
       const finishMark = (lat, lng) => {
         pendingTrapPosition = { lat, lng, timestamp: new Date().toISOString() };
-        // Abre input de foto
         document.getElementById("photoInput").click();
       };
 
       if (lastPoint) {
         finishMark(lastPoint.lat, lastPoint.lng);
       } else {
-        // Se ainda não há pontos no trajeto, tenta pegar posição atual
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             const { latitude, longitude } = pos.coords;
@@ -735,16 +731,14 @@
     function handlePhotoSelected(event) {
       const file = event.target.files[0];
       if (!pendingTrapPosition) {
-        // estado inconsistente, apenas limpa input
         event.target.value = "";
         return;
       }
 
       const note =
-        prompt("Alguma observação sobre esta isca? (opcional)", "") || "";
+        prompt("Alguma observação sobre este ninho? (opcional)", "") || "";
 
       if (!file) {
-        // Usuário cancelou a seleção de foto, ainda assim podemos registrar o ponto sem foto
         registerTrap(
           pendingTrapPosition.lat,
           pendingTrapPosition.lng,
@@ -784,22 +778,21 @@
 
       currentRoute.traps.push(trap);
 
-      // Adiciona marcador no mapa
       const popupHtml = createTrapPopupHtml(trap);
       const marker = L.marker([lat, lng]).addTo(trapsLayerGroup);
       marker.bindPopup(popupHtml);
 
-      alert("Ponto de isca registrado!");
+      alert("Ponto de ninho registrado!");
     }
 
     function createTrapPopupHtml(trap) {
       const dt = formatDateTime(new Date(trap.timestamp));
-      let html = `<div><strong>Ponto de isca</strong><br/><small>${dt}</small>`;
+      let html = `<div><strong>Ninho</strong><br/><small>${dt}</small>`;
       if (trap.note) {
         html += `<br/><em>${escapeHtml(trap.note)}</em>`;
       }
       if (trap.photo) {
-        html += `<br/><img src="${trap.photo}" alt="Foto da isca" style="max-width:120px;max-height:90px;margin-top:4px;border-radius:6px;" />`;
+        html += `<br/><img src="${trap.photo}" alt="Foto do ninho" style="max-width:120px;max-height:90px;margin-top:4px;border-radius:6px;" />`;
       }
       html += `</div>`;
       return html;
@@ -826,11 +819,9 @@
       const latlngs = route.path.map((p) => [p.lat, p.lng]);
       pathPolyline.setLatLngs(latlngs);
 
-      // Posição final como marcador "atual"
       const last = latlngs[latlngs.length - 1];
       currentMarker = L.marker(last).addTo(map);
 
-      // Pontos de isca
       if (route.traps && route.traps.length > 0) {
         route.traps.forEach((trap) => {
           const marker = L.marker([trap.lat, trap.lng]).addTo(trapsLayerGroup);
@@ -838,7 +829,6 @@
         });
       }
 
-      // Ajusta mapa para mostrar todo o trajeto
       const bounds = L.latLngBounds(latlngs);
       map.fitBounds(bounds, { padding: [20, 20] });
     }
@@ -854,7 +844,6 @@
       const totalPontos = route.path ? route.path.length : 0;
       const totalIscas = route.traps ? route.traps.length : 0;
 
-      // Início e fim do trajeto (com base nos timestamps do path)
       let inicioStr = "-";
       let fimStr = "-";
 
@@ -870,7 +859,7 @@
         <div>Início do trajeto: <strong>${inicioStr}</strong></div>
         <div>Fim do trajeto: <strong>${fimStr}</strong></div>
         <div>Pontos do caminho (GPS): <strong>${totalPontos}</strong></div>
-        <div>Nº de iscas marcadas: <strong>${totalIscas}</strong></div>
+        <div>Nº de ninhos marcados: <strong>${totalIscas}</strong></div>
       `;
     }
 
@@ -878,7 +867,7 @@
       const listDiv = document.getElementById("trapList");
       listDiv.innerHTML = "";
       if (!route.traps || route.traps.length === 0) {
-        listDiv.textContent = "Nenhum ponto de isca registrado neste trajeto.";
+        listDiv.textContent = "Nenhum ponto de ninho registrado neste trajeto.";
         return;
       }
 
@@ -887,8 +876,10 @@
         const item = document.createElement("div");
         item.className = "trap-item";
         item.innerHTML = `
-          <strong>Isca ${idx + 1}</strong>
-          <span class="badge">${trap.lat.toFixed(5)}, ${trap.lng.toFixed(5)}</span><br/>
+          <strong>Ninho ${idx + 1}</strong>
+          <span class="badge">${trap.lat.toFixed(5)}, ${trap.lng.toFixed(
+          5
+        )}</span><br/>
           <small>${dt}</small><br/>
           ${
             trap.note
@@ -899,7 +890,7 @@
         if (trap.photo) {
           const img = document.createElement("img");
           img.src = trap.photo;
-          img.alt = "Foto da isca";
+          img.alt = "Foto do ninho";
           img.className = "photo-thumb";
           img.addEventListener("click", () => {
             openPhotoModal(trap.photo);
@@ -924,7 +915,7 @@
       const currentName = routes[idx].name || "";
       const newName = prompt("Novo nome para este trajeto:", currentName);
       if (!newName) {
-        return; // cancelado
+        return;
       }
 
       routes[idx].name = newName;
@@ -961,14 +952,14 @@
       updateRouteInfo(null);
       const trapList = document.getElementById("trapList");
       trapList.innerHTML = "Nenhum trajeto selecionado.";
-      updateMonitorInfo("Monitoramento de iscas inativo.");
+      updateMonitorInfo("Monitoramento de ninhos inativo.");
 
       const status = document.getElementById("status");
       status.textContent = "Trajeto excluído.";
     }
 
     /************************************************************
-     * MONITORAMENTO DE ISCAS (GUIA ISCA POR ISCA)
+     * MONITORAMENTO DE NINHOS
      ************************************************************/
     function startMonitoringRoute(routeId) {
       if (!("geolocation" in navigator)) {
@@ -984,12 +975,12 @@
       }
 
       if (!route.traps || route.traps.length === 0) {
-        alert("Este trajeto não possui pontos de isca registrados.");
+        alert("Este trajeto não possui ninhos registrados.");
         return;
       }
 
       if (isTracking) {
-        alert("Pare a gravação de trajeto antes de iniciar o monitoramento de iscas.");
+        alert("Pare a gravação de trajeto antes de iniciar o monitoramento de ninhos.");
         return;
       }
 
@@ -1006,33 +997,29 @@
       btnNextTrap.disabled = false;
       btnNextTrap.classList.remove("btn-disabled");
 
-      updateMonitorInfo("Monitorando iscas… aguardando posição GPS.");
+      updateMonitorInfo("Monitorando ninhos… aguardando posição GPS.");
 
-      // Inicia monitoramento de posição
       monitorState.watchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
           monitorState.currentPosition = { lat: latitude, lng: longitude };
 
-          // Atualiza marcador de posição atual no mapa
           if (currentMarker) {
             currentMarker.setLatLng([latitude, longitude]);
           } else {
             currentMarker = L.marker([latitude, longitude]).addTo(map);
           }
 
-          // Se ainda não temos isca alvo, escolhe a mais próxima
           const routesNow = getAllRoutes();
           const rNow = routesNow.find((r) => r.id === monitorState.routeId);
           if (!rNow || !rNow.traps || rNow.traps.length === 0) {
-            updateMonitorInfo("Nenhuma isca encontrada neste trajeto.");
+            updateMonitorInfo("Nenhum ninho encontrado neste trajeto.");
             return;
           }
 
           if (!monitorState.currentTrapId) {
             selectNearestTrap(rNow);
           } else {
-            // Atualiza distância até a isca atual
             const trap = rNow.traps.find((t) => t.id === monitorState.currentTrapId);
             if (trap) {
               updateMonitorTargetUI(trap);
@@ -1040,8 +1027,8 @@
           }
         },
         (err) => {
-          console.error("Erro no monitoramento de iscas (GPS):", err);
-          alert("Não foi possível obter sua localização para monitorar as iscas: " + err.message);
+          console.error("Erro no monitoramento de ninhos (GPS):", err);
+          alert("Não foi possível obter sua localização para monitorar os ninhos: " + err.message);
           stopMonitoringRoute();
         },
         {
@@ -1069,11 +1056,11 @@
 
       const btnMonitorRoute = document.getElementById("btnMonitorRoute");
       const btnNextTrap = document.getElementById("btnNextTrap");
-      btnMonitorRoute.textContent = "📡 Monitorar iscas";
+      btnMonitorRoute.textContent = "📡 Monitorar ninhos";
       btnNextTrap.disabled = true;
       btnNextTrap.classList.add("btn-disabled");
 
-      updateMonitorInfo("Monitoramento de iscas inativo.");
+      updateMonitorInfo("Monitoramento de ninhos inativo.");
     }
 
     function updateMonitorInfo(text) {
@@ -1085,27 +1072,24 @@
       const pos = monitorState.currentPosition;
       const traps = route.traps || [];
       if (traps.length === 0) {
-        updateMonitorInfo("Nenhum ponto de isca registrado neste trajeto.");
+        updateMonitorInfo("Nenhum ninho registrado neste trajeto.");
         return;
       }
 
-      // Filtra iscas ainda não visitadas nesta sessão
       const remaining = traps.filter(
         (t) => !monitorState.visited.includes(t.id)
       );
 
       if (remaining.length === 0) {
-        updateMonitorInfo("Todas as iscas deste trajeto já foram visitadas nesta sessão.");
+        updateMonitorInfo("Todos os ninhos deste trajeto já foram visitados nesta sessão.");
         stopMonitoringRoute();
         return;
       }
 
       let chosen;
       if (!pos) {
-        // Sem posição ainda: segue ordem cronológica (primeira não visitada)
         chosen = remaining[0];
       } else {
-        // Escolhe a mais próxima da posição atual
         let minDist = Infinity;
         remaining.forEach((t) => {
           const d = distanceInMeters(pos.lat, pos.lng, t.lat, t.lng);
@@ -1125,20 +1109,18 @@
     function updateMonitorTargetUI(trap) {
       const pos = monitorState.currentPosition;
       if (!pos) {
-        updateMonitorInfo("Monitorando iscas… aguardando posição GPS.");
+        updateMonitorInfo("Monitorando ninhos… aguardando posição GPS.");
         return;
       }
 
       const dist = distanceInMeters(pos.lat, pos.lng, trap.lat, trap.lng);
       const dir = bearingToDirection(pos.lat, pos.lng, trap.lat, trap.lng);
 
-      // Atualiza linha no mapa
       monitorLine.setLatLngs([
         [pos.lat, pos.lng],
         [trap.lat, trap.lng],
       ]);
 
-      // Centraliza de forma confortável
       const bounds = L.latLngBounds(
         [pos.lat, pos.lng],
         [trap.lat, trap.lng]
@@ -1146,18 +1128,18 @@
       map.fitBounds(bounds, { padding: [30, 30] });
 
       updateMonitorInfo(
-        `Próxima isca: coordenadas (${trap.lat.toFixed(
+        `Próximo ninho: coordenadas (${trap.lat.toFixed(
           5
         )}, ${trap.lng.toFixed(
           5
         )}) – aprox. ${dist.toFixed(1)} m – direção ${dir}.` +
-          " Ao chegar, toque em 'Próxima isca' para seguir para a próxima."
+          " Ao chegar, toque em 'Próximo ninho' para seguir para o próximo."
       );
     }
 
     function goToNextTrap() {
       if (!monitorState.active) {
-        alert("Inicie o monitoramento de iscas primeiro.");
+        alert("Inicie o monitoramento de ninhos primeiro.");
         return;
       }
       const routes = getAllRoutes();
@@ -1169,19 +1151,16 @@
       }
 
       if (!monitorState.currentTrapId) {
-        // ainda não escolheu nenhuma, tenta escolher agora
         selectNearestTrap(route);
         return;
       }
 
-      // Marca a atual como visitada
       if (!monitorState.visited.includes(monitorState.currentTrapId)) {
         monitorState.visited.push(monitorState.currentTrapId);
       }
       monitorState.currentTrapId = null;
       monitorLine.setLatLngs([]);
 
-      // Escolhe a próxima
       selectNearestTrap(route);
     }
 
@@ -1230,9 +1209,9 @@
         .replace(/'/g, "&#039;");
     }
 
-    // Distância em metros (fórmula de Haversine)
+    // Distância em metros (Haversine)
     function distanceInMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371000; // raio da Terra em metros
+      const R = 6371000;
       const toRad = (x) => (x * Math.PI) / 180;
 
       const dLat = toRad(lat2 - lat1);
@@ -1265,7 +1244,7 @@
       return dirs[idx];
     }
 
-    // Registro do Service Worker para PWA
+    // Service Worker
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker
