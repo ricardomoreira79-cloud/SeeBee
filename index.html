@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Ninhos de Abelhas – Rastreador</title>
+  <title>BeeTrack – Rastreador de Ninhos de Abelhas</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#14532d" />
@@ -207,6 +207,54 @@
       color: var(--text-main);
       cursor: pointer;
       font-size: 0.9rem;
+    }
+
+    /* separador + botão Google */
+    .auth-separator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 16px 0 8px;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .auth-separator::before,
+    .auth-separator::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #1f2937;
+    }
+
+    .btn-google {
+      width: 100%;
+      margin-top: 4px;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: var(--text-main);
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.75);
+    }
+
+    .btn-google span.logo {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: conic-gradient(
+        from 45deg,
+        #4285f4 0 25%,
+        #34a853 25% 50%,
+        #fbbc05 50% 75%,
+        #ea4335 75% 100%
+      );
     }
 
     .auth-msg {
@@ -487,14 +535,14 @@
 <div id="auth-screen">
   <header class="app-header">
     <div class="title-block">
-      <h1>Ninhos de Abelhas – Rastreador</h1>
-      <p>Faça login para registrar trajetos, marcar ninhos com foto e consultar depois.</p>
+      <h1>BeeTrack</h1>
+      <p>Rastreador de ninhos de abelhas. Faça login para registrar trajetos e ninhos.</p>
     </div>
   </header>
 
   <div id="auth-card">
     <h2>Entrar ou criar conta</h2>
-    <p>Use um e-mail e uma senha. Não precisa confirmar o e-mail neste ambiente de testes.</p>
+    <p>Use e-mail e senha ou sua conta Google. Neste ambiente de testes não é necessário confirmar o e-mail.</p>
 
     <div class="auth-field">
       <label for="auth-email">E-mail</label>
@@ -511,6 +559,13 @@
       <button class="btn-outline" id="btn-signup">Criar conta</button>
     </div>
 
+    <div class="auth-separator"><span>ou</span></div>
+
+    <button class="btn-google" id="btn-google-login">
+      <span class="logo"></span>
+      <span>Entrar com Google</span>
+    </button>
+
     <div id="auth-msg" class="auth-msg"></div>
   </div>
 </div>
@@ -519,8 +574,8 @@
 <div id="app-screen" class="hidden">
   <header class="app-header">
     <div class="title-block">
-      <h1>Ninhos de Abelhas – Rastreador</h1>
-      <p>Registre seus trajetos, marque ninhos com foto e consulte depois.</p>
+      <h1>BeeTrack</h1>
+      <p>Rastreador de ninhos de abelhas. Registre seus trajetos e ninhos com foto.</p>
       <div class="status-pill">
         <span class="status-dot"></span>
         <span id="cloud-status">Conectado à nuvem (Supabase)</span>
@@ -615,6 +670,7 @@
   const authMsg = document.getElementById("auth-msg");
   const btnSignIn = document.getElementById("btn-signin");
   const btnSignUp = document.getElementById("btn-signup");
+  const btnGoogleLogin = document.getElementById("btn-google-login");
   const btnLogout = document.getElementById("btn-logout");
   const userEmailLabel = document.getElementById("user-email-label");
 
@@ -686,6 +742,27 @@
     await checkSession();
   }
 
+  async function handleGoogleLogin() {
+    setAuthMessage("Redirecionando para o Google...");
+    try {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          // precisa estar cadastrado em Authentication → URL Configuration
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) {
+        console.error(error);
+        setAuthMessage(error.message || "Erro ao iniciar login com Google.", true);
+      }
+      // O Supabase vai redirecionar; ao voltar, checkSession roda de novo.
+    } catch (e) {
+      console.error(e);
+      setAuthMessage("Erro ao iniciar login com Google.", true);
+    }
+  }
+
   async function handleLogout() {
     await supabaseClient.auth.signOut();
     await checkSession();
@@ -717,6 +794,7 @@
 
   btnSignUp.addEventListener("click", handleSignUp);
   btnSignIn.addEventListener("click", handleSignIn);
+  btnGoogleLogin.addEventListener("click", handleGoogleLogin);
   btnLogout.addEventListener("click", handleLogout);
 
   /* ======================= APP PRINCIPAL ======================= */
@@ -814,7 +892,7 @@
         const d = calculateTotalDistance(currentRoute.path);
         currentRoute.totalDistance = d;
         infoDistance.textContent =
-          "Distância: " + d.toFixed(d > 1000 ? 1 : 0) + (d > 1000 ? " m" : " m");
+          "Distância: " + d.toFixed(d > 1000 ? 1 : 0) + " m";
 
         // Mantém mapa perto do usuário
         map.panTo([latitude, longitude], { animate: true });
