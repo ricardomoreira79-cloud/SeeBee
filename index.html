@@ -29,17 +29,15 @@
   <style>
     :root {
       --green-dark: #14532d;
-      --green: #15803d;
+      --green: #16a34a;
       --green-soft: #bbf7d0;
-      --bg: #0f172a;
+      --bg: #020617;
       --card-bg: #020617;
       --border: #1f2937;
       --text-main: #e5e7eb;
       --text-soft: #9ca3af;
       --danger: #b91c1c;
-      --radius-lg: 14px;
-      --status-online-bg: #064e3b;
-      --status-offline-bg: #7c2d12;
+      --radius-lg: 16px;
     }
 
     * {
@@ -48,14 +46,8 @@
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        sans-serif;
-      background: radial-gradient(
-        circle at top,
-        #022c22 0,
-        #020617 45%,
-        #000 100%
-      );
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #022c22 0, #020617 45%, #000 100%);
       color: var(--text-main);
     }
 
@@ -91,22 +83,27 @@
     }
 
     .title-block p {
-      margin: 2px 0 0;
+      margin: 2px 0 8px;
       font-size: 0.9rem;
       color: var(--text-soft);
     }
 
     .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 0.8rem;
       padding: 4px 10px;
       border-radius: 999px;
       border: 1px solid #15803d55;
-      background: var(--status-online-bg);
+      background: #064e3b;
       color: #bbf7d0;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 6px;
+    }
+
+    .status-pill.offline {
+      border-color: #fecaca55;
+      background: #7f1d1d;
+      color: #fee2e2;
     }
 
     .status-dot {
@@ -117,9 +114,9 @@
       box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
     }
 
-    .status-dot.offline {
+    .status-pill.offline .status-dot {
       background: #f97316;
-      box-shadow: 0 0 0 4px rgba(248, 180, 83, 0.3);
+      box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.25);
     }
 
     .user-info {
@@ -149,21 +146,50 @@
       color: #e5e7eb;
     }
 
-    /* ========= AUTH ========= */
+    /* ========= HERO / LOGIN ========= */
 
-    #auth-card {
-      margin-top: 40px;
-      max-width: 420px;
+    .auth-hero {
+      margin-top: 24px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .logo-circle {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 12px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #facc15, #ea580c 75%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 0 0 4px rgba(15, 23, 42, 0.9),
+        0 20px 40px rgba(0, 0, 0, 0.8);
+      font-size: 42px;
+    }
+
+    .auth-hero-title {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: 0.08em;
+    }
+
+    .auth-hero-subtitle {
+      margin: 8px 0 0;
+      color: var(--text-soft);
+      font-size: 0.95rem;
+      max-width: 560px;
       margin-left: auto;
       margin-right: auto;
+    }
+
+    #auth-card {
+      max-width: 460px;
+      margin: 0 auto 32px;
       padding: 24px 20px 20px;
       border-radius: var(--radius-lg);
-      background: radial-gradient(
-        circle at top left,
-        #04785744,
-        #020617 45%,
-        #000 100%
-      );
+      background: radial-gradient(circle at top left, #04785744, #020617 45%, #000 100%);
       border: 1px solid #1f2937;
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
     }
@@ -229,32 +255,31 @@
     }
 
     .btn-google {
-      margin-top: 12px;
+      margin-top: 10px;
       width: 100%;
+      padding: 9px 12px;
       border-radius: 999px;
-      border: 1px solid #4b5563;
+      border: 1px solid #1f2937;
       background: #020617;
       color: var(--text-main);
-      padding: 8px 10px;
       font-size: 0.9rem;
-      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      cursor: pointer;
     }
 
-    .btn-google span.logo {
-      width: 16px;
-      height: 16px;
-      border-radius: 3px;
+    .btn-google-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
       background: conic-gradient(
         from 45deg,
-        #4285f4,
-        #ea4335,
-        #fbbc05,
-        #34a853,
-        #4285f4
+        #4285f4 0 25%,
+        #34a853 25% 50%,
+        #fbbc05 50% 75%,
+        #ea4335 75% 100%
       );
     }
 
@@ -282,12 +307,7 @@
     }
 
     .card {
-      background: radial-gradient(
-        circle at top left,
-        #065f4633,
-        #020617 60%,
-        #000 100%
-      );
+      background: radial-gradient(circle at top left, #065f4633, #020617 60%, #000 100%);
       border-radius: var(--radius-lg);
       border: 1px solid var(--border);
       padding: 14px 14px 12px;
@@ -536,625 +556,707 @@
   </style>
 </head>
 <body>
-  <!-- ============ TELA DE AUTENTICAÇÃO ============ -->
-  <div id="auth-screen">
-    <header class="app-header">
-      <div class="title-block">
-        <h1>SeeBee</h1>
-        <p>Rastreador de ninhos de abelhas em campo.</p>
-        <div class="status-pill" id="status-pill">
-          <span class="status-dot" id="status-dot"></span>
-          <span id="cloud-status">Conectado à nuvem (Supabase)</span>
-        </div>
-      </div>
-    </header>
 
-    <div id="auth-card">
-      <h2>Entrar ou criar conta</h2>
-      <p>Use um e-mail e uma senha ou sua conta Google.</p>
-
-      <div class="auth-field">
-        <label for="auth-email">E-mail</label>
-        <input id="auth-email" type="email" autocomplete="email" />
-      </div>
-
-      <div class="auth-field">
-        <label for="auth-password">Senha</label>
-        <input
-          id="auth-password"
-          type="password"
-          autocomplete="current-password"
-        />
-      </div>
-
-      <div class="auth-buttons">
-        <button class="btn-primary" id="btn-signin">Entrar</button>
-        <button class="btn-outline" id="btn-signup">Criar conta</button>
-      </div>
-
-      <button class="btn-google" id="btn-google">
-        <span class="logo"></span>
-        <span>Entrar com Google</span>
-      </button>
-
-      <div id="auth-msg" class="auth-msg"></div>
-    </div>
+<!-- ============ TELA DE AUTENTICAÇÃO ============ -->
+<div id="auth-screen">
+  <div class="auth-hero">
+    <div class="logo-circle">🐝</div>
+    <h1 class="auth-hero-title">SeeBee</h1>
+    <p class="auth-hero-subtitle">
+      Faça login para registrar trajetos, marcar ninhos com foto e consultar tudo depois
+      com segurança na nuvem.
+    </p>
   </div>
 
-  <!-- ============ TELA DO APP ============ -->
-  <div id="app-screen" class="hidden">
-    <header class="app-header">
-      <div class="title-block">
-        <h1>SeeBee</h1>
-        <p>Registre seus trajetos, marque ninhos com foto e consulte depois.</p>
-        <div class="status-pill" id="status-pill-app">
-          <span class="status-dot" id="status-dot-app"></span>
-          <span id="cloud-status-app">Conectado à nuvem (Supabase)</span>
-        </div>
-      </div>
+  <div id="auth-card">
+    <h2>Entrar ou criar conta</h2>
+    <p>Use um e-mail e senha ou conecte com sua conta Google para salvar seus trajetos na nuvem.</p>
 
-      <div class="user-info">
-        <span class="user-email" id="user-email-label"></span>
-        <button class="btn-ghost" id="btn-logout">Sair</button>
-      </div>
-    </header>
-
-    <div class="app-grid">
-      <!-- COLUNA CONTROLES -->
-      <section class="card">
-        <h3>
-          Trajeto em andamento <span class="badge" id="badge-status">Parado</span>
-        </h3>
-        <p class="card-subtitle">
-          Comece o trajeto, caminhe instalando ninhos e registre cada ponto com
-          foto.
-        </p>
-
-        <div class="controls-grid">
-          <button class="btn-lg btn-start" id="btn-toggle-route">
-            <span id="btn-toggle-icon">▶</span>
-            <span id="btn-toggle-text">Iniciar trajeto</span>
-          </button>
-
-          <button class="btn-lg btn-secondary" id="btn-add-nest" disabled>
-            🐝 Marcar ninho
-          </button>
-        </div>
-
-        <div class="info-row">
-          <span class="info-pill" id="info-route-name">Trajeto: —</span>
-          <span class="info-pill" id="info-distance">Distância: 0 m</span>
-          <span class="info-pill" id="info-nests">Ninhos: 0</span>
-          <span class="info-pill" id="info-gps">GPS: aguardando...</span>
-        </div>
-      </section>
-
-      <!-- COLUNA MAPA -->
-      <section class="card">
-        <h3>Mapa</h3>
-        <p class="card-subtitle">
-          O mapa acompanha seu caminho. Os ninhos marcados aparecem como
-          alfinetes com foto.
-        </p>
-        <div id="map"></div>
-      </section>
+    <div class="auth-field">
+      <label for="auth-email">E-mail</label>
+      <input id="auth-email" type="email" autocomplete="email" />
     </div>
 
-    <!-- LISTA DE TRAJETOS -->
-    <section class="routes-section">
-      <div class="routes-header">
-        <h3>Trajetos salvos</h3>
+    <div class="auth-field">
+      <label for="auth-password">Senha</label>
+      <input id="auth-password" type="password" autocomplete="current-password" />
+    </div>
+
+    <div class="auth-buttons">
+      <button class="btn-primary" id="btn-signin">Entrar</button>
+      <button class="btn-outline" id="btn-signup">Criar conta</button>
+    </div>
+
+    <button class="btn-google" id="btn-google-auth">
+      <span class="btn-google-icon"></span>
+      <span>Entrar com Google</span>
+    </button>
+
+    <div id="auth-msg" class="auth-msg"></div>
+  </div>
+</div>
+
+<!-- ============ TELA DO APP ============ -->
+<div id="app-screen" class="hidden">
+  <header class="app-header">
+    <div class="title-block">
+      <h1>SeeBee – Rastreador de ninhos de abelhas</h1>
+      <p>Registre seus trajetos, marque ninhos com foto e consulte depois.</p>
+      <div class="status-pill" id="status-pill">
+        <span class="status-dot"></span>
+        <span id="cloud-status">Conectado à nuvem (Supabase)</span>
       </div>
-      <div id="routes-list"></div>
+    </div>
+
+    <div class="user-info">
+      <span class="user-email" id="user-email-label"></span>
+      <button class="btn-ghost" id="btn-logout">Sair</button>
+    </div>
+  </header>
+
+  <div class="app-grid">
+    <!-- COLUNA CONTROLES -->
+    <section class="card">
+      <h3>Trajeto em andamento <span class="badge" id="badge-status">Parado</span></h3>
+      <p class="card-subtitle">
+        Comece o trajeto, caminhe instalando ninhos e registre cada ponto com foto.
+      </p>
+
+      <div class="controls-grid">
+        <button class="btn-lg btn-start" id="btn-toggle-route">
+          <span id="btn-toggle-icon">▶</span>
+          <span id="btn-toggle-text">Iniciar trajeto</span>
+        </button>
+
+        <button class="btn-lg btn-secondary" id="btn-add-nest" disabled>
+          🐝 Marcar ninho
+        </button>
+      </div>
+
+      <div class="info-row">
+        <span class="info-pill" id="info-route-name">Trajeto: —</span>
+        <span class="info-pill" id="info-distance">Distância: 0 m</span>
+        <span class="info-pill" id="info-nests">Ninhos: 0</span>
+        <span class="info-pill" id="info-gps">GPS: aguardando...</span>
+      </div>
+    </section>
+
+    <!-- COLUNA MAPA -->
+    <section class="card">
+      <h3>Mapa</h3>
+      <p class="card-subtitle">
+        O mapa acompanha seu caminho. Os ninhos marcados aparecem como alfinetes com foto.
+      </p>
+      <div id="map"></div>
     </section>
   </div>
 
-  <!-- MODAL PARA FOTO GRANDE -->
-  <div id="photo-modal">
-    <button id="photo-modal-close">Fechar</button>
-    <img id="photo-modal-img" src="" alt="Foto do ninho" />
-  </div>
+  <!-- LISTA DE TRAJETOS -->
+  <section class="routes-section">
+    <div class="routes-header">
+      <h3>Trajetos salvos</h3>
+    </div>
+    <div id="routes-list"></div>
+  </section>
+</div>
 
-  <script>
-    /* ======================= CONFIG SUPABASE ======================= */
+<!-- MODAL PARA FOTO GRANDE -->
+<div id="photo-modal">
+  <button id="photo-modal-close">Fechar</button>
+  <img id="photo-modal-img" src="" alt="Foto do ninho" />
+</div>
 
-    const SUPABASE_URL = "https://sgrtyotwnlwpwfecnoze.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNncnR5b3R3bmx3cHdmZWNub3plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NjgxMjcsImV4cCI6MjA4MzM0NDEyN30.QZvTN3mHUwqBwvXeL6q89qNW_4s1Cvopa40nt4TFa9w";
+<script>
+  /* ======================= CONFIG SUPABASE ======================= */
 
-    const supabaseClient = supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
+  const SUPABASE_URL = "https://sgrtyotwnlwpwfecnoze.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNncnR5b3R3bmx3cHdmZWNub3plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NjgxMjcsImV4cCI6MjA4MzM0NDEyN30.QZvTN3mHUwqBwvXeL6q89qNW_4s1Cvopa40nt4TFa9w";
 
-    /* ======================= ESTADO GLOBAL ======================= */
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let map;
-    let userMarker;
-    let currentRoute = null;
-    let watchId = null;
-    let pathLayer = null;
-    let nestsLayerGroup = null;
-    let appInitialized = false;
-    let allRoutes = []; // nuvem + local
+  /* ======================= ESTADO GLOBAL ======================= */
 
-    const STORAGE_KEY = "seebee_routes_v1";
+  let map;
+  let userMarker;
+  let currentRoute = null;
+  let watchId = null;
+  let pathLayer = null;
+  let nestsLayerGroup = null;
+  let appInitialized = false;
+  let allRoutes = []; // carregados da nuvem + localStorage
 
-    /* ======================= ELEMENTOS DOM ======================= */
+  let isOnline = navigator.onLine;
 
-    const authScreen = document.getElementById("auth-screen");
-    const appScreen = document.getElementById("app-screen");
-    const authEmailInput = document.getElementById("auth-email");
-    const authPasswordInput = document.getElementById("auth-password");
-    const authMsg = document.getElementById("auth-msg");
-    const btnSignIn = document.getElementById("btn-signin");
-    const btnSignUp = document.getElementById("btn-signup");
-    const btnGoogle = document.getElementById("btn-google");
-    const btnLogout = document.getElementById("btn-logout");
-    const userEmailLabel = document.getElementById("user-email-label");
+  const STORAGE_KEY = "seebee_routes_v1";
 
-    const btnToggleRoute = document.getElementById("btn-toggle-route");
-    const btnToggleIcon = document.getElementById("btn-toggle-icon");
-    const btnToggleText = document.getElementById("btn-toggle-text");
-    const btnAddNest = document.getElementById("btn-add-nest");
-    const badgeStatus = document.getElementById("badge-status");
+  /* ======================= ELEMENTOS DOM ======================= */
 
-    const infoRouteName = document.getElementById("info-route-name");
-    const infoDistance = document.getElementById("info-distance");
-    const infoNests = document.getElementById("info-nests");
-    const infoGps = document.getElementById("info-gps");
-    const cloudStatus = document.getElementById("cloud-status");
-    const cloudStatusApp = document.getElementById("cloud-status-app");
-    const statusPill = document.getElementById("status-pill");
-    const statusPillApp = document.getElementById("status-pill-app");
-    const statusDot = document.getElementById("status-dot");
-    const statusDotApp = document.getElementById("status-dot-app");
+  const authScreen = document.getElementById("auth-screen");
+  const appScreen = document.getElementById("app-screen");
+  const authEmailInput = document.getElementById("auth-email");
+  const authPasswordInput = document.getElementById("auth-password");
+  const authMsg = document.getElementById("auth-msg");
+  const btnSignIn = document.getElementById("btn-signin");
+  const btnSignUp = document.getElementById("btn-signup");
+  const btnGoogleAuth = document.getElementById("btn-google-auth");
+  const btnLogout = document.getElementById("btn-logout");
+  const userEmailLabel = document.getElementById("user-email-label");
 
-    const routesListEl = document.getElementById("routes-list");
+  const btnToggleRoute = document.getElementById("btn-toggle-route");
+  const btnToggleIcon = document.getElementById("btn-toggle-icon");
+  const btnToggleText = document.getElementById("btn-toggle-text");
+  const btnAddNest = document.getElementById("btn-add-nest");
+  const badgeStatus = document.getElementById("badge-status");
 
-    const photoModal = document.getElementById("photo-modal");
-    const photoModalImg = document.getElementById("photo-modal-img");
-    const photoModalClose = document.getElementById("photo-modal-close");
+  const infoRouteName = document.getElementById("info-route-name");
+  const infoDistance = document.getElementById("info-distance");
+  const infoNests = document.getElementById("info-nests");
+  const infoGps = document.getElementById("info-gps");
+  const cloudStatus = document.getElementById("cloud-status");
+  const statusPill = document.getElementById("status-pill");
 
-    /* ======================= ONLINE / OFFLINE ======================= */
+  const routesListEl = document.getElementById("routes-list");
 
-    function setCloudStatus(isOnline) {
-      const textOnline = "Conectado à nuvem (Supabase)";
-      const textOffline =
+  const photoModal = document.getElementById("photo-modal");
+  const photoModalImg = document.getElementById("photo-modal-img");
+  const photoModalClose = document.getElementById("photo-modal-close");
+
+  /* ======================= ONLINE / OFFLINE ======================= */
+
+  function updateCloudStatus() {
+    if (isOnline) {
+      cloudStatus.textContent = "Conectado à nuvem (Supabase)";
+      statusPill.classList.remove("offline");
+    } else {
+      cloudStatus.textContent =
         "Offline – dados só neste aparelho (sincronizaremos depois)";
+      statusPill.classList.add("offline");
+    }
+  }
 
-      if (isOnline) {
-        cloudStatus.textContent = textOnline;
-        cloudStatusApp.textContent = textOnline;
-        statusPill.style.background = "var(--status-online-bg)";
-        statusPillApp.style.background = "var(--status-online-bg)";
-        statusDot.classList.remove("offline");
-        statusDotApp.classList.remove("offline");
-      } else {
-        cloudStatus.textContent = textOffline;
-        cloudStatusApp.textContent = textOffline;
-        statusPill.style.background = "var(--status-offline-bg)";
-        statusPillApp.style.background = "var(--status-offline-bg)";
-        statusDot.classList.add("offline");
-        statusDotApp.classList.add("offline");
-      }
+  async function handleConnectivityChange() {
+    isOnline = navigator.onLine;
+    updateCloudStatus();
+
+    // Se voltar a ficar online e o app já estiver rodando, tenta sincronizar
+    if (isOnline && appInitialized) {
+      await syncRoutes();
+    }
+  }
+
+  window.addEventListener("online", handleConnectivityChange);
+  window.addEventListener("offline", handleConnectivityChange);
+
+  updateCloudStatus();
+
+  /* ======================= AUTENTICAÇÃO ======================= */
+
+  function setAuthMessage(text, isError = false) {
+    authMsg.textContent = text || "";
+    authMsg.classList.toggle("error", !!text && isError);
+    authMsg.classList.toggle("ok", !!text && !isError);
+  }
+
+  async function handleSignUp() {
+    setAuthMessage("Criando conta...");
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value;
+
+    if (!email || !password) {
+      setAuthMessage("Preencha e-mail e senha.", true);
+      return;
     }
 
-    window.addEventListener("online", () => {
-      setCloudStatus(true);
-      // tenta sincronizar assim que voltar
-      if (appInitialized) {
-        syncRoutes();
-      }
+    const { error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) {
+      setAuthMessage(error.message, true);
+    } else {
+      setAuthMessage("Conta criada! Agora é só clicar em Entrar.", false);
+    }
+  }
+
+  async function handleSignIn() {
+    setAuthMessage("Entrando...");
+    const email = authEmailInput.value.trim();
+    const password = authPasswordInput.value;
+
+    if (!email || !password) {
+      setAuthMessage("Preencha e-mail e senha.", true);
+      return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password,
     });
 
-    window.addEventListener("offline", () => {
-      setCloudStatus(false);
-    });
-
-    setCloudStatus(navigator.onLine);
-
-    /* ======================= AUTENTICAÇÃO ======================= */
-
-    function setAuthMessage(text, isError = false) {
-      authMsg.textContent = text || "";
-      authMsg.classList.toggle("error", !!text && isError);
-      authMsg.classList.toggle("ok", !!text && !isError);
+    if (error) {
+      setAuthMessage(error.message, true);
+      return;
     }
 
-    async function handleSignUp() {
-      setAuthMessage("Criando conta...");
-      const email = authEmailInput.value.trim();
-      const password = authPasswordInput.value;
+    setAuthMessage("");
+    await checkSession();
+  }
 
-      if (!email || !password) {
-        setAuthMessage("Preencha e-mail e senha.", true);
-        return;
-      }
-
-      const { error } = await supabaseClient.auth.signUp({ email, password });
-      if (error) {
-        setAuthMessage(error.message, true);
-      } else {
-        setAuthMessage("Conta criada! Agora é só clicar em Entrar.", false);
-      }
-    }
-
-    async function handleSignIn() {
-      setAuthMessage("Entrando...");
-      const email = authEmailInput.value.trim();
-      const password = authPasswordInput.value;
-
-      if (!email || !password) {
-        setAuthMessage("Preencha e-mail e senha.", true);
-        return;
-      }
-
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password,
+  async function handleGoogleSignIn() {
+    setAuthMessage("Redirecionando para o Google...");
+    try {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+        },
       });
-
       if (error) {
         setAuthMessage(error.message, true);
-        return;
       }
-
-      setAuthMessage("");
-      await checkSession();
+    } catch (e) {
+      console.error(e);
+      setAuthMessage("Erro ao iniciar login com Google.", true);
     }
+  }
 
-    async function handleGoogleSignIn() {
-      try {
-        setAuthMessage("Redirecionando para o Google...");
-        const { error } = await supabaseClient.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: window.location.origin,
-          },
-        });
-        if (error) {
-          setAuthMessage(error.message, true);
-        }
-      } catch (e) {
-        console.error(e);
-        setAuthMessage("Erro ao redirecionar para o Google.", true);
+  async function handleLogout() {
+    await supabaseClient.auth.signOut();
+    await checkSession();
+  }
+
+  async function checkSession() {
+    const { data } = await supabaseClient.auth.getSession();
+    const session = data.session;
+
+    if (session) {
+      // Usuário logado
+      authScreen.classList.add("hidden");
+      appScreen.classList.remove("hidden");
+      userEmailLabel.textContent = session.user.email || "";
+      if (!appInitialized) {
+        appInitialized = true;
+        initApp();
       }
+    } else {
+      // Sem login
+      authScreen.classList.remove("hidden");
+      appScreen.classList.add("hidden");
     }
+  }
 
-    async function handleLogout() {
-      await supabaseClient.auth.signOut();
-      await checkSession();
-    }
+  supabaseClient.auth.onAuthStateChange(() => {
+    checkSession();
+  });
 
-    async function checkSession() {
-      const { data } = await supabaseClient.auth.getSession();
-      const session = data.session;
+  btnSignUp.addEventListener("click", handleSignUp);
+  btnSignIn.addEventListener("click", handleSignIn);
+  btnGoogleAuth.addEventListener("click", handleGoogleSignIn);
+  btnLogout.addEventListener("click", handleLogout);
 
-      if (session) {
-        authScreen.classList.add("hidden");
-        appScreen.classList.remove("hidden");
-        userEmailLabel.textContent = session.user.email || "";
-        if (!appInitialized) {
-          appInitialized = true;
-          initApp();
-        }
-      } else {
-        authScreen.classList.remove("hidden");
-        appScreen.classList.add("hidden");
-      }
-    }
+  /* ======================= APP PRINCIPAL ======================= */
 
-    supabaseClient.auth.onAuthStateChange(() => {
-      checkSession();
-    });
+  function initMap() {
+    map = L.map("map");
 
-    btnSignUp.addEventListener("click", handleSignUp);
-    btnSignIn.addEventListener("click", handleSignIn);
-    btnGoogle.addEventListener("click", handleGoogleSignIn);
-    btnLogout.addEventListener("click", handleLogout);
+    // Tile layer OSM
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap",
+    }).addTo(map);
 
-    /* ======================= APP PRINCIPAL ======================= */
+    nestsLayerGroup = L.layerGroup().addTo(map);
 
-    function initMap() {
-      map = L.map("map");
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap",
-      }).addTo(map);
-
-      nestsLayerGroup = L.layerGroup().addTo(map);
-
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const { latitude, longitude } = pos.coords;
-            map.setView([latitude, longitude], 17);
-            updateUserMarker(latitude, longitude);
-            infoGps.textContent = "GPS: sinal ok";
-          },
-          () => {
-            map.setView([-15.601, -56.097], 13);
-            infoGps.textContent = "GPS: não autorizado";
-          }
-        );
-      } else {
-        map.setView([-15.601, -56.097], 13);
-        infoGps.textContent = "GPS: não disponível";
-      }
-    }
-
-    function updateUserMarker(lat, lng) {
-      if (!map) return;
-      if (!userMarker) {
-        userMarker = L.circleMarker([lat, lng], {
-          radius: 7,
-          color: "#22c55e",
-          fillColor: "#22c55e",
-          fillOpacity: 0.9,
-        }).addTo(map);
-      } else {
-        userMarker.setLatLng([lat, lng]);
-      }
-    }
-
-    function startRoute() {
-      if (!navigator.geolocation) {
-        alert("Seu dispositivo não suporta GPS.");
-        return;
-      }
-
-      currentRoute = {
-        id: null,
-        name: "",
-        created_at: new Date().toISOString(),
-        path: [],
-        nests: [],
-        totalDistance: 0,
-        synced: false,
-      };
-
-      pathLayer = L.polyline([], {
-        color: "#22c55e",
-        weight: 4,
-      }).addTo(map);
-
-      nestsLayerGroup.clearLayers();
-
-      btnAddNest.disabled = false;
-      badgeStatus.textContent = "Gravando";
-      badgeStatus.style.background = "#14532d";
-      btnToggleText.textContent = "Finalizar trajeto";
-      btnToggleIcon.textContent = "⏹";
-      infoRouteName.textContent = "Trajeto: em gravação...";
-      infoDistance.textContent = "Distância: 0 m";
-      infoNests.textContent = "Ninhos: 0";
-
-      watchId = navigator.geolocation.watchPosition(
+    // Posição inicial: tenta usar GPS
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
-          const point = {
-            lat: latitude,
-            lng: longitude,
-            t: new Date().toISOString(),
-          };
-          currentRoute.path.push(point);
-
+          map.setView([latitude, longitude], 17);
           updateUserMarker(latitude, longitude);
-          pathLayer.addLatLng([latitude, longitude]);
-
-          const d = calculateTotalDistance(currentRoute.path);
-          currentRoute.totalDistance = d;
-          infoDistance.textContent =
-            "Distância: " +
-            d.toFixed(d > 1000 ? 1 : 0) +
-            (d > 1000 ? " m" : " m");
-
-          map.panTo([latitude, longitude], { animate: true });
-          infoGps.textContent = "GPS: acompanhando...";
+          infoGps.textContent = "GPS: sinal ok";
         },
-        (error) => {
-          console.error(error);
-          infoGps.textContent = "GPS: erro ao ler posição";
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 1000,
-          timeout: 10000,
+        () => {
+          map.setView([-15.601, -56.097], 13); // fallback Cuiabá
+          infoGps.textContent = "GPS: não autorizado";
         }
       );
+    } else {
+      map.setView([-15.601, -56.097], 13);
+      infoGps.textContent = "GPS: não disponível";
+    }
+  }
+
+  function updateUserMarker(lat, lng) {
+    if (!map) return;
+    if (!userMarker) {
+      userMarker = L.circleMarker([lat, lng], {
+        radius: 7,
+        color: "#22c55e",
+        fillColor: "#22c55e",
+        fillOpacity: 0.9,
+      }).addTo(map);
+    } else {
+      userMarker.setLatLng([lat, lng]);
+    }
+  }
+
+  function startRoute() {
+    if (!navigator.geolocation) {
+      alert("Seu dispositivo não suporta GPS.");
+      return;
     }
 
-    async function stopRoute() {
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-      }
+    currentRoute = {
+      id: null, // ID da nuvem, se salvar
+      name: "",
+      created_at: new Date().toISOString(),
+      path: [],
+      nests: [],
+      totalDistance: 0,
+      synced: false, // assume que começa não sincronizado
+    };
 
-      btnAddNest.disabled = true;
-      badgeStatus.textContent = "Parado";
-      badgeStatus.style.background = "#022c22";
-      btnToggleText.textContent = "Iniciar trajeto";
-      btnToggleIcon.textContent = "▶";
+    pathLayer = L.polyline([], {
+      color: "#22c55e",
+      weight: 4,
+    }).addTo(map);
 
-      if (!currentRoute || currentRoute.path.length < 2) {
-        alert("Poucos pontos registrados. O trajeto foi descartado.");
-        if (pathLayer) {
-          map.removeLayer(pathLayer);
-          pathLayer = null;
-        }
-        currentRoute = null;
-        infoRouteName.textContent = "Trajeto: —";
-        infoDistance.textContent = "Distância: 0 m";
-        infoNests.textContent = "Ninhos: 0";
-        return;
-      }
+    nestsLayerGroup.clearLayers();
 
-      const defaultName = `Trajeto em ${new Date().toLocaleDateString(
-        "pt-BR"
-      )} ${new Date().toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`;
+    btnAddNest.disabled = false;
+    badgeStatus.textContent = "Gravando";
+    badgeStatus.style.background = "#14532d";
+    btnToggleText.textContent = "Finalizar trajeto";
+    btnToggleIcon.textContent = "⏹";
+    infoRouteName.textContent = "Trajeto: em gravação...";
+    infoDistance.textContent = "Distância: 0 m";
+    infoNests.textContent = "Ninhos: 0";
 
-      const name = prompt("Dê um nome para este trajeto:", defaultName);
-      if (!name) {
-        alert("Trajeto salvo somente como rascunho local.");
-        currentRoute.name = defaultName;
-      } else {
-        currentRoute.name = name;
-      }
-
-      infoRouteName.textContent = "Trajeto: " + currentRoute.name;
-
-      await saveRoute(currentRoute);
-
-      currentRoute = null;
-      pathLayer = null;
-    }
-
-    function calculateTotalDistance(points) {
-      if (points.length < 2) return 0;
-      let total = 0;
-      for (let i = 1; i < points.length; i++) {
-        total += haversineDistance(points[i - 1], points[i]);
-      }
-      return total;
-    }
-
-    function haversineDistance(a, b) {
-      const R = 6371000;
-      const toRad = (deg) => (deg * Math.PI) / 180;
-      const dLat = toRad(b.lat - a.lat);
-      const dLng = toRad(b.lng - a.lng);
-      const lat1 = toRad(a.lat);
-      const lat2 = toRad(b.lat);
-
-      const sinDLat = Math.sin(dLat / 2);
-      const sinDLng = Math.sin(dLng / 2);
-
-      const c =
-        sinDLat * sinDLat +
-        Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
-      const d = 2 * Math.atan2(Math.sqrt(c), Math.sqrt(1 - c));
-      return R * d;
-    }
-
-    async function handleToggleRoute() {
-      if (!currentRoute) {
-        startRoute();
-      } else {
-        await stopRoute();
-      }
-    }
-
-    async function handleAddNest() {
-      if (!currentRoute || currentRoute.path.length === 0) {
-        alert("Comece o trajeto antes de marcar um ninho.");
-        return;
-      }
-
-      const lastPoint = currentRoute.path[currentRoute.path.length - 1];
-
-      const description = prompt(
-        "Alguma observação sobre este ninho? (opcional)",
-        ""
-      );
-
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.capture = "environment";
-
-      input.onchange = async (ev) => {
-        const file = ev.target.files[0];
-        let photoUrl = null;
-
-        if (file && navigator.onLine) {
-          try {
-            const fileExt = file.name.split(".").pop();
-            const filePath =
-              "ninho-" +
-              Date.now() +
-              "-" +
-              Math.random().toString(36).slice(2) +
-              "." +
-              fileExt;
-
-            const { error: uploadError } = await supabaseClient.storage
-              .from("ninhos-fotos")
-              .upload(filePath, file, { contentType: file.type });
-
-            if (uploadError) {
-              console.error(uploadError);
-              alert(
-                "Não foi possível enviar a foto para a nuvem. O ninho será salvo sem foto."
-              );
-            } else {
-              const { data: publicData } = supabaseClient.storage
-                .from("ninhos-fotos")
-                .getPublicUrl(filePath);
-              photoUrl = publicData.publicUrl;
-            }
-          } catch (e) {
-            console.error(e);
-            alert("Erro ao enviar a foto. O ninho será salvo mesmo assim.");
-          }
-        } else if (file && !navigator.onLine) {
-          alert(
-            "Você está offline. O ninho será salvo, mas a foto não pode ser enviada agora."
-          );
-        }
-
-        const nest = {
-          lat: lastPoint.lat,
-          lng: lastPoint.lng,
-          description: description || "",
-          photoUrl,
-          created_at: new Date().toISOString(),
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const point = {
+          lat: latitude,
+          lng: longitude,
+          t: new Date().toISOString(),
         };
+        currentRoute.path.push(point);
 
-        currentRoute.nests.push(nest);
-        infoNests.textContent = "Ninhos: " + currentRoute.nests.length;
+        updateUserMarker(latitude, longitude);
+        pathLayer.addLatLng([latitude, longitude]);
 
-        const marker = L.marker([nest.lat, nest.lng]).addTo(
-          nestsLayerGroup
-        );
+        // Atualiza distância
+        const d = calculateTotalDistance(currentRoute.path);
+        currentRoute.totalDistance = d;
+        infoDistance.textContent =
+          "Distância: " + d.toFixed(d > 1000 ? 1 : 0) + " m";
 
-        if (photoUrl) {
-          marker.bindPopup(
-            `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${
-              nest.photoUrl
-            }" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
-              nest.description || ""
-            }</div>`
-          );
-        } else {
-          marker.bindPopup(
-            `<div style="font-size:12px"><strong>Ninho</strong><br>${
-              nest.description || "Sem observações."
-            }</div>`
-          );
+        // Mantém mapa perto do usuário
+        map.panTo([latitude, longitude], { animate: true });
+        infoGps.textContent = "GPS: acompanhando...";
+      },
+      (error) => {
+        console.error(error);
+        infoGps.textContent = "GPS: erro ao ler posição";
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+        timeout: 10000,
+      }
+    );
+  }
+
+  async function stopRoute() {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+
+    btnAddNest.disabled = true;
+    badgeStatus.textContent = "Parado";
+    badgeStatus.style.background = "#022c22";
+    btnToggleText.textContent = "Iniciar trajeto";
+    btnToggleIcon.textContent = "▶";
+
+    if (!currentRoute || currentRoute.path.length < 2) {
+      alert("Poucos pontos registrados. O trajeto foi descartado.");
+      if (pathLayer) {
+        map.removeLayer(pathLayer);
+        pathLayer = null;
+      }
+      currentRoute = null;
+      infoRouteName.textContent = "Trajeto: —";
+      infoDistance.textContent = "Distância: 0 m";
+      infoNests.textContent = "Ninhos: 0";
+      return;
+    }
+
+    const defaultName = `Trajeto em ${new Date().toLocaleDateString(
+      "pt-BR"
+    )} ${new Date().toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`;
+
+    const name = prompt("Dê um nome para este trajeto:", defaultName);
+    if (!name) {
+      alert("Trajeto salvo como rascunho local.");
+      currentRoute.name = defaultName;
+    } else {
+      currentRoute.name = name;
+    }
+
+    infoRouteName.textContent = "Trajeto: " + currentRoute.name;
+
+    await saveRoute(currentRoute);
+
+    currentRoute = null;
+    pathLayer = null;
+  }
+
+  function calculateTotalDistance(points) {
+    if (points.length < 2) return 0;
+    let total = 0;
+    for (let i = 1; i < points.length; i++) {
+      total += haversineDistance(points[i - 1], points[i]);
+    }
+    return total;
+  }
+
+  function haversineDistance(a, b) {
+    const R = 6371000;
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLng = Math.sin(dLng / 2);
+
+    const c =
+      sinDLat * sinDLat +
+      Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
+    const d = 2 * Math.atan2(Math.sqrt(c), Math.sqrt(1 - c));
+    return R * d;
+  }
+
+  async function handleToggleRoute() {
+    if (!currentRoute) {
+      startRoute();
+    } else {
+      await stopRoute();
+    }
+  }
+
+  async function handleAddNest() {
+    if (!currentRoute || currentRoute.path.length === 0) {
+      alert("Comece o trajeto antes de marcar um ninho.");
+      return;
+    }
+
+    const lastPoint = currentRoute.path[currentRoute.path.length - 1];
+
+    const description = prompt(
+      "Alguma observação sobre este ninho? (opcional)",
+      ""
+    );
+
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.capture = "environment";
+
+    input.onchange = async (ev) => {
+      const file = ev.target.files[0];
+      let photoUrl = null;
+
+      if (file && isOnline) {
+        try {
+          const fileExt = file.name.split(".").pop();
+          const filePath =
+            "ninho-" +
+            Date.now() +
+            "-" +
+            Math.random().toString(36).slice(2) +
+            "." +
+            fileExt;
+
+          const { error: uploadError } = await supabaseClient.storage
+            .from("ninhos-fotos")
+            .upload(filePath, file, { contentType: file.type });
+
+          if (uploadError) {
+            console.error(uploadError);
+            alert(
+              "Não foi possível enviar a foto para a nuvem. O ninho será salvo sem foto."
+            );
+          } else {
+            const { data: publicData } = supabaseClient.storage
+              .from("ninhos-fotos")
+              .getPublicUrl(filePath);
+            photoUrl = publicData.publicUrl;
+          }
+        } catch (e) {
+          console.error(e);
+          alert("Erro ao enviar a foto. O ninho será salvo mesmo assim.");
         }
+      } else if (file && !isOnline) {
+        alert(
+          "Você está offline: o ninho será salvo sem foto. (Foto em nuvem precisa de conexão.)"
+        );
+      }
+
+      const nest = {
+        lat: lastPoint.lat,
+        lng: lastPoint.lng,
+        description: description || "",
+        photoUrl,
+        created_at: new Date().toISOString(),
       };
 
-      input.click();
+      currentRoute.nests.push(nest);
+      infoNests.textContent = "Ninhos: " + currentRoute.nests.length;
+
+      const marker = L.marker([nest.lat, nest.lng]).addTo(nestsLayerGroup);
+
+      if (photoUrl) {
+        marker.bindPopup(
+          `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
+            nest.description || ""
+          }</div>`
+        );
+      } else {
+        marker.bindPopup(
+          `<div style="font-size:12px"><strong>Ninho</strong><br>${
+            nest.description || "Sem observações."
+          }</div>`
+        );
+      }
+    };
+
+    input.click();
+  }
+
+  /* ======================= SALVAR & CARREGAR ======================= */
+
+  async function saveRoute(route) {
+    // Garante flags
+    if (typeof route.synced === "undefined") {
+      route.synced = false;
     }
 
-    /* ======================= SALVAR & CARREGAR ======================= */
+    // Salva local
+    allRoutes.push(route);
+    persistLocalRoutes();
+    renderRoutesList();
 
-    async function saveRoute(route) {
-      // Marca como ainda não sincronizado
-      route.synced = false;
+    if (!isOnline) {
+      updateCloudStatus();
+      return;
+    }
 
-      allRoutes.push(route);
-      persistLocalRoutes();
-      renderRoutesList();
+    // Tenta salvar na nuvem
+    try {
+      const { data, error } = await supabaseClient
+        .from("routes")
+        .insert({
+          name: route.name,
+          path: route.path,
+          traps: route.nests,
+          created_at: route.created_at,
+        })
+        .select()
+        .single();
 
-      if (!navigator.onLine) {
-        setCloudStatus(false);
-        return;
+      if (error) {
+        console.error(error);
+        cloudStatus.textContent =
+          "Erro ao salvar na nuvem (usando cópia local).";
+        route.synced = false;
+      } else {
+        route.id = data.id;
+        route.synced = true;
+        cloudStatus.textContent = "Conectado à nuvem (Supabase)";
+        persistLocalRoutes();
+        renderRoutesList();
       }
+    } catch (e) {
+      console.error(e);
+      cloudStatus.textContent =
+        "Erro ao salvar na nuvem (usando cópia local).";
+      route.synced = false;
+    }
+  }
+
+  function persistLocalRoutes() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allRoutes));
+    } catch (e) {
+      console.error("Erro ao gravar no localStorage", e);
+    }
+  }
+
+  function loadLocalRoutes() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      // Garante flags coerentes
+      parsed.forEach((r) => {
+        if (typeof r.synced === "undefined") {
+          r.synced = !!r.id;
+        }
+      });
+      return parsed;
+    } catch (e) {
+      console.error("Erro ao ler localStorage", e);
+      return [];
+    }
+  }
+
+  async function loadCloudRoutes() {
+    if (!isOnline) {
+      return [];
+    }
+    try {
+      const { data, error } = await supabaseClient
+        .from("routes")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      return data.map((row) => ({
+        id: row.id,
+        name: row.name,
+        created_at: row.created_at,
+        path: row.path || [],
+        nests: row.traps || [],
+        totalDistance: calculateTotalDistance(row.path || []),
+        synced: true,
+      }));
+    } catch (e) {
+      console.error(e);
+      cloudStatus.textContent =
+        "Erro ao ler dados da nuvem (mostrando só dados locais).";
+      return [];
+    }
+  }
+
+  async function syncRoutes() {
+    const local = loadLocalRoutes();
+
+    if (!isOnline) {
+      allRoutes = local;
+      updateCloudStatus();
+      renderRoutesList();
+      return;
+    }
+
+    // 1) Sobe para nuvem todos os trajetos sem id / não sincronizados
+    for (const route of local) {
+      const needsSync = !route.id || route.synced === false;
+      if (!needsSync) continue;
 
       try {
         const { data, error } = await supabaseClient
@@ -1168,362 +1270,263 @@
           .select()
           .single();
 
-        if (error) {
-          console.error(error);
-          setCloudStatus(false);
-        } else if (data) {
+        if (!error && data) {
           route.id = data.id;
           route.synced = true;
-          setCloudStatus(true);
-          persistLocalRoutes();
-          renderRoutesList();
+        } else if (error) {
+          console.error("Erro ao sincronizar trajeto:", error);
         }
       } catch (e) {
-        console.error(e);
-        setCloudStatus(false);
+        console.error("Erro ao sincronizar trajeto:", e);
       }
     }
 
-    function persistLocalRoutes(routesOverride) {
-      try {
-        const toSave = routesOverride || allRoutes;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-      } catch (e) {
-        console.error("Erro ao gravar no localStorage", e);
+    // 2) Busca tudo que está na nuvem
+    const cloud = await loadCloudRoutes();
+
+    // 3) Mescla com o local (usando id quando existir)
+    const merged = [...cloud];
+
+    for (const r of local) {
+      const exists = r.id && merged.some((c) => c.id === r.id);
+      if (!exists) {
+        merged.push(r);
       }
     }
 
-    function loadLocalRoutes() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        const parsed = JSON.parse(raw);
-        return parsed.map((r) => ({
-          ...r,
-          synced:
-            typeof r.synced === "boolean"
-              ? r.synced
-              : !!r.id, // se tem id, consideramos sincronizado
-        }));
-      } catch (e) {
-        console.error("Erro ao ler localStorage", e);
-        return [];
-      }
+    // Ordena por data desc
+    merged.sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    allRoutes = merged;
+    persistLocalRoutes();
+    renderRoutesList();
+  }
+
+  /* ======================= LISTA DE TRAJETOS ======================= */
+
+  function renderRoutesList() {
+    routesListEl.innerHTML = "";
+
+    if (!allRoutes.length) {
+      const div = document.createElement("div");
+      div.className = "route-empty";
+      div.textContent =
+        "Nenhum trajeto salvo ainda. Depois de finalizar um trajeto ele aparecerá aqui.";
+      routesListEl.appendChild(div);
+      return;
     }
 
-    async function loadCloudRoutes() {
-      if (!navigator.onLine) {
-        setCloudStatus(false);
-        return [];
+    allRoutes.forEach((route, index) => {
+      const card = document.createElement("div");
+      card.className = "route-card";
+
+      const main = document.createElement("div");
+      main.className = "route-main";
+
+      const strong = document.createElement("strong");
+      strong.textContent = route.name || "Trajeto sem nome";
+      main.appendChild(strong);
+
+      const meta = document.createElement("div");
+      meta.className = "route-meta";
+
+      const date = new Date(route.created_at || Date.now());
+
+      let metaText =
+        date.toLocaleDateString("pt-BR") +
+        " · " +
+        date.toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }) +
+        " · " +
+        (route.totalDistance || 0).toFixed(
+          (route.totalDistance || 0) > 1000 ? 1 : 0
+        ) +
+        " m · " +
+        (route.nests?.length || 0) +
+        " ninhos";
+
+      const unsynced = !route.id || route.synced === false;
+      if (unsynced) {
+        metaText += " · não sincronizado (só neste aparelho)";
       }
 
-      try {
-        const { data, error } = await supabaseClient
-          .from("routes")
-          .select("*")
-          .order("created_at", { ascending: false });
+      meta.textContent = metaText;
 
-        if (error) throw error;
-        setCloudStatus(true);
+      main.appendChild(meta);
 
-        return data.map((row) => ({
-          id: row.id,
-          name: row.name,
-          created_at: row.created_at,
-          path: row.path || [],
-          nests: row.traps || [],
-          totalDistance: calculateTotalDistance(row.path || []),
-          synced: true,
-        }));
-      } catch (e) {
-        console.error(e);
-        setCloudStatus(false);
-        return [];
-      }
-    }
-
-    async function syncRoutes() {
-      const local = loadLocalRoutes();
-
-      // Se estiver offline, apenas carrega local
-      if (!navigator.onLine) {
-        setCloudStatus(false);
-        allRoutes = local;
-        renderRoutesList();
-        return;
-      }
-
-      setCloudStatus(true);
-
-      // 1) enviar trajetos locais sem id (criados offline)
-      for (const route of local) {
-        if (!route.id) {
-          try {
-            const { data, error } = await supabaseClient
-              .from("routes")
-              .insert({
-                name: route.name,
-                path: route.path,
-                traps: route.nests,
-                created_at: route.created_at,
-              })
-              .select()
-              .single();
-
-            if (!error && data) {
-              route.id = data.id;
-              route.synced = true;
-            }
-          } catch (e) {
-            console.error("Erro ao sincronizar rota offline:", e);
-          }
-        }
-      }
-
-      persistLocalRoutes(local);
-
-      // 2) ler nuvem e mesclar com local
-      const cloud = await loadCloudRoutes();
-
-      const merged = [...cloud];
-
-      for (const r of local) {
-        const exists = merged.some(
-          (c) => c.id && r.id && c.id === r.id
-        );
-        if (!exists) {
-          merged.push(r);
-        }
-      }
-
-      merged.sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
-
-      allRoutes = merged;
-      persistLocalRoutes(merged);
-      renderRoutesList();
-    }
-
-    /* ======================= LISTA DE TRAJETOS ======================= */
-
-    function renderRoutesList() {
-      routesListEl.innerHTML = "";
-
-      if (!allRoutes.length) {
-        const div = document.createElement("div");
-        div.className = "route-empty";
-        div.textContent =
-          "Nenhum trajeto salvo ainda. Depois de finalizar um trajeto ele aparecerá aqui.";
-        routesListEl.appendChild(div);
-        return;
-      }
-
-      allRoutes.forEach((route, index) => {
-        const card = document.createElement("div");
-        card.className = "route-card";
-
-        const main = document.createElement("div");
-        main.className = "route-main";
-
-        const strong = document.createElement("strong");
-        strong.textContent = route.name || "Trajeto sem nome";
-        main.appendChild(strong);
-
-        const meta = document.createElement("div");
-        meta.className = "route-meta";
-
-        const date = new Date(route.created_at || Date.now());
-        let line =
-          date.toLocaleDateString("pt-BR") +
-          " · " +
-          date.toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }) +
-          " · " +
-          (route.totalDistance || 0).toFixed(
-            (route.totalDistance || 0) > 1000 ? 1 : 0
-          ) +
-          " m · " +
-          (route.nests?.length || 0) +
-          " ninhos";
-
-        if (!route.synced || !route.id) {
-          line += " · não sincronizado";
-        }
-
-        meta.textContent = line;
-        main.appendChild(meta);
-
-        if (route.nests && route.nests.length) {
-          const thumbsRow = document.createElement("div");
-          thumbsRow.className = "thumbs-row";
-          route.nests.forEach((nest) => {
-            if (!nest.photoUrl) return;
-            const img = document.createElement("img");
-            img.src = nest.photoUrl;
-            img.className = "thumb";
-            img.addEventListener("click", () => {
-              photoModalImg.src = nest.photoUrl;
-              photoModal.style.display = "flex";
-            });
-            thumbsRow.appendChild(img);
+      // Thumbs
+      if (route.nests && route.nests.length) {
+        const thumbsRow = document.createElement("div");
+        thumbsRow.className = "thumbs-row";
+        route.nests.forEach((nest) => {
+          if (!nest.photoUrl) return;
+          const img = document.createElement("img");
+          img.src = nest.photoUrl;
+          img.className = "thumb";
+          img.addEventListener("click", () => {
+            photoModalImg.src = nest.photoUrl;
+            photoModal.style.display = "flex";
           });
-          if (thumbsRow.childElementCount) {
-            main.appendChild(thumbsRow);
-          }
+          thumbsRow.appendChild(img);
+        });
+        if (thumbsRow.childElementCount) {
+          main.appendChild(thumbsRow);
         }
+      }
 
-        const actions = document.createElement("div");
-        actions.className = "route-actions";
+      const actions = document.createElement("div");
+      actions.className = "route-actions";
 
-        const btnVer = document.createElement("button");
-        btnVer.className = "btn-xs";
-        btnVer.textContent = "Ver no mapa";
-        btnVer.addEventListener("click", () => showRouteOnMap(route));
-        actions.appendChild(btnVer);
+      const btnVer = document.createElement("button");
+      btnVer.className = "btn-xs";
+      btnVer.textContent = "Ver no mapa";
+      btnVer.addEventListener("click", () => showRouteOnMap(route));
+      actions.appendChild(btnVer);
 
-        const btnEdit = document.createElement("button");
-        btnEdit.className = "btn-xs";
-        btnEdit.textContent = "Renomear";
-        btnEdit.addEventListener("click", async () =>
-          renameRoute(index, route)
+      const btnEdit = document.createElement("button");
+      btnEdit.className = "btn-xs";
+      btnEdit.textContent = "Renomear";
+      btnEdit.addEventListener("click", async () =>
+        renameRoute(index, route)
+      );
+      actions.appendChild(btnEdit);
+
+      const btnDelete = document.createElement("button");
+      btnDelete.className = "btn-xs danger";
+      btnDelete.textContent = "Excluir";
+      btnDelete.addEventListener("click", () =>
+        deleteRoute(index, route)
+      );
+      actions.appendChild(btnDelete);
+
+      card.appendChild(main);
+      card.appendChild(actions);
+
+      routesListEl.appendChild(card);
+    });
+  }
+
+  function showRouteOnMap(route) {
+    if (!map) return;
+
+    if (pathLayer) {
+      map.removeLayer(pathLayer);
+      pathLayer = null;
+    }
+    nestsLayerGroup.clearLayers();
+
+    if (!route.path || !route.path.length) return;
+
+    pathLayer = L.polyline(
+      route.path.map((p) => [p.lat, p.lng]),
+      { color: "#22c55e", weight: 4 }
+    ).addTo(map);
+
+    const bounds = pathLayer.getBounds();
+    map.fitBounds(bounds.pad(0.2));
+
+    if (route.nests && route.nests.length) {
+      route.nests.forEach((nest) => {
+        const marker = L.marker([nest.lat, nest.lng]).addTo(
+          nestsLayerGroup
         );
-        actions.appendChild(btnEdit);
-
-        const btnDelete = document.createElement("button");
-        btnDelete.className = "btn-xs danger";
-        btnDelete.textContent = "Excluir";
-        btnDelete.addEventListener("click", () =>
-          deleteRoute(index, route)
-        );
-        actions.appendChild(btnDelete);
-
-        card.appendChild(main);
-        card.appendChild(actions);
-
-        routesListEl.appendChild(card);
+        if (nest.photoUrl) {
+          marker.bindPopup(
+            `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${nest.photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
+              nest.description || ""
+            }</div>`
+          );
+        } else {
+          marker.bindPopup(
+            `<div style="font-size:12px"><strong>Ninho</strong><br>${
+              nest.description || "Sem observações."
+            }</div>`
+          );
+        }
       });
     }
+  }
 
-    function showRouteOnMap(route) {
-      if (!map) return;
+  async function renameRoute(index, route) {
+    const newName = prompt("Novo nome para o trajeto:", route.name);
+    if (!newName || newName === route.name) return;
 
-      if (pathLayer) {
-        map.removeLayer(pathLayer);
-        pathLayer = null;
+    route.name = newName;
+    allRoutes[index] = route;
+    persistLocalRoutes();
+    renderRoutesList();
+
+    if (route.id && isOnline) {
+      try {
+        await supabaseClient
+          .from("routes")
+          .update({ name: newName })
+          .eq("id", route.id);
+      } catch (e) {
+        console.error(e);
       }
-      nestsLayerGroup.clearLayers();
-
-      if (!route.path || !route.path.length) return;
-
-      pathLayer = L.polyline(
-        route.path.map((p) => [p.lat, p.lng]),
-        { color: "#22c55e", weight: 4 }
-      ).addTo(map);
-
-      const bounds = pathLayer.getBounds();
-      map.fitBounds(bounds.pad(0.2));
-
-      if (route.nests && route.nests.length) {
-        route.nests.forEach((nest) => {
-          const marker = L.marker([nest.lat, nest.lng]).addTo(
-            nestsLayerGroup
-          );
-          if (nest.photoUrl) {
-            marker.bindPopup(
-              `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${
-                nest.photoUrl
-              }" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
-                nest.description || ""
-              }</div>`
-            );
-          } else {
-            marker.bindPopup(
-              `<div style="font-size:12px"><strong>Ninho</strong><br>${
-                nest.description || "Sem observações."
-              }</div>`
-            );
-          }
-        });
-      }
-    }
-
-    async function renameRoute(index, route) {
-      const newName = prompt("Novo nome para o trajeto:", route.name);
-      if (!newName || newName === route.name) return;
-
-      route.name = newName;
-      allRoutes[index] = route;
+    } else if (!route.id) {
+      route.synced = false;
       persistLocalRoutes();
-      renderRoutesList();
+    }
+  }
 
-      if (route.id && navigator.onLine) {
-        try {
-          await supabaseClient
-            .from("routes")
-            .update({ name: newName })
-            .eq("id", route.id);
-        } catch (e) {
-          console.error(e);
-        }
+  async function deleteRoute(index, route) {
+    if (!confirm("Tem certeza que deseja excluir este trajeto?")) return;
+
+    allRoutes.splice(index, 1);
+    persistLocalRoutes();
+    renderRoutesList();
+
+    if (route.id && isOnline) {
+      try {
+        await supabaseClient.from("routes").delete().eq("id", route.id);
+      } catch (e) {
+        console.error(e);
       }
     }
+  }
 
-    async function deleteRoute(index, route) {
-      if (!confirm("Tem certeza que deseja excluir este trajeto?")) return;
+  /* ======================= MODAL FOTO ======================= */
 
-      allRoutes.splice(index, 1);
-      persistLocalRoutes();
-      renderRoutesList();
+  photoModalClose.addEventListener("click", () => {
+    photoModal.style.display = "none";
+    photoModalImg.src = "";
+  });
 
-      if (route.id && navigator.onLine) {
-        try {
-          await supabaseClient.from("routes").delete().eq("id", route.id);
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    }
-
-    /* ======================= MODAL FOTO ======================= */
-
-    photoModalClose.addEventListener("click", () => {
+  photoModal.addEventListener("click", (e) => {
+    if (e.target === photoModal) {
       photoModal.style.display = "none";
       photoModalImg.src = "";
-    });
-
-    photoModal.addEventListener("click", (e) => {
-      if (e.target === photoModal) {
-        photoModal.style.display = "none";
-        photoModalImg.src = "";
-      }
-    });
-
-    /* ======================= INICIALIZAÇÃO ======================= */
-
-    function initApp() {
-      initMap();
-
-      btnToggleRoute.addEventListener("click", handleToggleRoute);
-      btnAddNest.addEventListener("click", handleAddNest);
-
-      syncRoutes();
     }
+  });
 
-    // Verifica sessão na primeira carga
-    checkSession();
+  /* ======================= INICIALIZAÇÃO ======================= */
 
-    // Service Worker (PWA)
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("./sw.js")
-          .catch((err) => console.error("SW registration failed:", err));
-      });
-    }
-  </script>
+  function initApp() {
+    initMap();
+
+    btnToggleRoute.addEventListener("click", handleToggleRoute);
+    btnAddNest.addEventListener("click", handleAddNest);
+
+    syncRoutes();
+  }
+
+  // Verifica sessão na primeira carga
+  checkSession();
+
+  // Service Worker (PWA)
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("./sw.js")
+        .catch((err) => console.error("SW registration failed:", err));
+    });
+  }
+</script>
 </body>
 </html>
-
