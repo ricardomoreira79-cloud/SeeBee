@@ -586,20 +586,31 @@
     }
 
     async function saveRouteToSupabase(route) {
-      const { error } = await supabase.from("routes").insert({
-        id: route.id,
-        name: route.name,
-        created_at: route.createdAt,
-        path: route.path,
-        traps: route.traps,
-      });
+  console.log("Salvando rota no Supabase:", route);
 
-      if (error) {
-        console.error("Erro ao salvar rota no Supabase:", error);
-        alert("Erro ao salvar trajeto na nuvem. Ele ficará apenas neste aparelho.");
-      }
-    }
+  // NÃO mandamos o id, deixamos o banco gerar o UUID
+  const { data, error } = await supabase
+    .from("routes")
+    .insert({
+      name: route.name,
+      created_at: route.createdAt,
+      path: route.path,
+      traps: route.traps,
+    })
+    .select()
+    .single(); // retorna a linha inserida
 
+  if (error) {
+    console.error("Erro ao salvar rota no Supabase:", error);
+    alert("Erro ao salvar trajeto na nuvem:\n" + error.message);
+    return false;
+  }
+
+  // aqui guardamos o UUID gerado pelo Supabase dentro do objeto route
+  route.id = data.id;
+  console.log("Rota salva com sucesso:", data);
+  return true;
+}
     async function updateRouteTrapsInSupabase(routeId, traps) {
       const { error } = await supabase
         .from("routes")
@@ -1342,4 +1353,5 @@
   </script>
 </body>
 </html>
+
 
