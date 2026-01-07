@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>SeeBee – Rastreador de Ninhos de Abelhas</title>
+  <title>SeeBee – Rastreador de ninhos de abelhas</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#14532d" />
@@ -38,6 +38,8 @@
       --text-soft: #9ca3af;
       --danger: #b91c1c;
       --radius-lg: 14px;
+      --status-online-bg: #064e3b;
+      --status-offline-bg: #7c2d12;
     }
 
     * {
@@ -48,7 +50,12 @@
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
-      background: radial-gradient(circle at top, #022c22 0, #020617 45%, #000 100%);
+      background: radial-gradient(
+        circle at top,
+        #022c22 0,
+        #020617 45%,
+        #000 100%
+      );
       color: var(--text-main);
     }
 
@@ -94,7 +101,7 @@
       padding: 4px 10px;
       border-radius: 999px;
       border: 1px solid #15803d55;
-      background: #064e3b;
+      background: var(--status-online-bg);
       color: #bbf7d0;
       display: inline-flex;
       align-items: center;
@@ -108,6 +115,11 @@
       border-radius: 999px;
       background: #22c55e;
       box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+    }
+
+    .status-dot.offline {
+      background: #f97316;
+      box-shadow: 0 0 0 4px rgba(248, 180, 83, 0.3);
     }
 
     .user-info {
@@ -139,43 +151,8 @@
 
     /* ========= AUTH ========= */
 
-    .auth-header {
-      margin-top: 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 8px;
-    }
-
-    .auth-logo-circle {
-      width: 68px;
-      height: 68px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 20%, #facc15, #f97316 70%, #7c2d12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.75);
-      border: 2px solid rgba(250, 204, 21, 0.6);
-    }
-
-    .auth-header h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      letter-spacing: 0.08em;
-    }
-
-    .auth-header p {
-      margin: 0;
-      max-width: 420px;
-      color: var(--text-soft);
-      font-size: 0.9rem;
-    }
-
     #auth-card {
-      margin-top: 24px;
+      margin-top: 40px;
       max-width: 420px;
       margin-left: auto;
       margin-right: auto;
@@ -193,13 +170,13 @@
 
     #auth-card h2 {
       margin: 0 0 4px;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
     }
 
-    #auth-card p.card-sub {
-      margin: 0 0 18px;
+    #auth-card p {
+      margin: 0 0 20px;
       color: var(--text-soft);
-      font-size: 0.86rem;
+      font-size: 0.9rem;
     }
 
     .auth-field {
@@ -252,34 +229,33 @@
     }
 
     .btn-google {
-      margin-top: 10px;
+      margin-top: 12px;
       width: 100%;
       border-radius: 999px;
       border: 1px solid #4b5563;
       background: #020617;
-      padding: 8px 12px;
+      color: var(--text-main);
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      color: var(--text-main);
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.75);
     }
 
-    .btn-google span.g-icon {
-      width: 18px;
-      height: 18px;
+    .btn-google span.logo {
+      width: 16px;
+      height: 16px;
       border-radius: 3px;
       background: conic-gradient(
-        from 0deg,
-        #ea4335 0 25%,
-        #fbbc05 25% 50%,
-        #34a853 50% 75%,
-        #4285f4 75% 100%
+        from 45deg,
+        #4285f4,
+        #ea4335,
+        #fbbc05,
+        #34a853,
+        #4285f4
       );
-      display: inline-block;
     }
 
     .auth-msg {
@@ -562,21 +538,20 @@
 <body>
   <!-- ============ TELA DE AUTENTICAÇÃO ============ -->
   <div id="auth-screen">
-    <header class="auth-header">
-      <div class="auth-logo-circle">🐝</div>
-      <h1>SeeBee</h1>
-      <p>
-        Faça login para registrar trajetos, marcar ninhos com foto e consultar
-        tudo depois com segurança na nuvem.
-      </p>
+    <header class="app-header">
+      <div class="title-block">
+        <h1>SeeBee</h1>
+        <p>Rastreador de ninhos de abelhas em campo.</p>
+        <div class="status-pill" id="status-pill">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="cloud-status">Conectado à nuvem (Supabase)</span>
+        </div>
+      </div>
     </header>
 
     <div id="auth-card">
       <h2>Entrar ou criar conta</h2>
-      <p class="card-sub">
-        Use um e-mail e senha ou conecte com sua conta Google para salvar seus
-        trajetos na nuvem.
-      </p>
+      <p>Use um e-mail e uma senha ou sua conta Google.</p>
 
       <div class="auth-field">
         <label for="auth-email">E-mail</label>
@@ -585,7 +560,11 @@
 
       <div class="auth-field">
         <label for="auth-password">Senha</label>
-        <input id="auth-password" type="password" autocomplete="current-password" />
+        <input
+          id="auth-password"
+          type="password"
+          autocomplete="current-password"
+        />
       </div>
 
       <div class="auth-buttons">
@@ -594,7 +573,7 @@
       </div>
 
       <button class="btn-google" id="btn-google">
-        <span class="g-icon"></span>
+        <span class="logo"></span>
         <span>Entrar com Google</span>
       </button>
 
@@ -606,11 +585,11 @@
   <div id="app-screen" class="hidden">
     <header class="app-header">
       <div class="title-block">
-        <h1>SeeBee – Rastreador de Ninhos de Abelhas</h1>
+        <h1>SeeBee</h1>
         <p>Registre seus trajetos, marque ninhos com foto e consulte depois.</p>
-        <div class="status-pill">
-          <span class="status-dot"></span>
-          <span id="cloud-status">Conectado à nuvem (Supabase)</span>
+        <div class="status-pill" id="status-pill-app">
+          <span class="status-dot" id="status-dot-app"></span>
+          <span id="cloud-status-app">Conectado à nuvem (Supabase)</span>
         </div>
       </div>
 
@@ -623,9 +602,12 @@
     <div class="app-grid">
       <!-- COLUNA CONTROLES -->
       <section class="card">
-        <h3>Trajeto em andamento <span class="badge" id="badge-status">Parado</span></h3>
+        <h3>
+          Trajeto em andamento <span class="badge" id="badge-status">Parado</span>
+        </h3>
         <p class="card-subtitle">
-          Comece o trajeto, caminhe instalando ninhos e registre cada ponto com foto.
+          Comece o trajeto, caminhe instalando ninhos e registre cada ponto com
+          foto.
         </p>
 
         <div class="controls-grid">
@@ -651,7 +633,8 @@
       <section class="card">
         <h3>Mapa</h3>
         <p class="card-subtitle">
-          O mapa acompanha seu caminho. Os ninhos marcados aparecem como alfinetes com foto.
+          O mapa acompanha seu caminho. Os ninhos marcados aparecem como
+          alfinetes com foto.
         </p>
         <div id="map"></div>
       </section>
@@ -675,10 +658,13 @@
   <script>
     /* ======================= CONFIG SUPABASE ======================= */
 
-    const SUPABASE_URL = "https://sgrtyotwnlwpwfecnoze.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNncnR5b3R3bmx3cHdmZWNub3plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NjgxMjcsImV4cCI6MjA4MzM0NDEyN30.QZvTN3mHUwqBwvXeL6q89qNW_4s1Cvopa40nt4TFa9w";
+    const SUPABASE_URL = "COLOQUE_AQUI_SUA_URL";
+    const SUPABASE_ANON_KEY = "COLOQUE_AQUI_SUA_CHAVE_ANON";
 
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
 
     /* ======================= ESTADO GLOBAL ======================= */
 
@@ -689,7 +675,7 @@
     let pathLayer = null;
     let nestsLayerGroup = null;
     let appInitialized = false;
-    let allRoutes = []; // carregados da nuvem + localStorage
+    let allRoutes = []; // nuvem + local
 
     const STORAGE_KEY = "seebee_routes_v1";
 
@@ -717,12 +703,55 @@
     const infoNests = document.getElementById("info-nests");
     const infoGps = document.getElementById("info-gps");
     const cloudStatus = document.getElementById("cloud-status");
+    const cloudStatusApp = document.getElementById("cloud-status-app");
+    const statusPill = document.getElementById("status-pill");
+    const statusPillApp = document.getElementById("status-pill-app");
+    const statusDot = document.getElementById("status-dot");
+    const statusDotApp = document.getElementById("status-dot-app");
 
     const routesListEl = document.getElementById("routes-list");
 
     const photoModal = document.getElementById("photo-modal");
     const photoModalImg = document.getElementById("photo-modal-img");
     const photoModalClose = document.getElementById("photo-modal-close");
+
+    /* ======================= ONLINE / OFFLINE ======================= */
+
+    function setCloudStatus(isOnline) {
+      const textOnline = "Conectado à nuvem (Supabase)";
+      const textOffline =
+        "Offline – dados só neste aparelho (sincronizaremos depois)";
+
+      if (isOnline) {
+        cloudStatus.textContent = textOnline;
+        cloudStatusApp.textContent = textOnline;
+        statusPill.style.background = "var(--status-online-bg)";
+        statusPillApp.style.background = "var(--status-online-bg)";
+        statusDot.classList.remove("offline");
+        statusDotApp.classList.remove("offline");
+      } else {
+        cloudStatus.textContent = textOffline;
+        cloudStatusApp.textContent = textOffline;
+        statusPill.style.background = "var(--status-offline-bg)";
+        statusPillApp.style.background = "var(--status-offline-bg)";
+        statusDot.classList.add("offline");
+        statusDotApp.classList.add("offline");
+      }
+    }
+
+    window.addEventListener("online", () => {
+      setCloudStatus(true);
+      // tenta sincronizar assim que voltar
+      if (appInitialized) {
+        syncRoutes();
+      }
+    });
+
+    window.addEventListener("offline", () => {
+      setCloudStatus(false);
+    });
+
+    setCloudStatus(navigator.onLine);
 
     /* ======================= AUTENTICAÇÃO ======================= */
 
@@ -774,19 +803,22 @@
       await checkSession();
     }
 
-    async function handleGoogleLogin() {
-      setAuthMessage("Redirecionando para o Google...");
-      const { data, error } = await supabaseClient.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-
-      if (error) {
-        setAuthMessage(error.message, true);
+    async function handleGoogleSignIn() {
+      try {
+        setAuthMessage("Redirecionando para o Google...");
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: window.location.origin,
+          },
+        });
+        if (error) {
+          setAuthMessage(error.message, true);
+        }
+      } catch (e) {
+        console.error(e);
+        setAuthMessage("Erro ao redirecionar para o Google.", true);
       }
-      // Se der certo, o Supabase redireciona e depois voltamos para checkSession()
     }
 
     async function handleLogout() {
@@ -799,7 +831,6 @@
       const session = data.session;
 
       if (session) {
-        // Usuário logado
         authScreen.classList.add("hidden");
         appScreen.classList.remove("hidden");
         userEmailLabel.textContent = session.user.email || "";
@@ -808,7 +839,6 @@
           initApp();
         }
       } else {
-        // Sem login
         authScreen.classList.remove("hidden");
         appScreen.classList.add("hidden");
       }
@@ -820,7 +850,7 @@
 
     btnSignUp.addEventListener("click", handleSignUp);
     btnSignIn.addEventListener("click", handleSignIn);
-    btnGoogle.addEventListener("click", handleGoogleLogin);
+    btnGoogle.addEventListener("click", handleGoogleSignIn);
     btnLogout.addEventListener("click", handleLogout);
 
     /* ======================= APP PRINCIPAL ======================= */
@@ -828,7 +858,6 @@
     function initMap() {
       map = L.map("map");
 
-      // Tile layer OSM
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "&copy; OpenStreetMap",
@@ -836,7 +865,6 @@
 
       nestsLayerGroup = L.layerGroup().addTo(map);
 
-      // Posição inicial: tenta usar GPS
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
@@ -846,7 +874,7 @@
             infoGps.textContent = "GPS: sinal ok";
           },
           () => {
-            map.setView([-15.601, -56.097], 13); // fallback Cuiabá
+            map.setView([-15.601, -56.097], 13);
             infoGps.textContent = "GPS: não autorizado";
           }
         );
@@ -877,12 +905,13 @@
       }
 
       currentRoute = {
-        id: null, // ID da nuvem, se salvar
+        id: null,
         name: "",
         created_at: new Date().toISOString(),
         path: [],
         nests: [],
         totalDistance: 0,
+        synced: false,
       };
 
       pathLayer = L.polyline([], {
@@ -914,13 +943,13 @@
           updateUserMarker(latitude, longitude);
           pathLayer.addLatLng([latitude, longitude]);
 
-          // Atualiza distância
           const d = calculateTotalDistance(currentRoute.path);
           currentRoute.totalDistance = d;
           infoDistance.textContent =
-            "Distância: " + d.toFixed(d > 1000 ? 1 : 0) + " m";
+            "Distância: " +
+            d.toFixed(d > 1000 ? 1 : 0) +
+            (d > 1000 ? " m" : " m");
 
-          // Mantém mapa perto do usuário
           map.panTo([latitude, longitude], { animate: true });
           infoGps.textContent = "GPS: acompanhando...";
         },
@@ -961,14 +990,12 @@
         return;
       }
 
-      const now = new Date();
-      const defaultName = `Trajeto em ${now.toLocaleDateString("pt-BR")} ${now.toLocaleTimeString(
-        "pt-BR",
-        {
-          hour: "2-digit",
-          minute: "2-digit",
-        }
-      )}`;
+      const defaultName = `Trajeto em ${new Date().toLocaleDateString(
+        "pt-BR"
+      )} ${new Date().toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`;
 
       const name = prompt("Dê um nome para este trajeto:", defaultName);
       if (!name) {
@@ -1034,7 +1061,6 @@
         ""
       );
 
-      // Input de foto temporário
       const input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
@@ -1044,7 +1070,7 @@
         const file = ev.target.files[0];
         let photoUrl = null;
 
-        if (file) {
+        if (file && navigator.onLine) {
           try {
             const fileExt = file.name.split(".").pop();
             const filePath =
@@ -1074,6 +1100,10 @@
             console.error(e);
             alert("Erro ao enviar a foto. O ninho será salvo mesmo assim.");
           }
+        } else if (file && !navigator.onLine) {
+          alert(
+            "Você está offline. O ninho será salvo, mas a foto não pode ser enviada agora."
+          );
         }
 
         const nest = {
@@ -1087,11 +1117,15 @@
         currentRoute.nests.push(nest);
         infoNests.textContent = "Ninhos: " + currentRoute.nests.length;
 
-        const marker = L.marker([nest.lat, nest.lng]).addTo(nestsLayerGroup);
+        const marker = L.marker([nest.lat, nest.lng]).addTo(
+          nestsLayerGroup
+        );
 
         if (photoUrl) {
           marker.bindPopup(
-            `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
+            `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${
+              nest.photoUrl
+            }" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
               nest.description || ""
             }</div>`
           );
@@ -1110,12 +1144,18 @@
     /* ======================= SALVAR & CARREGAR ======================= */
 
     async function saveRoute(route) {
-      // Salva local
+      // Marca como ainda não sincronizado
+      route.synced = false;
+
       allRoutes.push(route);
       persistLocalRoutes();
       renderRoutesList();
 
-      // Tenta salvar na nuvem
+      if (!navigator.onLine) {
+        setCloudStatus(false);
+        return;
+      }
+
       try {
         const { data, error } = await supabaseClient
           .from("routes")
@@ -1123,30 +1163,31 @@
             name: route.name,
             path: route.path,
             traps: route.nests,
+            created_at: route.created_at,
           })
           .select()
           .single();
 
         if (error) {
           console.error(error);
-          cloudStatus.textContent =
-            "Erro ao salvar na nuvem (usando cópia local).";
-        } else {
+          setCloudStatus(false);
+        } else if (data) {
           route.id = data.id;
-          cloudStatus.textContent = "Conectado à nuvem (Supabase)";
+          route.synced = true;
+          setCloudStatus(true);
           persistLocalRoutes();
           renderRoutesList();
         }
       } catch (e) {
         console.error(e);
-        cloudStatus.textContent =
-          "Erro ao salvar na nuvem (usando cópia local).";
+        setCloudStatus(false);
       }
     }
 
-    function persistLocalRoutes() {
+    function persistLocalRoutes(routesOverride) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(allRoutes));
+        const toSave = routesOverride || allRoutes;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
       } catch (e) {
         console.error("Erro ao gravar no localStorage", e);
       }
@@ -1156,7 +1197,14 @@
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return [];
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        return parsed.map((r) => ({
+          ...r,
+          synced:
+            typeof r.synced === "boolean"
+              ? r.synced
+              : !!r.id, // se tem id, consideramos sincronizado
+        }));
       } catch (e) {
         console.error("Erro ao ler localStorage", e);
         return [];
@@ -1164,6 +1212,11 @@
     }
 
     async function loadCloudRoutes() {
+      if (!navigator.onLine) {
+        setCloudStatus(false);
+        return [];
+      }
+
       try {
         const { data, error } = await supabaseClient
           .from("routes")
@@ -1171,6 +1224,8 @@
           .order("created_at", { ascending: false });
 
         if (error) throw error;
+        setCloudStatus(true);
+
         return data.map((row) => ({
           id: row.id,
           name: row.name,
@@ -1178,34 +1233,75 @@
           path: row.path || [],
           nests: row.traps || [],
           totalDistance: calculateTotalDistance(row.path || []),
+          synced: true,
         }));
       } catch (e) {
         console.error(e);
-        cloudStatus.textContent =
-          "Erro ao ler dados da nuvem (mostrando só dados locais).";
+        setCloudStatus(false);
         return [];
       }
     }
 
     async function syncRoutes() {
       const local = loadLocalRoutes();
+
+      // Se estiver offline, apenas carrega local
+      if (!navigator.onLine) {
+        setCloudStatus(false);
+        allRoutes = local;
+        renderRoutesList();
+        return;
+      }
+
+      setCloudStatus(true);
+
+      // 1) enviar trajetos locais sem id (criados offline)
+      for (const route of local) {
+        if (!route.id) {
+          try {
+            const { data, error } = await supabaseClient
+              .from("routes")
+              .insert({
+                name: route.name,
+                path: route.path,
+                traps: route.nests,
+                created_at: route.created_at,
+              })
+              .select()
+              .single();
+
+            if (!error && data) {
+              route.id = data.id;
+              route.synced = true;
+            }
+          } catch (e) {
+            console.error("Erro ao sincronizar rota offline:", e);
+          }
+        }
+      }
+
+      persistLocalRoutes(local);
+
+      // 2) ler nuvem e mesclar com local
       const cloud = await loadCloudRoutes();
 
-      // Por simplicidade: cloud tem prioridade; local entra como extra
       const merged = [...cloud];
 
       for (const r of local) {
         const exists = merged.some(
-          (c) => c.created_at === r.created_at && c.name === r.name
+          (c) => c.id && r.id && c.id === r.id
         );
-        if (!exists) merged.push(r);
+        if (!exists) {
+          merged.push(r);
+        }
       }
 
-      // Ordena por data desc
-      merged.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      merged.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
 
       allRoutes = merged;
-      persistLocalRoutes();
+      persistLocalRoutes(merged);
       renderRoutesList();
     }
 
@@ -1238,8 +1334,7 @@
         meta.className = "route-meta";
 
         const date = new Date(route.created_at || Date.now());
-
-        meta.textContent =
+        let line =
           date.toLocaleDateString("pt-BR") +
           " · " +
           date.toLocaleTimeString("pt-BR", {
@@ -1254,9 +1349,13 @@
           (route.nests?.length || 0) +
           " ninhos";
 
+        if (!route.synced || !route.id) {
+          line += " · não sincronizado";
+        }
+
+        meta.textContent = line;
         main.appendChild(meta);
 
-        // Thumbs
         if (route.nests && route.nests.length) {
           const thumbsRow = document.createElement("div");
           thumbsRow.className = "thumbs-row";
@@ -1334,7 +1433,9 @@
           );
           if (nest.photoUrl) {
             marker.bindPopup(
-              `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${nest.photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
+              `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${
+                nest.photoUrl
+              }" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
                 nest.description || ""
               }</div>`
             );
@@ -1358,9 +1459,12 @@
       persistLocalRoutes();
       renderRoutesList();
 
-      if (route.id) {
+      if (route.id && navigator.onLine) {
         try {
-          await supabaseClient.from("routes").update({ name: newName }).eq("id", route.id);
+          await supabaseClient
+            .from("routes")
+            .update({ name: newName })
+            .eq("id", route.id);
         } catch (e) {
           console.error(e);
         }
@@ -1374,7 +1478,7 @@
       persistLocalRoutes();
       renderRoutesList();
 
-      if (route.id) {
+      if (route.id && navigator.onLine) {
         try {
           await supabaseClient.from("routes").delete().eq("id", route.id);
         } catch (e) {
