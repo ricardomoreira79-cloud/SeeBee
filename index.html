@@ -2,21 +2,40 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <title>BeeTrack – Rastreador de Ninhos</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>BeeTrack – Rastreador de ninhos de abelhas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#050816" />
 
-    <!-- Estilos básicos -->
+    <!-- PWA / instalação -->
+    <link rel="manifest" href="manifest.webmanifest" />
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
     <style>
       :root {
-        --green: #166534;
-        --green-dark: #14532d;
-        --green-light: #22c55e;
-        --bg: #0f172a;
-        --bg-card: #020617;
-        --border: #1e293b;
+        --bg: #020617;
+        --bg-elevated: #020617;
+        --card: #020617;
+        --card-strong: #020617;
+        --accent: #22c55e;
+        --accent-soft: rgba(34, 197, 94, 0.12);
+        --accent-strong: #16a34a;
+        --danger: #f97373;
+        --danger-soft: rgba(248, 113, 113, 0.15);
         --text: #e5e7eb;
-        --muted: #9ca3af;
-        --accent: #facc15;
+        --text-soft: #9ca3af;
+        --border: rgba(148, 163, 184, 0.25);
+        --input: #020617;
+        --radius-xl: 18px;
+        --radius-lg: 14px;
+        --radius-pill: 999px;
+        --shadow-soft: 0 22px 45px rgba(15, 23, 42, 0.8);
       }
 
       * {
@@ -25,796 +44,973 @@
 
       body {
         margin: 0;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          sans-serif;
-        background: radial-gradient(circle at top, #1e293b, #020617 55%);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+          "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #1f2937 0, #020617 52%);
         color: var(--text);
         min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+      }
+
+      .app-shell {
+        width: 100%;
+        max-width: 1120px;
+        margin: 16px;
+        background: radial-gradient(circle at top left, #0f172a 0, #020617 55%);
+        border-radius: 24px;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        overflow: hidden;
         display: flex;
         flex-direction: column;
       }
 
-      header {
-        padding: 12px 16px;
-        border-bottom: 1px solid #1f2933;
+      /* HEADER */
+
+      .app-header {
+        padding: 16px 20px 12px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        backdrop-filter: blur(16px);
+        background: linear-gradient(
+          135deg,
+          rgba(15, 23, 42, 0.92),
+          rgba(15, 23, 42, 0.98)
+        );
       }
 
       .brand {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
       }
 
-      .brand-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 999px;
-        background: radial-gradient(circle at 30% 20%, #fde68a, #f97316);
+      .logo-circle {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #facc15, #f97316);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9),
+          0 8px 18px rgba(0, 0, 0, 0.6);
+        font-size: 22px;
       }
 
-      .brand-title {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.1;
-      }
-
-      .brand-title strong {
-        font-size: 18px;
-      }
-
-      .brand-title span {
-        font-size: 12px;
-        color: var(--muted);
-      }
-
-      .status-cloud {
-        font-size: 12px;
-        color: var(--muted);
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: #16a34a;
-      }
-
-      main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .app-layout {
-        flex: 1;
-        display: grid;
-        grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
-        gap: 10px;
-        padding: 10px;
-      }
-
-      /* Painel esquerdo */
-      .left-panel {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .card {
-        background: rgba(15, 23, 42, 0.98);
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        padding: 12px 14px;
-        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-      }
-
-      .card h2 {
-        margin: 0 0 4px;
-        font-size: 16px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .card p {
+      .brand h1 {
         margin: 0;
-        font-size: 13px;
-        color: var(--muted);
+        font-size: 18px;
+        letter-spacing: 0.03em;
       }
 
-      .badge {
-        font-size: 11px;
-        padding: 2px 6px;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        color: var(--muted);
+      .brand p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--text-soft);
       }
 
-      .controls-row {
-        margin-top: 10px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .btn-primary,
-      .btn-outline {
-        border-radius: 999px;
-        border: none;
-        cursor: pointer;
-        padding: 8px 14px;
+      .status-pill {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
         gap: 6px;
-        font-size: 13px;
-        font-weight: 500;
-        transition: all 0.15s ease;
+        padding: 6px 11px;
+        border-radius: 999px;
+        background: rgba(15, 118, 110, 0.2);
+        border: 1px solid rgba(45, 212, 191, 0.35);
+        font-size: 11px;
+        color: #a5f3fc;
         white-space: nowrap;
       }
 
-      .btn-primary {
-        background: linear-gradient(135deg, var(--green), var(--green-light));
-        color: white;
+      .status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #9ca3af;
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+        transition: all 0.25s ease;
       }
 
-      .btn-primary:hover {
-        filter: brightness(1.05);
-        transform: translateY(-1px);
+      .status-dot.online {
+        background: #22c55e;
+        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.18);
       }
 
-      .btn-outline {
-        background: transparent;
-        border: 1px solid rgba(148, 163, 184, 0.7);
-        color: var(--text);
+      .status-dot.offline {
+        background: #f97373;
+        box-shadow: 0 0 0 6px rgba(248, 113, 113, 0.18);
       }
 
-      .btn-outline:hover {
-        border-color: #e5e7eb;
-        transform: translateY(-1px);
+      /* LAYOUT PRINCIPAL */
+
+      .app-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 360px) minmax(0, 1.2fr);
+        gap: 12px;
+        padding: 12px;
       }
 
-      .btn-small {
-        padding: 4px 8px;
-        font-size: 11px;
-      }
-
-      .pill {
-        border-radius: 999px;
-        padding: 4px 8px;
-        font-size: 12px;
-        background: rgba(15, 23, 42, 0.9);
-        border: 1px solid rgba(148, 163, 184, 0.5);
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .pill span {
-        font-size: 11px;
-        color: var(--muted);
-      }
-
-      /* Login */
-      .auth-card {
-        margin-top: 6px;
+      .left-panel {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-      }
-
-      .auth-row {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      label {
-        font-size: 12px;
-        color: var(--muted);
-      }
-
-      input[type="email"],
-      input[type="password"] {
-        width: 100%;
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.6);
-        background: rgba(15, 23, 42, 0.9);
-        padding: 7px 10px;
-        color: var(--text);
-        font-size: 13px;
-      }
-
-      input:focus {
-        outline: 1px solid #22c55e;
-        border-color: #22c55e;
-      }
-
-      .auth-buttons {
-        display: flex;
-        gap: 6px;
-        margin-top: 6px;
-      }
-
-      .auth-message {
-        font-size: 12px;
-        margin-top: 4px;
-      }
-
-      .auth-message.error {
-        color: #fecaca;
-      }
-
-      .auth-message.success {
-        color: #bbf7d0;
-      }
-
-      .logout-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 6px;
-        font-size: 12px;
-        color: var(--muted);
-      }
-
-      /* Lista de trajetos / ninhos */
-      .list {
-        margin-top: 8px;
-        max-height: 230px;
-        overflow-y: auto;
-        padding-right: 6px;
-      }
-
-      .route-item {
-        border-radius: 10px;
-        border: 1px solid rgba(51, 65, 85, 0.8);
-        padding: 8px 9px;
-        font-size: 12px;
-        margin-bottom: 6px;
-        background: rgba(15, 23, 42, 0.9);
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      .route-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .route-name {
-        font-weight: 500;
-      }
-
-      .route-meta {
-        font-size: 11px;
-        color: var(--muted);
-      }
-
-      .route-actions {
-        display: flex;
-        gap: 4px;
-      }
-
-      .chip {
-        border-radius: 999px;
-        padding: 3px 8px;
-        font-size: 11px;
-        background: rgba(15, 23, 42, 0.9);
-        border: 1px solid rgba(148, 163, 184, 0.4);
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .chip-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: var(--accent);
-      }
-
-      .nest-photo {
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
-        object-fit: cover;
-        cursor: pointer;
-        border: 1px solid #334155;
-      }
-
-      .nests-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 8px;
-      }
-
-      .nests-empty {
-        font-size: 12px;
-        color: var(--muted);
-        margin-top: 4px;
-      }
-
-      /* Mapa */
-      #map {
-        width: 100%;
-        height: 100%;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        overflow: hidden;
+        gap: 12px;
       }
 
       .map-wrapper {
-        background: #020617;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        padding: 6px;
+        background: radial-gradient(circle at top, #020617 0, #020617 60%);
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        padding: 10px 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
 
       .map-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 4px;
+        gap: 8px;
       }
 
       .map-header h2 {
         margin: 0;
-        font-size: 14px;
-        color: #e5e7eb;
+        font-size: 15px;
       }
 
-      .map-subtitle {
+      .map-header p {
+        margin: 0;
         font-size: 12px;
-        color: var(--muted);
+        color: var(--text-soft);
       }
 
-      .toggle-btn {
-        border-radius: 999px;
-        border: 1px solid rgba(148, 163, 184, 0.6);
-        padding: 4px 8px;
+      #map {
+        width: 100%;
+        height: 420px;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.9);
+      }
+
+      .leaflet-control-attribution {
+        font-size: 9px !important;
+      }
+
+      /* CARDS */
+
+      .card {
+        background: radial-gradient(circle at top left, #020617 0, #020617 60%);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        padding: 11px 12px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .card-header h2 {
+        margin: 0;
+        font-size: 15px;
+      }
+
+      .card-header p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--text-soft);
+      }
+
+      .badge {
         font-size: 11px;
-        background: rgba(15, 23, 42, 0.9);
-        color: var(--muted);
-        cursor: pointer;
+        border-radius: 999px;
+        padding: 3px 10px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: var(--text-soft);
+      }
+
+      .badge-ghost {
+        background: rgba(15, 23, 42, 0.8);
+      }
+
+      /* FORM LOGIN */
+
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 4px;
+      }
+
+      label {
+        font-size: 12px;
+        color: var(--text-soft);
+      }
+
+      input[type="email"],
+      input[type="password"],
+      input[type="text"] {
+        background: rgba(15, 23, 42, 0.8);
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        padding: 6px 12px;
+        font-size: 13px;
+        color: var(--text);
+        outline: none;
+      }
+
+      input::placeholder {
+        color: #6b7280;
+      }
+
+      input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
+      }
+
+      .auth-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+        flex-wrap: wrap;
+      }
+
+      .muted {
+        font-size: 11px;
+        color: var(--text-soft);
+      }
+
+      .muted strong {
+        color: var(--accent);
+        font-weight: 500;
+      }
+
+      /* BOTÕES */
+
+      button {
+        font-family: inherit;
+      }
+
+      .btn {
+        border: none;
+        border-radius: var(--radius-pill);
+        padding: 7px 14px;
+        font-size: 13px;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        justify-content: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: transform 0.08s ease, box-shadow 0.08s ease,
+          background 0.12s ease, border-color 0.12s ease;
+        white-space: nowrap;
       }
 
-      .toggle-btn span {
+      .btn-primary {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #0b1120;
+        box-shadow: 0 8px 18px rgba(34, 197, 94, 0.35);
+      }
+
+      .btn-primary:active {
+        transform: translateY(1px);
+        box-shadow: 0 4px 10px rgba(34, 197, 94, 0.35);
+      }
+
+      .btn-ghost {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        color: var(--text-soft);
+      }
+
+      .btn-ghost:active {
+        transform: translateY(1px);
+      }
+
+      .btn-danger {
+        background: var(--danger-soft);
+        color: #fecaca;
+        border: 1px solid rgba(248, 113, 113, 0.7);
+      }
+
+      .btn-sm {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      .btn-icon {
+        border-radius: 999px;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+      }
+
+      .btn[disabled] {
+        opacity: 0.55;
+        cursor: default;
+        box-shadow: none;
+      }
+
+      /* CONTROLE DE TRAJETO */
+
+      .pill-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+      }
+
+      .pill-label {
+        font-size: 12px;
+        color: var(--text-soft);
+      }
+
+      .pill-value {
+        font-size: 12px;
+        color: var(--accent);
+      }
+
+      .kpi-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 6px;
+        font-size: 11px;
+        color: var(--text-soft);
+      }
+
+      .kpi-row span strong {
+        color: var(--text);
+      }
+
+      /* LISTA DE TRAJETOS */
+
+      .routes-list {
+        max-height: 180px;
+        overflow: auto;
+        padding-right: 2px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .route-item {
+        border-radius: 12px;
+        padding: 7px 8px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        cursor: pointer;
+      }
+
+      .route-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .route-header strong {
         font-size: 13px;
       }
 
-      /* Modal de foto */
-      .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.88);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 40;
+      .route-meta {
+        font-size: 11px;
+        color: var(--text-soft);
       }
 
-      .modal-backdrop.open {
+      .route-actions {
         display: flex;
+        gap: 4px;
+        margin-top: 4px;
       }
 
-      .modal-photo {
-        max-width: min(90vw, 480px);
-        max-height: 80vh;
-        border-radius: 16px;
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
-        border: 1px solid #64748b;
+      /* LISTA DE NINHOS */
+
+      .traps-list {
+        max-height: 140px;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
       }
 
-      .modal-close {
-        position: absolute;
-        top: 14px;
-        right: 14px;
+      .trap-item {
+        border-radius: 10px;
+        padding: 6px 7px;
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        font-size: 11px;
+        display: flex;
+        justify-content: space-between;
+        gap: 6px;
+      }
+
+      .trap-text {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .trap-text span {
+        font-size: 11px;
+      }
+
+      .trap-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 7px;
         border-radius: 999px;
-        border: none;
-        background: rgba(15, 23, 42, 0.9);
-        color: #e5e7eb;
-        padding: 6px 10px;
-        font-size: 12px;
-        cursor: pointer;
+        font-size: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: var(--text-soft);
       }
+
+      .tag-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+      }
+
+      .tag-dot-green {
+        background: #22c55e;
+      }
+
+      .tag-dot-blue {
+        background: #38bdf8;
+      }
+
+      /* ALERTAS / STATUS */
+
+      .status-text {
+        font-size: 11px;
+        color: var(--text-soft);
+      }
+
+      .status-text strong {
+        color: var(--accent);
+      }
+
+      .status-text.warn {
+        color: #fbbf24;
+      }
+
+      .status-text.error {
+        color: #fecaca;
+      }
+
+      /* RESPONSIVO */
 
       @media (max-width: 880px) {
+        .app-shell {
+          margin: 10px;
+        }
+
         .app-layout {
           grid-template-columns: minmax(0, 1fr);
         }
 
+        /* NO CELULAR: painel (login/controles) primeiro, mapa depois */
         .left-panel {
+          order: 1;
+        }
+
+        .map-wrapper {
           order: 2;
+          margin-top: 6px;
+        }
+
+        #map {
+          height: 320px;
+        }
+
+        .app-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
         }
       }
     </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand">
+          <div class="logo-circle">🐝</div>
+          <div>
+            <h1>BeeTrack</h1>
+            <p>Rastreador de ninhos de abelhas</p>
+          </div>
+        </div>
+        <div class="status-pill">
+          <span id="supabase-status-dot" class="status-dot"></span>
+          <span id="supabase-status-text">Conectando à nuvem...</span>
+        </div>
+      </header>
 
-    <!-- Leaflet -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin=""
+      <main class="app-layout">
+        <!-- PAINEL ESQUERDO -->
+        <section class="left-panel">
+          <!-- LOGIN -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2>Acesso</h2>
+                <p>Entre com e-mail ou Google para salvar na nuvem.</p>
+              </div>
+              <span class="badge badge-ghost" id="auth-status-badge">
+                Visitante
+              </span>
+            </div>
+
+            <div class="field-group">
+              <label for="email-input">E-mail</label>
+              <input
+                type="email"
+                id="email-input"
+                placeholder="seuemail@exemplo.com"
+                autocomplete="email"
+              />
+            </div>
+
+            <div class="field-group">
+              <label for="password-input">Senha</label>
+              <input
+                type="password"
+                id="password-input"
+                minlength="6"
+                placeholder="Mínimo 6 caracteres"
+                autocomplete="current-password"
+              />
+            </div>
+
+            <div class="auth-actions">
+              <button class="btn btn-ghost btn-sm" id="btn-sign-in">
+                Entrar
+              </button>
+              <button class="btn btn-ghost btn-sm" id="btn-sign-up">
+                Criar conta
+              </button>
+            </div>
+
+            <button class="btn btn-ghost btn-sm" id="btn-sign-google">
+              <span>🔐</span> Entrar com Google
+            </button>
+
+            <button
+              class="btn btn-ghost btn-sm"
+              id="btn-sign-out"
+              style="display: none; margin-top: 4px"
+            >
+              Sair da conta
+            </button>
+
+            <p class="muted" id="auth-helper">
+              Sem login, os trajetos ficam apenas neste aparelho.
+            </p>
+          </section>
+
+          <!-- CONTROLE DE TRAJETO -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2>Controle de trajeto</h2>
+                <p>Grave o caminho e marque ninhos com foto.</p>
+              </div>
+              <span class="badge">Modo campo</span>
+            </div>
+
+            <div class="pill-row">
+              <span class="pill-label">Status do trajeto</span>
+              <span class="pill-value" id="route-status-label">
+                Inativo
+              </span>
+            </div>
+
+            <div class="kpi-row">
+              <span
+                >Pontos: <strong id="route-points-count">0</strong></span
+              >
+              <span
+                >Ninhos: <strong id="route-traps-count">0</strong></span
+              >
+            </div>
+
+            <div class="auth-actions" style="margin-top: 8px">
+              <button
+                class="btn btn-primary"
+                id="btn-toggle-route"
+              >
+                ▶ Iniciar trajeto
+              </button>
+              <button
+                class="btn btn-ghost"
+                id="btn-add-trap"
+                disabled
+              >
+                📍 Marcar ninho com foto
+              </button>
+            </div>
+
+            <p class="status-text" id="gps-status">
+              🌐 Aguardando GPS…
+            </p>
+            <p
+              class="status-text warn"
+              id="offline-warning"
+              style="display: none"
+            >
+              Sem conexão com a nuvem: tudo será salvo apenas neste aparelho.
+            </p>
+          </section>
+
+          <!-- TRAJETOS SALVOS -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2>Trajetos salvos</h2>
+                <p>Toque para abrir, renomear ou apagar.</p>
+              </div>
+            </div>
+
+            <div class="routes-list" id="routes-list"></div>
+            <p class="muted" id="no-routes-msg">
+              Nenhum trajeto salvo ainda.
+            </p>
+          </section>
+
+          <!-- NINHOS DO TRAJETO ATUAL -->
+          <section class="card">
+            <div class="card-header">
+              <div>
+                <h2>Ninhos do trajeto</h2>
+                <p>Lista de ninhos marcados neste trajeto.</p>
+              </div>
+            </div>
+
+            <div class="traps-list" id="traps-list"></div>
+            <p class="muted" id="no-traps-msg">
+              Nenhum ninho marcado ainda.
+            </p>
+
+            <button
+              class="btn btn-ghost btn-sm"
+              id="btn-monitor-traps"
+              disabled
+            >
+              ➡️ Monitorar ninhos na ordem
+            </button>
+          </section>
+        </section>
+
+        <!-- MAPA -->
+        <section class="map-wrapper">
+          <div class="map-header">
+            <div>
+              <h2>Mapa de campo</h2>
+              <p>Arraste, dê zoom e acompanhe o caminho em tempo real.</p>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="btn-focus-map">
+              🧭 Focar no mapa
+            </button>
+          </div>
+          <div id="map"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- input escondido para fotos -->
+    <input
+      type="file"
+      id="photo-input"
+      accept="image/*"
+      capture="environment"
+      style="display: none"
     />
+
+    <!-- Leaflet JS -->
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
 
-    <!-- Supabase JS v2 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  </head>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
-  <body>
-    <header>
-      <div class="brand">
-        <div class="brand-icon">🐝</div>
-        <div class="brand-title">
-          <strong>BeeTrack</strong>
-          <span>Rastreador de ninhos de abelhas</span>
-        </div>
-      </div>
-      <div class="status-cloud" id="cloud-status">
-        <span class="status-dot"></span>
-        Conectado à nuvem (Supabase)
-      </div>
-    </header>
-
-    <main>
-      <div class="app-layout">
-        <!-- Painel esquerdo -->
-        <section class="left-panel">
-          <!-- Bloco de autenticação -->
-          <div class="card">
-            <h2>
-              Acesso
-              <span class="badge">Login necessário</span>
-            </h2>
-            <p>
-              Entre com e-mail e senha ou use Google para salvar seus trajetos
-              na nuvem.
-            </p>
-
-            <div id="auth-section" class="auth-card">
-              <div class="auth-row">
-                <label for="auth-email">E-mail</label>
-                <input
-                  id="auth-email"
-                  type="email"
-                  placeholder="seuemail@exemplo.com"
-                />
-              </div>
-              <div class="auth-row">
-                <label for="auth-password">Senha</label>
-                <input
-                  id="auth-password"
-                  type="password"
-                  placeholder="Mínimo 6 caracteres"
-                />
-              </div>
-              <div class="auth-buttons">
-                <button class="btn-primary" id="btn-signin">
-                  Entrar
-                </button>
-                <button class="btn-outline" id="btn-signup">
-                  Criar conta
-                </button>
-              </div>
-              <div
-                class="auth-buttons"
-                style="margin-top: 6px; flex-direction: column"
-              >
-                <button
-                  class="btn-outline"
-                  id="btn-google"
-                  style="width: 100%"
-                >
-                  <span>🔐</span> Entrar com Google
-                </button>
-              </div>
-              <div id="auth-message" class="auth-message"></div>
-            </div>
-
-            <div id="logout-section" style="display: none">
-              <div class="logout-row">
-                <span>
-                  Logado como
-                  <strong id="current-user-email"></strong>
-                </span>
-                <button class="btn-outline btn-small" id="btn-logout">
-                  Sair
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Controle de trajeto -->
-          <div class="card">
-            <h2>
-              Controle de trajeto
-              <span class="badge">Modo campo</span>
-            </h2>
-            <p>
-              Grave o caminho, marque ninhos com foto e consulte depois na
-              ordem correta.
-            </p>
-
-            <div class="controls-row">
-              <button class="btn-primary" id="btn-toggle-route">
-                ▶️ Iniciar trajeto
-              </button>
-
-              <button class="btn-outline" id="btn-add-nest" disabled>
-                📍 Marcar ninho com foto
-              </button>
-            </div>
-
-            <div style="margin-top: 8px; font-size: 12px; color: var(--muted)">
-              <div id="current-route-info">Trajeto inativo.</div>
-              <div id="gps-status" style="margin-top: 4px">
-                ⏱️ Aguardando GPS…
-              </div>
-            </div>
-          </div>
-
-          <!-- Lista de trajetos gravados -->
-          <div class="card">
-            <h2>Trajetos salvos</h2>
-            <p>
-              Toque em um trajeto para ver no mapa; monitore ninhos na mesma
-              sequência em que foram marcados.
-            </p>
-            <div class="list" id="routes-list"></div>
-            <div
-              id="routes-empty"
-              class="nests-empty"
-              style="display: none; margin-top: 6px"
-            >
-              Nenhum trajeto salvo ainda.
-            </div>
-          </div>
-
-          <!-- Ninhos do trajeto selecionado -->
-          <div class="card">
-            <h2>Ninhos do trajeto</h2>
-            <p>
-              Visualize as fotos e localização dos ninhos marcados no trajeto
-              selecionado.
-            </p>
-            <div class="nests-grid" id="nests-grid"></div>
-            <div id="nests-empty" class="nests-empty">
-              Selecione um trajeto para ver os ninhos.
-            </div>
-          </div>
-        </section>
-
-        <!-- Mapa -->
-        <section class="map-wrapper">
-          <div class="map-header">
-            <div>
-              <h2>Mapa de campo</h2>
-              <div class="map-subtitle">
-                Arraste, dê zoom e acompanhe o caminho em tempo real.
-              </div>
-            </div>
-            <button class="toggle-btn" id="btn-toggle-sidebar">
-              <span>🧭</span> Focar no mapa
-            </button>
-          </div>
-          <div id="map"></div>
-        </section>
-      </div>
-    </main>
-
-    <!-- Modal de foto -->
-    <div id="photo-modal" class="modal-backdrop">
-      <button class="modal-close" id="photo-modal-close">Fechar</button>
-      <img id="photo-modal-img" class="modal-photo" src="" alt="Foto do ninho" />
-    </div>
-
-    <!-- Lógica principal -->
     <script>
-      // ========= CONFIGURAÇÃO SUPABASE =========
-      const SUPABASE_URL = "https://sgrtyotwnlwpwfecnoze.supabase.co"; // ex.: https://xxxx.supabase.co
-      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNncnR5b3R3bmx3cHdmZWNub3plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NjgxMjcsImV4cCI6MjA4MzM0NDEyN30.QZvTN3mHUwqBwvXeL6q89qNW_4s1Cvopa40nt4TFa9w";
+      // ==== CONFIGURAÇÃO SUPABASE ====
+      const SUPABASE_URL = "https://sgrtyotwnlwpwfecnoze.supabase.co"; // TODO: troque aqui
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNncnR5b3R3bmx3cHdmZWNub3plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NjgxMjcsImV4cCI6MjA4MzM0NDEyN30.QZvTN3mHUwqBwvXeL6q89qNW_4s1Cvopa40nt4TFa9w"; // TODO: troque aqui
 
-      const supabaseClient = supabase.createClient(
+      const supabase = window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_ANON_KEY
       );
 
-      // ========= ELEMENTOS =========
-      const authSection = document.getElementById("auth-section");
-      const logoutSection = document.getElementById("logout-section");
-      const authEmailInput = document.getElementById("auth-email");
-      const authPasswordInput = document.getElementById("auth-password");
-      const authMessageEl = document.getElementById("auth-message");
-      const currentUserEmailEl = document.getElementById("current-user-email");
+      // elementos básicos
+      const statusDot = document.getElementById("supabase-status-dot");
+      const statusText = document.getElementById("supabase-status-text");
+      const authStatusBadge = document.getElementById("auth-status-badge");
+      const authHelper = document.getElementById("auth-helper");
+      const offlineWarning = document.getElementById("offline-warning");
 
-      const btnSignIn = document.getElementById("btn-signin");
-      const btnSignUp = document.getElementById("btn-signup");
-      const btnGoogle = document.getElementById("btn-google");
-      const btnLogout = document.getElementById("btn-logout");
+      const emailInput = document.getElementById("email-input");
+      const passwordInput = document.getElementById("password-input");
+
+      const btnSignIn = document.getElementById("btn-sign-in");
+      const btnSignUp = document.getElementById("btn-sign-up");
+      const btnSignGoogle = document.getElementById("btn-sign-google");
+      const btnSignOut = document.getElementById("btn-sign-out");
 
       const btnToggleRoute = document.getElementById("btn-toggle-route");
-      const btnAddNest = document.getElementById("btn-add-nest");
-      const currentRouteInfoEl = document.getElementById(
-        "current-route-info"
-      );
-      const gpsStatusEl = document.getElementById("gps-status");
+      const btnAddTrap = document.getElementById("btn-add-trap");
+      const btnFocusMap = document.getElementById("btn-focus-map");
+      const btnMonitorTraps = document.getElementById("btn-monitor-traps");
+
+      const gpsStatus = document.getElementById("gps-status");
+      const routeStatusLabel = document.getElementById("route-status-label");
+      const routePointsCount = document.getElementById("route-points-count");
+      const routeTrapsCount = document.getElementById("route-traps-count");
 
       const routesListEl = document.getElementById("routes-list");
-      const routesEmptyEl = document.getElementById("routes-empty");
-      const nestsGridEl = document.getElementById("nests-grid");
-      const nestsEmptyEl = document.getElementById("nests-empty");
+      const noRoutesMsg = document.getElementById("no-routes-msg");
+      const trapsListEl = document.getElementById("traps-list");
+      const noTrapsMsg = document.getElementById("no-traps-msg");
 
-      const cloudStatusEl = document.getElementById("cloud-status");
-      const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+      const photoInput = document.getElementById("photo-input");
 
-      const photoModal = document.getElementById("photo-modal");
-      const photoModalImg = document.getElementById("photo-modal-img");
-      const photoModalClose = document.getElementById("photo-modal-close");
+      let supabaseOnline = false;
+      let currentUser = null;
 
-      // ========= ESTADO =========
-      let map;
-      let currentMarker = null;
-      let pathPolyline = null;
+      // estado de trajeto
       let watchId = null;
-      let recording = false;
-      let currentRoute = null; // {id,name,path:[],traps:[]}
-      let routesCache = []; // rotas vindas do Supabase
+      let map, userMarker, pathPolyline;
+      let currentRoute = null; // {id?, name, createdAt, path[], traps[]}
+      let savedRoutes = [];
+      let trapMarkers = {};
+      let monitorIndex = 0;
 
-      // ========= FUNÇÕES AUX auth =========
-      function setAuthMessage(msg, isError = false, isSuccess = false) {
-        authMessageEl.textContent = msg || "";
-        authMessageEl.className = "auth-message";
-        if (isError) authMessageEl.classList.add("error");
-        else if (isSuccess) authMessageEl.classList.add("success");
-      }
+      const LOCAL_KEY = "beetrack_routes_v1";
 
-      function setLoggedInUI(user) {
-        if (user) {
-          authSection.style.display = "none";
-          logoutSection.style.display = "block";
-          currentUserEmailEl.textContent = user.email || "conta Google";
-        } else {
-          authSection.style.display = "block";
-          logoutSection.style.display = "none";
-          currentUserEmailEl.textContent = "";
-        }
-      }
-
-      async function handleSignUp() {
-        const email = authEmailInput.value.trim();
-        const password = authPasswordInput.value.trim();
-        if (!email || !password) {
-          setAuthMessage("Informe e-mail e senha.", true);
-          return;
-        }
-        setAuthMessage("Criando conta...");
-        const { data, error } = await supabaseClient.auth.signUp({
-          email,
-          password,
-        });
-        if (error) {
-          console.error(error);
-          setAuthMessage(
-            error.message || "Não foi possível criar a conta.",
-            true
-          );
-          return;
-        }
-        setAuthMessage(
-          "Conta criada. Verifique seu e-mail (se a verificação estiver habilitada) e depois faça login.",
-          false,
-          true
+      // ========= MAPA =========
+      function initMap() {
+        map = L.map("map");
+        const tiles = L.tileLayer(
+          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          {
+            maxZoom: 19,
+            attribution: "&copy; OpenStreetMap contributors",
+          }
         );
+        tiles.addTo(map);
+        map.setView([-15.6, -56.1], 4); // Brasil
+
+        pathPolyline = L.polyline([], { color: "#22c55e", weight: 4 }).addTo(
+          map
+        );
+
+        // tentar pegar posição logo no início
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const { latitude, longitude } = pos.coords;
+              map.setView([latitude, longitude], 16);
+              updateUserMarker(latitude, longitude);
+            },
+            () => {},
+            { enableHighAccuracy: true, timeout: 10000 }
+          );
+        } else {
+          gpsStatus.textContent =
+            "GPS não disponível neste dispositivo/navegador.";
+        }
       }
 
-      async function handleSignIn() {
-        const email = authEmailInput.value.trim();
-        const password = authPasswordInput.value.trim();
-        if (!email || !password) {
-          setAuthMessage("Informe e-mail e senha.", true);
+      function updateUserMarker(lat, lng) {
+        if (!userMarker) {
+          userMarker = L.marker([lat, lng]).addTo(map);
+        } else {
+          userMarker.setLatLng([lat, lng]);
+        }
+      }
+
+      function updatePathOnMap() {
+        if (!currentRoute) return;
+        pathPolyline.setLatLngs(currentRoute.path);
+        if (currentRoute.path.length > 0) {
+          map.fitBounds(pathPolyline.getBounds(), { maxZoom: 18 });
+        }
+        routePointsCount.textContent = currentRoute.path.length;
+      }
+
+      function clearTrapMarkers() {
+        Object.values(trapMarkers).forEach((m) => map.removeLayer(m));
+        trapMarkers = {};
+      }
+
+      function renderTraps(route) {
+        trapsListEl.innerHTML = "";
+        clearTrapMarkers();
+
+        if (!route || !route.traps || route.traps.length === 0) {
+          noTrapsMsg.style.display = "block";
+          btnMonitorTraps.disabled = true;
+          routeTrapsCount.textContent = "0";
           return;
         }
-        setAuthMessage("Entrando...");
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) {
-          console.error(error);
-          setAuthMessage(
-            error.message || "Não foi possível fazer login.",
-            true
+
+        noTrapsMsg.style.display = "none";
+        btnMonitorTraps.disabled = false;
+        routeTrapsCount.textContent = route.traps.length;
+
+        route.traps.forEach((trap, idx) => {
+          // marker no mapa
+          const marker = L.marker([trap.lat, trap.lng]).addTo(map);
+          marker.bindPopup(
+            `<strong>Ninho ${idx + 1}</strong><br>${new Date(
+              trap.createdAt
+            ).toLocaleString()}`
           );
-          return;
-        }
-        setAuthMessage("Login realizado!", false, true);
-        await refreshSessionAndData();
-      }
+          trapMarkers[trap.localId] = marker;
 
-      async function handleSignInWithGoogle() {
-        setAuthMessage("Redirecionando para Google...");
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
-          provider: "google",
-          options: {
-            redirectTo: window.location.origin,
-          },
+          // item na lista
+          const li = document.createElement("div");
+          li.className = "trap-item";
+
+          const text = document.createElement("div");
+          text.className = "trap-text";
+          const title = document.createElement("span");
+          title.innerHTML = `<strong>Ninho ${idx + 1}</strong>`;
+          const meta = document.createElement("span");
+          meta.textContent = new Date(trap.createdAt).toLocaleString();
+          text.appendChild(title);
+          text.appendChild(meta);
+
+          const actions = document.createElement("div");
+          actions.className = "trap-actions";
+
+          const btnVer = document.createElement("button");
+          btnVer.className = "btn btn-ghost btn-sm";
+          btnVer.textContent = "Ver no mapa";
+          btnVer.addEventListener("click", () => {
+            map.setView([trap.lat, trap.lng], 19);
+            marker.openPopup();
+          });
+
+          const btnFoto = document.createElement("button");
+          btnFoto.className = "btn btn-ghost btn-sm";
+          btnFoto.textContent = "Ver foto";
+          btnFoto.disabled = !trap.photoUrl;
+          btnFoto.addEventListener("click", () => {
+            if (trap.photoUrl) {
+              window.open(trap.photoUrl, "_blank");
+            }
+          });
+
+          actions.appendChild(btnVer);
+          actions.appendChild(btnFoto);
+
+          li.appendChild(text);
+          li.appendChild(actions);
+
+          trapsListEl.appendChild(li);
         });
-        if (error) {
-          console.error(error);
-          setAuthMessage(
-            error.message || "Erro ao redirecionar para Google.",
-            true
-          );
-        }
-        // O Supabase redireciona, então não precisa fazer nada aqui.
       }
 
-      async function handleLogout() {
-        await supabaseClient.auth.signOut();
-        setLoggedInUI(null);
-        routesCache = [];
-        renderRoutesList();
-        nestsGridEl.innerHTML = "";
-        nestsEmptyEl.textContent = "Selecione um trajeto para ver os ninhos.";
-      }
-
-      async function refreshSessionAndData() {
-        const {
-          data: { session },
-        } = await supabaseClient.auth.getSession();
-        const user = session?.user ?? null;
-        setLoggedInUI(user);
-        if (user) {
-          await loadRoutesFromSupabase();
-        }
-      }
-
-      // ========= Rotas + Supabase =========
-      async function loadRoutesFromSupabase() {
+      // ========= LOCAL STORAGE =========
+      function loadRoutesFromLocal() {
         try {
-          const { data, error } = await supabaseClient
-            .from("routes")
-            .select("*")
-            .order("created_at", { ascending: false });
+          const raw = localStorage.getItem(LOCAL_KEY);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            savedRoutes = parsed;
+          }
+        } catch (e) {
+          console.error("Erro lendo localStorage", e);
+        }
+      }
 
+      function saveRoutesToLocal() {
+        try {
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(savedRoutes));
+        } catch (e) {
+          console.error("Erro salvando localStorage", e);
+        }
+      }
+
+      // ========= SUPABASE HELPERS =========
+      async function checkSupabaseConnection() {
+        try {
+          const { error } = await supabase.from("routes").select("id").limit(1);
           if (error) throw error;
-          routesCache = data || [];
-          renderRoutesList();
-        } catch (err) {
-          console.error("Erro ao carregar rotas:", err);
-          routesCache = [];
-          renderRoutesList();
+          supabaseOnline = true;
+        } catch (e) {
+          supabaseOnline = false;
+        }
+        updateConnectionUI();
+      }
+
+      function updateConnectionUI() {
+        if (supabaseOnline) {
+          statusDot.classList.add("online");
+          statusDot.classList.remove("offline");
+          statusText.textContent = "Conectado à nuvem (Supabase)";
+          offlineWarning.style.display = currentUser ? "none" : "block";
+        } else {
+          statusDot.classList.add("offline");
+          statusDot.classList.remove("online");
+          statusText.textContent = "Offline em relação à nuvem";
+          offlineWarning.style.display = "block";
         }
       }
 
-      async function saveRouteToSupabase(route) {
-        // route: { name, path, traps }
-        try {
-          const { data, error } = await supabaseClient
+      async function loadRoutesFromSupabase() {
+        if (!currentUser || !supabaseOnline) return;
+        const { data, error } = await supabase
+          .from("routes")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) {
+          console.error(error);
+          return;
+        }
+        savedRoutes = data.map((row) => ({
+          id: row.id,
+          name: row.name || "Trajeto sem nome",
+          createdAt: row.created_at,
+          path: row.path || [],
+          traps: row.traps || [],
+        }));
+        saveRoutesToLocal();
+        renderRoutesList();
+      }
+
+      async function persistRouteToSupabase(route) {
+        if (!currentUser || !supabaseOnline) return;
+
+        if (!route.id) {
+          const { data, error } = await supabase
             .from("routes")
             .insert({
               name: route.name,
@@ -824,385 +1020,459 @@
             .select()
             .single();
           if (error) throw error;
-          routesCache.unshift(data);
-          renderRoutesList();
-          alert("Trajeto salvo na nuvem com sucesso!");
-        } catch (err) {
-          console.error("Erro ao salvar trajeto na nuvem:", err);
-          alert(
-            "Erro ao salvar trajeto na nuvem. Ele ficará apenas neste aparelho."
-          );
-        }
-      }
-
-      async function updateRouteName(routeId, newName) {
-        try {
-          const { data, error } = await supabaseClient
+          route.id = data.id;
+        } else {
+          const { error } = await supabase
             .from("routes")
-            .update({ name: newName })
-            .eq("id", routeId)
-            .select()
-            .single();
+            .update({
+              name: route.name,
+              path: route.path,
+              traps: route.traps,
+            })
+            .eq("id", route.id);
           if (error) throw error;
-
-          const idx = routesCache.findIndex((r) => r.id === routeId);
-          if (idx >= 0) routesCache[idx] = data;
-          renderRoutesList();
-        } catch (err) {
-          console.error("Erro ao renomear trajeto:", err);
-          alert("Não foi possível renomear o trajeto.");
         }
       }
 
-      async function deleteRoute(routeId) {
-        if (!confirm("Tem certeza que deseja excluir este trajeto?")) return;
-        try {
-          await supabaseClient.from("routes").delete().eq("id", routeId);
-          routesCache = routesCache.filter((r) => r.id !== routeId);
-          renderRoutesList();
-          nestsGridEl.innerHTML = "";
-          nestsEmptyEl.textContent = "Selecione um trajeto para ver os ninhos.";
-        } catch (err) {
-          console.error("Erro ao excluir trajeto:", err);
-          alert("Não foi possível excluir o trajeto.");
+      async function deleteRouteFromSupabase(route) {
+        if (!currentUser || !supabaseOnline || !route.id) return;
+        await supabase.from("routes").delete().eq("id", route.id);
+      }
+
+      async function uploadTrapPhoto(file, routeId, localTrapId) {
+        if (!currentUser || !supabaseOnline) return null;
+        const ext = file.name.split(".").pop() || "jpg";
+        const filePath = `${currentUser.id}/${routeId || "sem-id"}/${Date.now()}_${
+          localTrapId || "trap"
+        }.${ext}`;
+
+        const { data, error } = await supabase.storage
+          .from("ninhos-fotos")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+          });
+        if (error) throw error;
+
+        const { data: urlData } = supabase.storage
+          .from("ninhos-fotos")
+          .getPublicUrl(data.path);
+
+        return { path: data.path, url: urlData.publicUrl };
+      }
+
+      // ========= AUTH =========
+      function updateAuthUI() {
+        if (currentUser) {
+          authStatusBadge.textContent = "Logado";
+          authStatusBadge.style.color = "#bbf7d0";
+          authStatusBadge.style.borderColor = "rgba(34,197,94,0.7)";
+          authHelper.innerHTML =
+            "Seus trajetos de campo são salvos na nuvem para acessar em qualquer aparelho.";
+          btnSignOut.style.display = "inline-flex";
+          btnSignIn.style.display = "none";
+          btnSignUp.style.display = "none";
+          btnSignGoogle.style.display = "none";
+        } else {
+          authStatusBadge.textContent = "Visitante";
+          authStatusBadge.style.color = "var(--text-soft)";
+          authStatusBadge.style.borderColor = "rgba(148,163,184,0.5)";
+          authHelper.innerHTML =
+            "Sem login, os trajetos ficam apenas neste aparelho.";
+          btnSignOut.style.display = "none";
+          btnSignIn.style.display = "inline-flex";
+          btnSignUp.style.display = "inline-flex";
+          btnSignGoogle.style.display = "inline-flex";
         }
       }
 
-      // ========= Storage (fotos) =========
-      async function uploadNestPhoto(routeId, trapId, dataUrl) {
-        // converte dataURL em Blob
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        const ext = "jpg";
-        const path = `${routeId || "sem-id"}/${trapId}.${ext}`;
+      async function initAuth() {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        currentUser = session ? session.user : null;
+        updateAuthUI();
+        if (currentUser) {
+          await loadRoutesFromSupabase();
+        } else {
+          loadRoutesFromLocal();
+          renderRoutesList();
+        }
 
-        const bucket = supabaseClient.storage.from("ninhos-fotos");
-
-        const { error: uploadError } = await bucket.upload(path, blob, {
-          upsert: true,
-          contentType: blob.type || "image/jpeg",
+        supabase.auth.onAuthStateChange(async (event, session) => {
+          currentUser = session ? session.user : null;
+          updateAuthUI();
+          await checkSupabaseConnection();
+          if (currentUser) {
+            await loadRoutesFromSupabase();
+          } else {
+            loadRoutesFromLocal();
+            renderRoutesList();
+          }
         });
-        if (uploadError) {
-          console.error("Erro ao enviar foto:", uploadError);
-          throw uploadError;
-        }
-
-        const { data: publicData } = bucket.getPublicUrl(path);
-        return publicData.publicUrl;
       }
 
-      // ========= RENDERIZAÇÃO =========
-      function renderRoutesList() {
-        routesListEl.innerHTML = "";
-        if (!routesCache.length) {
-          routesEmptyEl.style.display = "block";
+      async function signInEmail() {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        if (!email || !password) {
+          alert("Informe e-mail e senha.");
           return;
         }
-        routesEmptyEl.style.display = "none";
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) alert(error.message);
+      }
 
-        for (const route of routesCache) {
+      async function signUpEmail() {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        if (!email || !password) {
+          alert("Informe e-mail e senha.");
+          return;
+        }
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) alert(error.message);
+        else alert("Conta criada. Verifique seu e-mail, se solicitado.");
+      }
+
+      async function signInGoogle() {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: window.location.href,
+          },
+        });
+        if (error) alert(error.message);
+      }
+
+      async function signOut() {
+        await supabase.auth.signOut();
+      }
+
+      // ========= TRAJETOS =========
+      function renderRoutesList() {
+        routesListEl.innerHTML = "";
+        if (!savedRoutes.length) {
+          noRoutesMsg.style.display = "block";
+          return;
+        }
+        noRoutesMsg.style.display = "none";
+
+        savedRoutes.forEach((route, index) => {
           const item = document.createElement("div");
           item.className = "route-item";
 
           const header = document.createElement("div");
           header.className = "route-header";
 
-          const nameEl = document.createElement("div");
-          nameEl.className = "route-name";
-          nameEl.textContent = route.name || "Trajeto sem nome";
+          const title = document.createElement("strong");
+          title.textContent =
+            route.name || `Trajeto ${savedRoutes.length - index}`;
+
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          const dot = document.createElement("span");
+          dot.className = "tag-dot tag-dot-green";
+          const txt = document.createElement("span");
+          txt.textContent = `${(route.traps || []).length} ninhos`;
+          tag.appendChild(dot);
+          tag.appendChild(txt);
+
+          header.appendChild(title);
+          header.appendChild(tag);
+
+          const meta = document.createElement("div");
+          meta.className = "route-meta";
+          meta.textContent = new Date(route.createdAt).toLocaleString();
 
           const actions = document.createElement("div");
           actions.className = "route-actions";
 
-          const btnMonitor = document.createElement("button");
-          btnMonitor.className = "btn-primary btn-small";
-          btnMonitor.textContent = "Monitorar ninhos";
-          btnMonitor.addEventListener("click", () => {
-            focusRouteOnMap(route);
-            renderNests(route);
+          const btnAbrir = document.createElement("button");
+          btnAbrir.className = "btn btn-ghost btn-sm";
+          btnAbrir.textContent = "Abrir";
+          btnAbrir.addEventListener("click", () => {
+            openRoute(route);
           });
 
-          const btnRename = document.createElement("button");
-          btnRename.className = "btn-outline btn-small";
-          btnRename.textContent = "Renomear";
-          btnRename.addEventListener("click", () => {
-            const newName = prompt("Novo nome para o trajeto:", route.name);
-            if (newName && newName.trim()) {
-              updateRouteName(route.id, newName.trim());
+          const btnRenomear = document.createElement("button");
+          btnRenomear.className = "btn btn-ghost btn-sm";
+          btnRenomear.textContent = "Renomear";
+          btnRenomear.addEventListener("click", async () => {
+            const novo = prompt("Novo nome para o trajeto:", route.name || "");
+            if (!novo) return;
+            route.name = novo;
+            renderRoutesList();
+            saveRoutesToLocal();
+            try {
+              await persistRouteToSupabase(route);
+            } catch (e) {
+              console.error(e);
             }
           });
 
-          const btnDelete = document.createElement("button");
-          btnDelete.className = "btn-outline btn-small";
-          btnDelete.textContent = "Excluir";
-          btnDelete.addEventListener("click", () => deleteRoute(route.id));
-
-          actions.append(btnMonitor, btnRename, btnDelete);
-          header.append(nameEl, actions);
-
-          const meta = document.createElement("div");
-          meta.className = "route-meta";
-          const dataStr = route.created_at
-            ? new Date(route.created_at).toLocaleString("pt-BR")
-            : "";
-          const qtdNinhos = (route.traps || []).length;
-          meta.textContent = `${dataStr} • ${qtdNinhos} ninhos`;
-
-          item.append(header, meta);
-          routesListEl.appendChild(item);
-        }
-      }
-
-      function renderNests(route) {
-        nestsGridEl.innerHTML = "";
-        const traps = route.traps || [];
-        if (!traps.length) {
-          nestsEmptyEl.textContent =
-            "Este trajeto ainda não possui ninhos marcados.";
-          return;
-        }
-        nestsEmptyEl.textContent = "";
-
-        traps.forEach((trap, idx) => {
-          const img = document.createElement("img");
-          img.className = "nest-photo";
-          img.src = trap.photoUrl || trap.photo || "";
-          img.alt = `Ninho ${idx + 1}`;
-          img.addEventListener("click", () => {
-            if (!img.src) return;
-            photoModalImg.src = img.src;
-            photoModal.classList.add("open");
+          const btnExcluir = document.createElement("button");
+          btnExcluir.className = "btn btn-danger btn-sm";
+          btnExcluir.textContent = "Excluir";
+          btnExcluir.addEventListener("click", async () => {
+            if (!confirm("Excluir este trajeto?")) return;
+            const idx = savedRoutes.indexOf(route);
+            if (idx >= 0) savedRoutes.splice(idx, 1);
+            saveRoutesToLocal();
+            renderRoutesList();
+            if (currentRoute === route) {
+              currentRoute = null;
+              pathPolyline.setLatLngs([]);
+              clearTrapMarkers();
+              renderTraps(null);
+            }
+            try {
+              await deleteRouteFromSupabase(route);
+            } catch (e) {
+              console.error(e);
+            }
           });
-          nestsGridEl.appendChild(img);
+
+          actions.appendChild(btnAbrir);
+          actions.appendChild(btnRenomear);
+          actions.appendChild(btnExcluir);
+
+          item.appendChild(header);
+          item.appendChild(meta);
+          item.appendChild(actions);
+
+          routesListEl.appendChild(item);
         });
       }
 
-      // ========= GEOLocalização e mapa =========
-      function initMap() {
-        map = L.map("map");
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-          attribution: "&copy; OpenStreetMap",
-        }).addTo(map);
-
-        // Tentar centralizar no usuário
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            map.setView([lat, lng], 17);
-          },
-          () => {
-            map.setView([-15.601, -56.097], 13); // fallback genérico
-          }
-        );
+      function openRoute(route) {
+        currentRoute = {
+          ...route,
+          path: route.path || [],
+          traps: route.traps || [],
+        };
+        updatePathOnMap();
+        renderTraps(currentRoute);
+        routeStatusLabel.textContent = "Trajeto carregado";
+        btnAddTrap.disabled = true;
+        btnToggleRoute.textContent = "▶ Iniciar novo trajeto";
       }
 
-      function startRecording() {
-        if (!navigator.geolocation) {
-          alert("Seu dispositivo não suporta geolocalização.");
-          return;
-        }
-
-        const name = prompt("Nome do trajeto:", "Nova trajetória");
-        if (!name) return;
-
-        recording = true;
+      function startRoute() {
         currentRoute = {
-          name,
+          id: null,
+          name:
+            prompt("Nome do trajeto (opcional):", "Trajeto de campo") ||
+            "Trajeto de campo",
+          createdAt: new Date().toISOString(),
           path: [],
           traps: [],
         };
-        currentRouteInfoEl.textContent = `Gravando: ${name}`;
-        btnToggleRoute.textContent = "⏹️ Encerrar trajeto";
-        btnAddNest.disabled = false;
-        gpsStatusEl.textContent = "Gravação iniciada. Movimente-se com o app aberto.";
+        monitorIndex = 0;
+        pathPolyline.setLatLngs([]);
+        clearTrapMarkers();
+        renderTraps(currentRoute);
+        routeStatusLabel.textContent = "Gravando…";
+        btnAddTrap.disabled = false;
+        btnToggleRoute.textContent = "⏹ Finalizar trajeto";
 
-        if (pathPolyline) {
-          map.removeLayer(pathPolyline);
-          pathPolyline = null;
+        if (navigator.geolocation) {
+          watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+              const { latitude, longitude } = pos.coords;
+              gpsStatus.textContent = `📍 ${latitude.toFixed(
+                5
+              )}, ${longitude.toFixed(5)}`;
+              updateUserMarker(latitude, longitude);
+
+              if (currentRoute) {
+                const last =
+                  currentRoute.path[currentRoute.path.length - 1] || null;
+                if (
+                  !last ||
+                  L.latLng(last[0], last[1]).distanceTo(
+                    L.latLng(latitude, longitude)
+                  ) > 4
+                ) {
+                  currentRoute.path.push([latitude, longitude]);
+                  updatePathOnMap();
+                }
+              }
+            },
+            (err) => {
+              console.error(err);
+              gpsStatus.textContent =
+                "Erro ao ler GPS. Verifique permissões do navegador.";
+            },
+            { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
+          );
+        } else {
+          gpsStatus.textContent = "GPS não disponível neste dispositivo.";
         }
-
-        watchId = navigator.geolocation.watchPosition(
-          (pos) => {
-            const { latitude, longitude } = pos.coords;
-            const point = [latitude, longitude];
-            currentRoute.path.push({
-              lat: latitude,
-              lng: longitude,
-              ts: Date.now(),
-            });
-
-            if (!currentMarker) {
-              currentMarker = L.marker(point).addTo(map);
-              map.setView(point, 18);
-            } else {
-              currentMarker.setLatLng(point);
-            }
-
-            if (pathPolyline) {
-              pathPolyline.addLatLng(point);
-            } else {
-              pathPolyline = L.polyline([point], {
-                color: "#22c55e",
-                weight: 5,
-              }).addTo(map);
-            }
-          },
-          (err) => {
-            console.error(err);
-            gpsStatusEl.textContent =
-              "Erro no GPS. Verifique as permissões do seu aparelho.";
-          },
-          {
-            enableHighAccuracy: true,
-            maximumAge: 0,
-            timeout: 10000,
-          }
-        );
       }
 
-      async function stopRecording() {
-        recording = false;
-        btnToggleRoute.textContent = "▶️ Iniciar trajeto";
-        btnAddNest.disabled = true;
-        gpsStatusEl.textContent = "Trajeto encerrado.";
+      async function finishRoute() {
+        if (!currentRoute) return;
+        routeStatusLabel.textContent = "Encerrando trajeto…";
+        btnToggleRoute.disabled = true;
+        btnAddTrap.disabled = true;
 
-        if (watchId !== null) {
+        // guarda na lista local
+        savedRoutes.unshift(currentRoute);
+        renderRoutesList();
+        saveRoutesToLocal();
+
+        let erroNuvem = false;
+        if (supabaseOnline && currentUser) {
+          try {
+            await persistRouteToSupabase(currentRoute);
+          } catch (e) {
+            console.error(e);
+            erroNuvem = true;
+          }
+        } else {
+          erroNuvem = true;
+        }
+
+        routeStatusLabel.textContent = "Trajeto salvo";
+        btnToggleRoute.disabled = false;
+        btnToggleRoute.textContent = "▶ Iniciar trajeto";
+
+        if (erroNuvem) {
+          alert(
+            "Erro ao salvar trajeto na nuvem. Ele ficará apenas neste aparelho."
+          );
+        }
+
+        if (navigator.geolocation && watchId != null) {
           navigator.geolocation.clearWatch(watchId);
           watchId = null;
         }
 
-        if (!currentRoute || !currentRoute.path.length) {
-          currentRouteInfoEl.textContent = "Trajeto inativo.";
-          currentRoute = null;
-          return;
-        }
-
-        currentRouteInfoEl.textContent = `Trajeto concluído: ${currentRoute.name}`;
-        await saveRouteToSupabase(currentRoute);
         currentRoute = null;
       }
 
-      async function addNestWithPhoto() {
-        if (!recording || !currentRoute) return;
-
-        // obtém posição atual
+      // ========= NINHOS =========
+      function markTrap() {
+        if (!currentRoute) {
+          alert("Inicie um trajeto primeiro.");
+          return;
+        }
+        if (!navigator.geolocation) {
+          alert("GPS não disponível para marcar ninho.");
+          return;
+        }
+        // pedimos a posição atual apenas para garantir que estamos atualizados
         navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            try {
-              const { latitude, longitude } = pos.coords;
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            const localId = `${Date.now()}_${Math.random()
+              .toString(36)
+              .slice(2)}`;
+            const trap = {
+              localId,
+              lat: latitude,
+              lng: longitude,
+              createdAt: new Date().toISOString(),
+              photoUrl: null,
+              storagePath: null,
+            };
+            currentRoute.traps.push(trap);
+            renderTraps(currentRoute);
+            saveRoutesToLocal();
 
-              // tira foto (via input file)
-              const input = document.createElement("input");
-              input.type = "file";
-              input.accept = "image/*";
-              input.capture = "environment";
-              input.onchange = async () => {
-                const file = input.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                  const dataUrl = e.target.result;
-
-                  const trapId = Date.now().toString();
-                  let photoUrl = null;
-
-                  try {
-                    // envia para Storage (rotas ainda não têm ID no momento da gravação)
-                    photoUrl = await uploadNestPhoto("temp", trapId, dataUrl);
-                  } catch (err) {
-                    console.error("Erro ao salvar foto no Storage:", err);
-                    alert(
-                      "Erro ao enviar foto para a nuvem. Ela ficará apenas neste aparelho para este trajeto."
-                    );
-                    photoUrl = dataUrl;
-                  }
-
-                  currentRoute.traps.push({
-                    id: trapId,
-                    lat: latitude,
-                    lng: longitude,
-                    ts: Date.now(),
-                    photoUrl,
-                  });
-
-                  alert("Ninho marcado com sucesso!");
-                };
-                reader.readAsDataURL(file);
-              };
-              input.click();
-            } catch (err) {
-              console.error(err);
-              alert("Não foi possível registrar o ninho.");
-            }
+            // abrir captura de foto
+            photoInput.value = "";
+            photoInput.onchange = async () => {
+              const file = photoInput.files[0];
+              if (!file) return;
+              if (!currentUser || !supabaseOnline) {
+                alert(
+                  "Foto registrada apenas localmente (sem upload). Faça login e tenha conexão para enviar à nuvem."
+                );
+                return;
+              }
+              try {
+                const upload = await uploadTrapPhoto(
+                  file,
+                  currentRoute.id,
+                  localId
+                );
+                trap.photoUrl = upload.url;
+                trap.storagePath = upload.path;
+                renderTraps(currentRoute);
+                saveRoutesToLocal();
+                await persistRouteToSupabase(currentRoute);
+              } catch (e) {
+                console.error(e);
+                alert("Falha ao enviar foto para a nuvem.");
+              }
+            };
+            photoInput.click();
           },
           (err) => {
             console.error(err);
-            alert("Erro ao obter localização atual.");
+            alert(
+              "Não foi possível obter a localização atual para o ninho. Tente novamente."
+            );
           },
-          { enableHighAccuracy: true, timeout: 10000 }
+          { enableHighAccuracy: true, timeout: 20000 }
         );
       }
 
-      function focusRouteOnMap(route) {
-        const path = route.path || [];
-        if (!path.length || !map) return;
+      function monitorNextTrap() {
+        if (!currentRoute || !currentRoute.traps.length) return;
+        if (monitorIndex >= currentRoute.traps.length) monitorIndex = 0;
+        const trap = currentRoute.traps[monitorIndex];
+        monitorIndex++;
 
-        if (pathPolyline) {
-          map.removeLayer(pathPolyline);
-        }
-
-        const latlngs = path.map((p) => [p.lat, p.lng]);
-        pathPolyline = L.polyline(latlngs, {
-          color: "#22c55e",
-          weight: 5,
-        }).addTo(map);
-        map.fitBounds(pathPolyline.getBounds(), { padding: [30, 30] });
+        map.setView([trap.lat, trap.lng], 19);
+        const marker = trapMarkers[trap.localId];
+        if (marker) marker.openPopup();
       }
 
-      // ========= UI lateral =========
-      let sidebarHidden = false;
-      btnToggleSidebar.addEventListener("click", () => {
-        const leftPanel = document.querySelector(".left-panel");
-        sidebarHidden = !sidebarHidden;
-        leftPanel.style.display = sidebarHidden ? "none" : "flex";
-        btnToggleSidebar.innerHTML = sidebarHidden
-          ? '<span>🧭</span> Mostrar painel'
-          : '<span>🧭</span> Focar no mapa';
-      });
-
-      // ========= Modal foto =========
-      photoModalClose.addEventListener("click", () => {
-        photoModal.classList.remove("open");
-        photoModalImg.src = "";
-      });
-      photoModal.addEventListener("click", (e) => {
-        if (e.target === photoModal) {
-          photoModal.classList.remove("open");
-          photoModalImg.src = "";
+      // ========= EVENTOS =========
+      btnToggleRoute.addEventListener("click", () => {
+        if (!currentRoute) {
+          startRoute();
+        } else if (routeStatusLabel.textContent.startsWith("Gravando")) {
+          finishRoute();
+        } else {
+          // se um trajeto apenas carregado estiver ativo, iniciar novo
+          startRoute();
         }
       });
 
-      // ========= Event listeners globais =========
-      btnSignUp.addEventListener("click", handleSignUp);
-      btnSignIn.addEventListener("click", handleSignIn);
-      btnGoogle.addEventListener("click", handleSignInWithGoogle);
-      btnLogout.addEventListener("click", handleLogout);
-
-      btnToggleRoute.addEventListener("click", () => {
-        if (!recording) startRecording();
-        else stopRecording();
+      btnAddTrap.addEventListener("click", markTrap);
+      btnFocusMap.addEventListener("click", () => {
+        if (userMarker) {
+          map.setView(userMarker.getLatLng(), 18);
+        } else if (currentRoute && currentRoute.path.length) {
+          map.fitBounds(pathPolyline.getBounds(), { maxZoom: 18 });
+        }
       });
 
-      btnAddNest.addEventListener("click", addNestWithPhoto);
+      btnMonitorTraps.addEventListener("click", monitorNextTrap);
 
-      // ========= Inicialização =========
-      window.addEventListener("load", async () => {
+      btnSignIn.addEventListener("click", signInEmail);
+      btnSignUp.addEventListener("click", signUpEmail);
+      btnSignGoogle.addEventListener("click", signInGoogle);
+      btnSignOut.addEventListener("click", signOut);
+
+      // ========= INICIALIZAÇÃO =========
+      (async function init() {
         initMap();
-        await refreshSessionAndData();
-      });
+        loadRoutesFromLocal();
+        renderRoutesList();
+        await checkSupabaseConnection();
+        await initAuth();
+      })();
     </script>
   </body>
 </html>
