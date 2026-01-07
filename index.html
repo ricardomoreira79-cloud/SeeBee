@@ -5,13 +5,10 @@
   <title>Ninhos de Abelhas - Rastreador de Trajeto</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Cor da barra do navegador / PWA -->
   <meta name="theme-color" content="#145a32" />
-
-  <!-- Manifesto PWA -->
   <link rel="manifest" href="manifest.webmanifest" />
 
-  <!-- Leaflet (mapa) -->
+  <!-- Leaflet -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -48,6 +45,11 @@
       padding: 12px 16px;
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
       color: white;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
     }
 
     header h1 {
@@ -59,6 +61,13 @@
       margin: 4px 0 0;
       font-size: 0.9rem;
       opacity: 0.8;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
     }
 
     main {
@@ -214,7 +223,6 @@
       color: #777;
     }
 
-    /* Modal de foto ampliada */
     .photo-modal {
       position: fixed;
       inset: 0;
@@ -270,8 +278,13 @@
 </head>
 <body>
   <header>
-    <h1>Ninhos de Abelhas – Rastreador</h1>
-    <p>Registre seus trajetos, marque pontos de ninhos com foto e consulte depois.</p>
+    <div>
+      <h1>Ninhos de Abelhas – Rastreador</h1>
+      <p>Registre seus trajetos, marque ninhos com foto e consulte depois.</p>
+    </div>
+    <div class="header-right">
+      <span id="cloudStatus">Conectado à nuvem (Supabase)</span>
+    </div>
   </header>
 
   <main>
@@ -326,7 +339,6 @@
         </div>
 
         <div class="trap-list" id="trapList">
-          <!-- lista de pontos de ninhos -->
         </div>
       </div>
     </section>
@@ -339,10 +351,9 @@
   </main>
 
   <footer>
-    Webapp didático – dados salvos apenas no seu navegador (localStorage).
+    Dados de trajetos salvos na nuvem (Supabase). Fotos dos ninhos ficam apenas neste aparelho.
   </footer>
 
-  <!-- Input de foto oculto (usado ao marcar ninho) -->
   <input
     type="file"
     id="photoInput"
@@ -351,13 +362,21 @@
     style="display: none;"
   />
 
-  <!-- Modal para foto ampliada -->
   <div id="photoModal" class="photo-modal">
     <img id="photoModalImg" src="" alt="Foto ampliada do ninho" />
     <div class="photo-modal-hint">Toque em qualquer lugar para fechar</div>
   </div>
 
-  <script>
+  <!-- Script principal com Supabase -->
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    // 🔧 PREENCHA COM OS DADOS DO SEU PROJETO
+    const SUPABASE_URL = "https://sgrtyotwnlwpwfecnoze.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNncnR5b3R3bmx3cHdmZWNub3plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NjgxMjcsImV4cCI6MjA4MzM0NDEyN30.QZvTN3mHUwqBwvXeL6q89qNW_4s1Cvopa40nt4TFa9w";
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     /************************************************************
      * ESTADO GLOBAL
      ************************************************************/
@@ -365,13 +384,12 @@
     let pathPolyline;
     let currentMarker;
     let trapsLayerGroup;
-    let monitorLine; // linha entre posição atual e próximo ninho
+    let monitorLine;
 
     let isTracking = false;
     let watchId = null;
     let currentRoute = null;
 
-    // Estado do monitoramento de ninhos
     const monitorState = {
       active: false,
       routeId: null,
@@ -381,8 +399,8 @@
       currentPosition: null,
     };
 
-    // Armazena todos os trajetos salvos (no dispositivo)
-    const STORAGE_KEY = "iscas_trajetos_v1"; // chave interna
+    // cache em memória das rotas carregadas da nuvem
+    window.cachedRoutes = [];
 
     /************************************************************
      * INICIALIZAÇÃO
@@ -391,11 +409,10 @@
       initMap();
       bindUI();
       setupPhotoModal();
-      loadRoutesFromStorage();
+      loadRoutesFromSupabase();
     });
 
     function initMap() {
-      // Mapa inicial, centro aproximado no Brasil (fallback)
       map = L.map("map").setView([-15.0, -56.0], 5);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -407,15 +424,11 @@
       trapsLayerGroup = L.layerGroup().addTo(map);
       monitorLine = L.polyline([], { weight: 2, dashArray: "5,5" }).addTo(map);
 
-      // ✅ Ao carregar, tenta centralizar no ponto atual com zoom
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             const { latitude, longitude } = pos.coords;
             map.setView([latitude, longitude], 16);
-
-            // Cria marcador inicial na posição do usuário;
-            // depois ele será reaproveitado pelo tracking/monitoramento.
             currentMarker = L.marker([latitude, longitude]).addTo(map);
           },
           (err) => {
@@ -440,11 +453,11 @@
       const btnMonitorRoute = document.getElementById("btnMonitorRoute");
       const btnNextTrap = document.getElementById("btnNextTrap");
 
-      btnStartStop.addEventListener("click", () => {
+      btnStartStop.addEventListener("click", async () => {
         if (!isTracking) {
           startTracking();
         } else {
-          stopTracking();
+          await stopTracking();
         }
       });
 
@@ -462,10 +475,10 @@
           clearMapLayers();
           updateRouteInfo(null);
           updateMonitorInfo("Monitoramento de ninhos inativo.");
+          document.getElementById("trapList").innerHTML = "";
           return;
         }
-        const routes = getAllRoutes();
-        const route = routes.find((r) => r.id === id);
+        const route = findRouteById(id);
         if (route) {
           showRouteOnMap(route);
           updateRouteInfo(route);
@@ -476,10 +489,8 @@
         }
       });
 
-      // Renomear trajeto
-      btnRenameRoute.addEventListener("click", () => {
-        const select = document.getElementById("routeSelect");
-        const id = select.value;
+      btnRenameRoute.addEventListener("click", async () => {
+        const id = routeSelect.value;
         if (!id) {
           alert("Selecione um trajeto para renomear.");
           return;
@@ -487,13 +498,11 @@
         if (monitorState.active) {
           stopMonitoringRoute();
         }
-        renameRoute(id);
+        await renameRoute(id);
       });
 
-      // Excluir trajeto
-      btnDeleteRoute.addEventListener("click", () => {
-        const select = document.getElementById("routeSelect");
-        const id = select.value;
+      btnDeleteRoute.addEventListener("click", async () => {
+        const id = routeSelect.value;
         if (!id) {
           alert("Selecione um trajeto para excluir.");
           return;
@@ -501,13 +510,11 @@
         if (monitorState.active && monitorState.routeId === id) {
           stopMonitoringRoute();
         }
-        deleteRoute(id);
+        await deleteRoute(id);
       });
 
-      // Monitorar ninhos
       btnMonitorRoute.addEventListener("click", () => {
-        const select = document.getElementById("routeSelect");
-        const id = select.value;
+        const id = routeSelect.value;
         if (!id) {
           alert("Selecione um trajeto para monitorar.");
           return;
@@ -520,42 +527,47 @@
         }
       });
 
-      // Próximo ninho
       btnNextTrap.addEventListener("click", () => {
         goToNextTrap();
       });
 
-      // Foto selecionada
       photoInput.addEventListener("change", handlePhotoSelected);
     }
 
     /************************************************************
-     * ARMAZENAMENTO
+     * SUPABASE – ROTAS
      ************************************************************/
-    function getAllRoutes() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        return JSON.parse(raw);
-      } catch (e) {
-        console.error("Erro ao ler localStorage:", e);
+    async function getAllRoutes() {
+      const cloudStatus = document.getElementById("cloudStatus");
+      const { data, error } = await supabase
+        .from("routes")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erro ao carregar rotas do Supabase:", error);
+        cloudStatus.textContent = "Erro ao conectar à nuvem";
+        cloudStatus.style.color = "#ffdddd";
         return [];
       }
+
+      cloudStatus.textContent = "Conectado à nuvem (Supabase)";
+      cloudStatus.style.color = "#e8f5e9";
+
+      return (data || []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        createdAt: row.created_at,
+        path: row.path || [],
+        traps: row.traps || [],
+      }));
     }
 
-    function saveAllRoutes(routes) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(routes));
-    }
-
-    function addRoute(route) {
-      const routes = getAllRoutes();
-      routes.push(route);
-      saveAllRoutes(routes);
-    }
-
-    function loadRoutesFromStorage() {
+    async function loadRoutesFromSupabase() {
       const routeSelect = document.getElementById("routeSelect");
-      const routes = getAllRoutes();
+      const routes = await getAllRoutes();
+
+      window.cachedRoutes = routes;
 
       routeSelect.innerHTML = '<option value="">Selecione um trajeto…</option>';
 
@@ -573,8 +585,67 @@
       });
     }
 
+    async function saveRouteToSupabase(route) {
+      const { error } = await supabase.from("routes").insert({
+        id: route.id,
+        name: route.name,
+        created_at: route.createdAt,
+        path: route.path,
+        traps: route.traps,
+      });
+
+      if (error) {
+        console.error("Erro ao salvar rota no Supabase:", error);
+        alert("Erro ao salvar trajeto na nuvem. Ele ficará apenas neste aparelho.");
+      }
+    }
+
+    async function updateRouteTrapsInSupabase(routeId, traps) {
+      const { error } = await supabase
+        .from("routes")
+        .update({ traps })
+        .eq("id", routeId);
+
+      if (error) {
+        console.error("Erro ao atualizar ninhos no Supabase:", error);
+      }
+    }
+
+    async function updateRouteNameInSupabase(routeId, newName) {
+      const { error } = await supabase
+        .from("routes")
+        .update({ name: newName })
+        .eq("id", routeId);
+
+      if (error) {
+        console.error("Erro ao renomear rota no Supabase:", error);
+        alert("Erro ao renomear trajeto na nuvem.");
+        return false;
+      }
+      return true;
+    }
+
+    async function deleteRouteFromSupabase(routeId) {
+      const { error } = await supabase
+        .from("routes")
+        .delete()
+        .eq("id", routeId);
+
+      if (error) {
+        console.error("Erro ao excluir rota no Supabase:", error);
+        alert("Erro ao excluir trajeto na nuvem.");
+        return false;
+      }
+      return true;
+    }
+
+    function findRouteById(id) {
+      const routes = window.cachedRoutes || [];
+      return routes.find((r) => r.id === id) || null;
+    }
+
     /************************************************************
-     * CONTROLE DO TRAJETO (GRAVAÇÃO)
+     * CONTROLE DO TRAJETO
      ************************************************************/
     function startTracking() {
       if (!("geolocation" in navigator)) {
@@ -610,8 +681,8 @@
         currentMarker = null;
       }
 
-      const status = document.getElementById("status");
-      status.textContent = "Gravando trajeto… caminhando com GPS ligado.";
+      document.getElementById("status").textContent =
+        "Gravando trajeto… caminhando com GPS ligado.";
       toggleTrackingButtons(true);
 
       watchId = navigator.geolocation.watchPosition(
@@ -647,7 +718,7 @@
       );
     }
 
-    function stopTracking() {
+    async function stopTracking() {
       if (!isTracking) return;
 
       if (watchId !== null) {
@@ -662,17 +733,20 @@
       status.textContent = "Trajeto encerrado.";
 
       if (currentRoute && currentRoute.path.length > 0) {
-        addRoute(currentRoute);
-        loadRoutesFromStorage();
+        await saveRouteToSupabase(currentRoute);
+        await loadRoutesFromSupabase();
 
         const routeSelect = document.getElementById("routeSelect");
         routeSelect.value = currentRoute.id;
 
-        showRouteOnMap(currentRoute);
-        updateRouteInfo(currentRoute);
-        renderTrapList(currentRoute);
+        const route = findRouteById(currentRoute.id);
+        if (route) {
+          showRouteOnMap(route);
+          updateRouteInfo(route);
+          renderTrapList(route);
+        }
 
-        alert("Trajeto salvo com sucesso!");
+        alert("Trajeto salvo com sucesso na nuvem!");
       } else {
         alert("Nenhum ponto foi registrado. Trajeto não será salvo.");
       }
@@ -702,7 +776,7 @@
     }
 
     /************************************************************
-     * MARCAR PONTO DE NINHO (COM FOTO)
+     * NINHOS (TRAPS)
      ************************************************************/
     let pendingTrapPosition = null;
 
@@ -776,24 +850,31 @@
     }
 
     function registerTrap(lat, lng, photoDataUrl, note) {
-      if (!currentRoute) return;
+      if (!currentRoute && !monitorState.routeId) {
+        return;
+      }
 
-      const trap = {
-        id: "trap_" + Date.now(),
-        lat,
-        lng,
-        timestamp: new Date().toISOString(),
-        note,
-        photo: photoDataUrl,
-      };
+      if (currentRoute) {
+        const trap = {
+          id: "trap_" + Date.now(),
+          lat,
+          lng,
+          timestamp: new Date().toISOString(),
+          note,
+          photo: photoDataUrl,
+        };
 
-      currentRoute.traps.push(trap);
+        currentRoute.traps.push(trap);
 
-      const popupHtml = createTrapPopupHtml(trap);
-      const marker = L.marker([lat, lng]).addTo(trapsLayerGroup);
-      marker.bindPopup(popupHtml);
+        const popupHtml = createTrapPopupHtml(trap);
+        const marker = L.marker([lat, lng]).addTo(trapsLayerGroup);
+        marker.bindPopup(popupHtml);
 
-      alert("Ponto de ninho registrado!");
+        alert("Ponto de ninho registrado!");
+        return;
+      }
+
+      // caso futuro: adicionar ninho em trajeto já salvo, via monitoramento
     }
 
     function createTrapPopupHtml(trap) {
@@ -911,60 +992,58 @@
     }
 
     /************************************************************
-     * RENOMEAR / EXCLUIR TRAJETO
+     * RENOMEAR / EXCLUIR
      ************************************************************/
-    function renameRoute(routeId) {
-      const routes = getAllRoutes();
-      const idx = routes.findIndex((r) => r.id === routeId);
-      if (idx === -1) {
-        alert("Trajeto não encontrado.");
-        return;
-      }
-
-      const currentName = routes[idx].name || "";
-      const newName = prompt("Novo nome para este trajeto:", currentName);
-      if (!newName) {
-        return;
-      }
-
-      routes[idx].name = newName;
-      saveAllRoutes(routes);
-      loadRoutesFromStorage();
-
-      const routeSelect = document.getElementById("routeSelect");
-      routeSelect.value = routeId;
-
-      const updatedRoute = routes[idx];
-      showRouteOnMap(updatedRoute);
-      updateRouteInfo(updatedRoute);
-      renderTrapList(updatedRoute);
-    }
-
-    function deleteRoute(routeId) {
-      const routes = getAllRoutes();
-      const route = routes.find((r) => r.id === routeId);
+    async function renameRoute(routeId) {
+      const route = findRouteById(routeId);
       if (!route) {
         alert("Trajeto não encontrado.");
         return;
       }
 
-      const ok = confirm(
-        `Deseja realmente excluir o trajeto "${route.name}"?\nEssa ação não pode ser desfeita.`
-      );
+      const currentName = route.name || "";
+      const newName = prompt("Novo nome para este trajeto:", currentName);
+      if (!newName) return;
+
+      const ok = await updateRouteNameInSupabase(routeId, newName);
       if (!ok) return;
 
-      const newRoutes = routes.filter((r) => r.id !== routeId);
-      saveAllRoutes(newRoutes);
-      loadRoutesFromStorage();
+      await loadRoutesFromSupabase();
+
+      const updated = findRouteById(routeId);
+      const routeSelect = document.getElementById("routeSelect");
+      routeSelect.value = routeId;
+
+      if (updated) {
+        showRouteOnMap(updated);
+        updateRouteInfo(updated);
+        renderTrapList(updated);
+      }
+    }
+
+    async function deleteRoute(routeId) {
+      const route = findRouteById(routeId);
+      if (!route) {
+        alert("Trajeto não encontrado.");
+        return;
+      }
+
+      const okConfirm = confirm(
+        `Deseja realmente excluir o trajeto "${route.name}"?\nEssa ação não pode ser desfeita.`
+      );
+      if (!okConfirm) return;
+
+      const ok = await deleteRouteFromSupabase(routeId);
+      if (!ok) return;
+
+      await loadRoutesFromSupabase();
 
       clearMapLayers();
       updateRouteInfo(null);
-      const trapList = document.getElementById("trapList");
-      trapList.innerHTML = "Nenhum trajeto selecionado.";
+      document.getElementById("trapList").innerHTML =
+        "Nenhum trajeto selecionado.";
       updateMonitorInfo("Monitoramento de ninhos inativo.");
-
-      const status = document.getElementById("status");
-      status.textContent = "Trajeto excluído.";
+      document.getElementById("status").textContent = "Trajeto excluído.";
     }
 
     /************************************************************
@@ -976,8 +1055,7 @@
         return;
       }
 
-      const routes = getAllRoutes();
-      const route = routes.find((r) => r.id === routeId);
+      const route = findRouteById(routeId);
       if (!route) {
         alert("Trajeto não encontrado.");
         return;
@@ -1019,8 +1097,7 @@
             currentMarker = L.marker([latitude, longitude]).addTo(map);
           }
 
-          const routesNow = getAllRoutes();
-          const rNow = routesNow.find((r) => r.id === monitorState.routeId);
+          const rNow = findRouteById(monitorState.routeId);
           if (!rNow || !rNow.traps || rNow.traps.length === 0) {
             updateMonitorInfo("Nenhum ninho encontrado neste trajeto.");
             return;
@@ -1151,8 +1228,7 @@
         alert("Inicie o monitoramento de ninhos primeiro.");
         return;
       }
-      const routes = getAllRoutes();
-      const route = routes.find((r) => r.id === monitorState.routeId);
+      const route = findRouteById(monitorState.routeId);
       if (!route) {
         alert("Trajeto não encontrado.");
         stopMonitoringRoute();
@@ -1174,7 +1250,7 @@
     }
 
     /************************************************************
-     * MODAL DE FOTO AMPLIADA
+     * MODAL DE FOTO
      ************************************************************/
     function setupPhotoModal() {
       const modal = document.getElementById("photoModal");
@@ -1218,7 +1294,6 @@
         .replace(/'/g, "&#039;");
     }
 
-    // Distância em metros (Haversine)
     function distanceInMeters(lat1, lon1, lat2, lon2) {
       const R = 6371000;
       const toRad = (x) => (x * Math.PI) / 180;
@@ -1235,7 +1310,6 @@
       return R * c;
     }
 
-    // Direção aproximada (N, NE, E, SE, S, SW, W, NW)
     function bearingToDirection(lat1, lon1, lat2, lon2) {
       const toRad = (x) => (x * Math.PI) / 180;
       const toDeg = (x) => (x * 180) / Math.PI;
@@ -1253,7 +1327,6 @@
       return dirs[idx];
     }
 
-    // Service Worker
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker
