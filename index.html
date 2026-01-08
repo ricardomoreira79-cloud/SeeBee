@@ -37,7 +37,8 @@
       --text-main: #e5e7eb;
       --text-soft: #9ca3af;
       --danger: #b91c1c;
-      --radius-lg: 16px;
+      --radius-lg: 14px;
+      --gold: #facc15;
     }
 
     * {
@@ -83,27 +84,28 @@
     }
 
     .title-block p {
-      margin: 2px 0 8px;
+      margin: 2px 0 0;
       font-size: 0.9rem;
       color: var(--text-soft);
     }
 
     .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
       font-size: 0.8rem;
       padding: 4px 10px;
       border-radius: 999px;
       border: 1px solid #15803d55;
       background: #064e3b;
       color: #bbf7d0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
     }
 
     .status-pill.offline {
-      border-color: #fecaca55;
-      background: #7f1d1d;
-      color: #fee2e2;
+      background: #7c2d12;
+      border-color: #fb923caa;
+      color: #fed7aa;
     }
 
     .status-dot {
@@ -116,7 +118,7 @@
 
     .status-pill.offline .status-dot {
       background: #f97316;
-      box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.25);
+      box-shadow: 0 0 0 4px rgba(248, 148, 74, 0.35);
     }
 
     .user-info {
@@ -146,47 +148,50 @@
       color: #e5e7eb;
     }
 
-    /* ========= HERO / LOGIN ========= */
+    /* ========= AUTH ========= */
 
-    .auth-hero {
-      margin-top: 24px;
-      margin-bottom: 24px;
+    #auth-hero {
       text-align: center;
+      margin-top: 24px;
+      margin-bottom: 16px;
     }
 
-    .logo-circle {
-      width: 96px;
-      height: 96px;
+    .bee-logo-circle {
+      width: 112px;
+      height: 112px;
       margin: 0 auto 12px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 20%, #facc15, #ea580c 75%);
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #fef9c3, #f59e0b 55%, #b45309 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow:
-        0 0 0 4px rgba(15, 23, 42, 0.9),
-        0 20px 40px rgba(0, 0, 0, 0.8);
-      font-size: 42px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.8);
+      border: 2px solid rgba(250, 250, 250, 0.08);
     }
 
-    .auth-hero-title {
+    .bee-logo-circle img {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+    }
+
+    #auth-hero h1 {
       margin: 0;
       font-size: 2rem;
       letter-spacing: 0.08em;
     }
 
-    .auth-hero-subtitle {
-      margin: 8px 0 0;
-      color: var(--text-soft);
+    #auth-hero p {
+      margin: 6px 0 0;
       font-size: 0.95rem;
-      max-width: 560px;
-      margin-left: auto;
-      margin-right: auto;
+      color: var(--text-soft);
     }
 
     #auth-card {
-      max-width: 460px;
-      margin: 0 auto 32px;
+      margin-top: 24px;
+      max-width: 420px;
+      margin-left: auto;
+      margin-right: auto;
       padding: 24px 20px 20px;
       border-radius: var(--radius-lg);
       background: radial-gradient(circle at top left, #04785744, #020617 45%, #000 100%);
@@ -218,7 +223,7 @@
 
     .auth-field input {
       width: 100%;
-      padding: 8px 10px;
+      padding: 10px 12px;
       border-radius: 9px;
       border: 1px solid #374151;
       background: #020617;
@@ -236,7 +241,7 @@
       flex: 1;
       background: linear-gradient(135deg, var(--green), #22c55e);
       border: none;
-      padding: 8px 10px;
+      padding: 10px 10px;
       border-radius: 999px;
       color: #022c22;
       font-weight: 600;
@@ -257,29 +262,31 @@
     .btn-google {
       margin-top: 10px;
       width: 100%;
-      padding: 9px 12px;
       border-radius: 999px;
-      border: 1px solid #1f2937;
-      background: #020617;
+      border: 1px solid #111827;
+      background: radial-gradient(circle at top left, #020617, #020617, #000);
       color: var(--text-main);
+      padding: 9px 12px;
       font-size: 0.9rem;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       cursor: pointer;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.9);
     }
 
-    .btn-google-icon {
+    .btn-google span.logo {
       width: 18px;
       height: 18px;
+      display: inline-block;
       border-radius: 4px;
       background: conic-gradient(
         from 45deg,
-        #4285f4 0 25%,
-        #34a853 25% 50%,
-        #fbbc05 50% 75%,
-        #ea4335 75% 100%
+        #ea4335 0 25%,
+        #fbbc05 25% 50%,
+        #34a853 50% 75%,
+        #4285f4 75% 100%
       );
     }
 
@@ -533,6 +540,98 @@
       border: 1px solid #4b5563;
     }
 
+    /* MODAL COMENTÁRIO DO NINHO */
+
+    #nest-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9998;
+    }
+
+    #nest-modal .modal-card {
+      max-width: 420px;
+      width: 100%;
+      background: radial-gradient(circle at top left, #0f172a, #020617 65%);
+      border-radius: 18px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 22px 55px rgba(0, 0, 0, 0.9);
+      padding: 18px 18px 14px;
+    }
+
+    #nest-modal h3 {
+      margin: 0 0 4px;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #nest-modal h3 span.icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 20%, #fef9c3, #f59e0b 60%, #b45309 100%);
+      color: #1f2937;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+    }
+
+    #nest-modal p {
+      margin: 2px 0 10px;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+    }
+
+    #nest-description-input {
+      width: 100%;
+      min-height: 80px;
+      max-height: 140px;
+      resize: vertical;
+      border-radius: 12px;
+      padding: 10px 11px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 10px 25px rgba(0, 0, 0, 0.9);
+    }
+
+    #nest-modal .modal-footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    #nest-modal button {
+      font-size: 0.85rem;
+      padding: 7px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    #nest-modal-cancel {
+      background: transparent;
+      border: 1px solid #4b5563;
+      color: var(--text-soft);
+    }
+
+    #nest-modal-save {
+      background: linear-gradient(135deg, var(--green), #22c55e);
+      border: none;
+      color: #022c22;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.6);
+    }
+
     /* MOBILE */
 
     @media (max-width: 900px) {
@@ -559,13 +658,13 @@
 
 <!-- ============ TELA DE AUTENTICAÇÃO ============ -->
 <div id="auth-screen">
-  <div class="auth-hero">
-    <div class="logo-circle">🐝</div>
-    <h1 class="auth-hero-title">SeeBee</h1>
-    <p class="auth-hero-subtitle">
-      Faça login para registrar trajetos, marcar ninhos com foto e consultar tudo depois
-      com segurança na nuvem.
-    </p>
+  <div id="auth-hero">
+    <div class="bee-logo-circle">
+      <!-- Ajuste o caminho do ícone se precisar -->
+      <img src="icon-192.png" alt="Logo SeeBee" />
+    </div>
+    <h1>SeeBee</h1>
+    <p>Faça login para registrar trajetos, marcar ninhos com foto e consultar tudo depois com segurança na nuvem.</p>
   </div>
 
   <div id="auth-card">
@@ -587,8 +686,8 @@
       <button class="btn-outline" id="btn-signup">Criar conta</button>
     </div>
 
-    <button class="btn-google" id="btn-google-auth">
-      <span class="btn-google-icon"></span>
+    <button class="btn-google" id="btn-google">
+      <span class="logo"></span>
       <span>Entrar com Google</span>
     </button>
 
@@ -600,7 +699,7 @@
 <div id="app-screen" class="hidden">
   <header class="app-header">
     <div class="title-block">
-      <h1>SeeBee – Rastreador de ninhos de abelhas</h1>
+      <h1>SeeBee – Rastreador de ninhos</h1>
       <p>Registre seus trajetos, marque ninhos com foto e consulte depois.</p>
       <div class="status-pill" id="status-pill">
         <span class="status-dot"></span>
@@ -666,6 +765,22 @@
   <img id="photo-modal-img" src="" alt="Foto do ninho" />
 </div>
 
+<!-- MODAL PARA COMENTÁRIO DO NINHO -->
+<div id="nest-modal">
+  <div class="modal-card">
+    <h3>
+      <span class="icon">🐝</span>
+      Comentário do ninho
+    </h3>
+    <p>Se quiser, registre alguma observação rápida sobre este ninho. Você pode deixar em branco.</p>
+    <textarea id="nest-description-input" placeholder="Ex.: Ninho em árvore oca, próximo a cerca de arame."></textarea>
+    <div class="modal-footer">
+      <button id="nest-modal-cancel">Cancelar</button>
+      <button id="nest-modal-save">Continuar</button>
+    </div>
+  </div>
+</div>
+
 <script>
   /* ======================= CONFIG SUPABASE ======================= */
 
@@ -698,7 +813,7 @@
   const authMsg = document.getElementById("auth-msg");
   const btnSignIn = document.getElementById("btn-signin");
   const btnSignUp = document.getElementById("btn-signup");
-  const btnGoogleAuth = document.getElementById("btn-google-auth");
+  const btnGoogle = document.getElementById("btn-google");
   const btnLogout = document.getElementById("btn-logout");
   const userEmailLabel = document.getElementById("user-email-label");
 
@@ -721,33 +836,29 @@
   const photoModalImg = document.getElementById("photo-modal-img");
   const photoModalClose = document.getElementById("photo-modal-close");
 
+  const nestModal = document.getElementById("nest-modal");
+  const nestDescInput = document.getElementById("nest-description-input");
+  const nestModalCancel = document.getElementById("nest-modal-cancel");
+  const nestModalSave = document.getElementById("nest-modal-save");
+
   /* ======================= ONLINE / OFFLINE ======================= */
 
-  function updateCloudStatus() {
+  function updateOnlineStatus() {
+    isOnline = navigator.onLine;
     if (isOnline) {
-      cloudStatus.textContent = "Conectado à nuvem (Supabase)";
       statusPill.classList.remove("offline");
+      cloudStatus.textContent = "Conectado à nuvem (Supabase)";
+      // assim que voltar, tenta sincronizar
+      syncRoutes();
     } else {
+      statusPill.classList.add("offline");
       cloudStatus.textContent =
         "Offline – dados só neste aparelho (sincronizaremos depois)";
-      statusPill.classList.add("offline");
     }
   }
 
-  async function handleConnectivityChange() {
-    isOnline = navigator.onLine;
-    updateCloudStatus();
-
-    // Se voltar a ficar online e o app já estiver rodando, tenta sincronizar
-    if (isOnline && appInitialized) {
-      await syncRoutes();
-    }
-  }
-
-  window.addEventListener("online", handleConnectivityChange);
-  window.addEventListener("offline", handleConnectivityChange);
-
-  updateCloudStatus();
+  window.addEventListener("online", updateOnlineStatus);
+  window.addEventListener("offline", updateOnlineStatus);
 
   /* ======================= AUTENTICAÇÃO ======================= */
 
@@ -785,7 +896,7 @@
       return;
     }
 
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
+    const { error } = await supabaseClient.auth.signInWithPassword({
       email,
       password,
     });
@@ -799,21 +910,16 @@
     await checkSession();
   }
 
-  async function handleGoogleSignIn() {
+  async function handleGoogleLogin() {
     setAuthMessage("Redirecionando para o Google...");
-    try {
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-      if (error) {
-        setAuthMessage(error.message, true);
-      }
-    } catch (e) {
-      console.error(e);
-      setAuthMessage("Erro ao iniciar login com Google.", true);
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) {
+      setAuthMessage(error.message, true);
     }
   }
 
@@ -848,7 +954,7 @@
 
   btnSignUp.addEventListener("click", handleSignUp);
   btnSignIn.addEventListener("click", handleSignIn);
-  btnGoogleAuth.addEventListener("click", handleGoogleSignIn);
+  btnGoogle.addEventListener("click", handleGoogleLogin);
   btnLogout.addEventListener("click", handleLogout);
 
   /* ======================= APP PRINCIPAL ======================= */
@@ -856,7 +962,6 @@
   function initMap() {
     map = L.map("map");
 
-    // Tile layer OSM
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "&copy; OpenStreetMap",
@@ -864,7 +969,6 @@
 
     nestsLayerGroup = L.layerGroup().addTo(map);
 
-    // Posição inicial: tenta usar GPS
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -906,13 +1010,17 @@
 
     currentRoute = {
       id: null, // ID da nuvem, se salvar
+      synced: false,
       name: "",
       created_at: new Date().toISOString(),
       path: [],
       nests: [],
       totalDistance: 0,
-      synced: false, // assume que começa não sincronizado
     };
+
+    if (pathLayer) {
+      map.removeLayer(pathLayer);
+    }
 
     pathLayer = L.polyline([], {
       color: "#22c55e",
@@ -943,13 +1051,13 @@
         updateUserMarker(latitude, longitude);
         pathLayer.addLatLng([latitude, longitude]);
 
-        // Atualiza distância
         const d = calculateTotalDistance(currentRoute.path);
         currentRoute.totalDistance = d;
         infoDistance.textContent =
-          "Distância: " + d.toFixed(d > 1000 ? 1 : 0) + " m";
+          "Distância: " +
+          d.toFixed(d > 1000 ? 1 : 0) +
+          " m";
 
-        // Mantém mapa perto do usuário
         map.panTo([latitude, longitude], { animate: true });
         infoGps.textContent = "GPS: acompanhando...";
       },
@@ -997,14 +1105,8 @@
       minute: "2-digit",
     })}`;
 
-    const name = prompt("Dê um nome para este trajeto:", defaultName);
-    if (!name) {
-      alert("Trajeto salvo como rascunho local.");
-      currentRoute.name = defaultName;
-    } else {
-      currentRoute.name = name;
-    }
-
+    const name = prompt("Dê um nome para este trajeto:", defaultName) || defaultName;
+    currentRoute.name = name;
     infoRouteName.textContent = "Trajeto: " + currentRoute.name;
 
     await saveRoute(currentRoute);
@@ -1048,6 +1150,35 @@
     }
   }
 
+  // ---------- MODAL DE COMENTÁRIO DO NINHO ----------
+  function askNestDescription() {
+    return new Promise((resolve) => {
+      nestDescInput.value = "";
+      nestModal.style.display = "flex";
+      nestDescInput.focus();
+
+      function cleanup() {
+        nestModal.style.display = "none";
+        nestModalCancel.removeEventListener("click", onCancel);
+        nestModalSave.removeEventListener("click", onSave);
+      }
+
+      function onCancel() {
+        cleanup();
+        resolve(null);
+      }
+
+      function onSave() {
+        const value = nestDescInput.value.trim();
+        cleanup();
+        resolve(value);
+      }
+
+      nestModalCancel.addEventListener("click", onCancel);
+      nestModalSave.addEventListener("click", onSave);
+    });
+  }
+
   async function handleAddNest() {
     if (!currentRoute || currentRoute.path.length === 0) {
       alert("Comece o trajeto antes de marcar um ninho.");
@@ -1056,11 +1187,13 @@
 
     const lastPoint = currentRoute.path[currentRoute.path.length - 1];
 
-    const description = prompt(
-      "Alguma observação sobre este ninho? (opcional)",
-      ""
-    );
+    const description = await askNestDescription();
+    if (description === null) {
+      // usuário cancelou
+      return;
+    }
 
+    // Input de foto temporário
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -1102,7 +1235,7 @@
         }
       } else if (file && !isOnline) {
         alert(
-          "Você está offline: o ninho será salvo sem foto. (Foto em nuvem precisa de conexão.)"
+          "Você está offline. A foto não será enviada agora, mas o ponto ficará registrado."
         );
       }
 
@@ -1121,15 +1254,13 @@
 
       if (photoUrl) {
         marker.bindPopup(
-          `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
-            nest.description || ""
-          }</div>`
+          `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${nest.description ||
+            ""}</div>`
         );
       } else {
         marker.bindPopup(
-          `<div style="font-size:12px"><strong>Ninho</strong><br>${
-            nest.description || "Sem observações."
-          }</div>`
+          `<div style="font-size:12px"><strong>Ninho</strong><br>${nest.description ||
+            "Sem observações."}</div>`
         );
       }
     };
@@ -1140,22 +1271,19 @@
   /* ======================= SALVAR & CARREGAR ======================= */
 
   async function saveRoute(route) {
-    // Garante flags
-    if (typeof route.synced === "undefined") {
-      route.synced = false;
-    }
-
-    // Salva local
+    // Sempre salva local
     allRoutes.push(route);
     persistLocalRoutes();
     renderRoutesList();
 
     if (!isOnline) {
-      updateCloudStatus();
+      // marca como pendente de sync
+      route.synced = false;
+      cloudStatus.textContent =
+        "Offline – dados só neste aparelho (sincronizaremos depois)";
       return;
     }
 
-    // Tenta salvar na nuvem
     try {
       const { data, error } = await supabaseClient
         .from("routes")
@@ -1163,16 +1291,15 @@
           name: route.name,
           path: route.path,
           traps: route.nests,
-          created_at: route.created_at,
         })
         .select()
         .single();
 
       if (error) {
         console.error(error);
+        route.synced = false;
         cloudStatus.textContent =
           "Erro ao salvar na nuvem (usando cópia local).";
-        route.synced = false;
       } else {
         route.id = data.id;
         route.synced = true;
@@ -1182,9 +1309,9 @@
       }
     } catch (e) {
       console.error(e);
+      route.synced = false;
       cloudStatus.textContent =
         "Erro ao salvar na nuvem (usando cópia local).";
-      route.synced = false;
     }
   }
 
@@ -1200,14 +1327,7 @@
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      // Garante flags coerentes
-      parsed.forEach((r) => {
-        if (typeof r.synced === "undefined") {
-          r.synced = !!r.id;
-        }
-      });
-      return parsed;
+      return JSON.parse(raw);
     } catch (e) {
       console.error("Erro ao ler localStorage", e);
       return [];
@@ -1215,9 +1335,7 @@
   }
 
   async function loadCloudRoutes() {
-    if (!isOnline) {
-      return [];
-    }
+    if (!isOnline) return [];
     try {
       const { data, error } = await supabaseClient
         .from("routes")
@@ -1225,15 +1343,14 @@
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-
       return data.map((row) => ({
         id: row.id,
+        synced: true,
         name: row.name,
         created_at: row.created_at,
         path: row.path || [],
         nests: row.traps || [],
         totalDistance: calculateTotalDistance(row.path || []),
-        synced: true,
       }));
     } catch (e) {
       console.error(e);
@@ -1244,57 +1361,58 @@
   }
 
   async function syncRoutes() {
+    // Carrega o que já existe
     const local = loadLocalRoutes();
+    const cloud = await loadCloudRoutes();
 
-    if (!isOnline) {
-      allRoutes = local;
-      updateCloudStatus();
-      renderRoutesList();
-      return;
-    }
+    // Se estiver online, tentar subir trajetos locais que ainda não têm id
+    if (isOnline) {
+      const unsynced = local.filter((r) => !r.id);
+      if (unsynced.length) {
+        try {
+          const payload = unsynced.map((r) => ({
+            name: r.name,
+            path: r.path,
+            traps: r.nests,
+            created_at: r.created_at,
+          }));
+          const { data, error } = await supabaseClient
+            .from("routes")
+            .insert(payload)
+            .select();
 
-    // 1) Sobe para nuvem todos os trajetos sem id / não sincronizados
-    for (const route of local) {
-      const needsSync = !route.id || route.synced === false;
-      if (!needsSync) continue;
-
-      try {
-        const { data, error } = await supabaseClient
-          .from("routes")
-          .insert({
-            name: route.name,
-            path: route.path,
-            traps: route.nests,
-            created_at: route.created_at,
-          })
-          .select()
-          .single();
-
-        if (!error && data) {
-          route.id = data.id;
-          route.synced = true;
-        } else if (error) {
-          console.error("Erro ao sincronizar trajeto:", error);
+          if (!error && data) {
+            // Atribui ids retornados aos locais correspondentes
+            data.forEach((row) => {
+              const match = local.find(
+                (r) =>
+                  r.created_at === row.created_at &&
+                  r.name === row.name &&
+                  !r.id
+              );
+              if (match) {
+                match.id = row.id;
+                match.synced = true;
+              }
+            });
+            persistLocalRoutes();
+          }
+        } catch (e) {
+          console.error("Erro ao sincronizar trajetos pendentes", e);
         }
-      } catch (e) {
-        console.error("Erro ao sincronizar trajeto:", e);
       }
     }
 
-    // 2) Busca tudo que está na nuvem
-    const cloud = await loadCloudRoutes();
-
-    // 3) Mescla com o local (usando id quando existir)
+    // Por simplicidade: cloud tem prioridade; local entra como extra
     const merged = [...cloud];
 
     for (const r of local) {
-      const exists = r.id && merged.some((c) => c.id === r.id);
-      if (!exists) {
-        merged.push(r);
-      }
+      const exists = merged.some(
+        (c) => c.created_at === r.created_at && c.name === r.name
+      );
+      if (!exists) merged.push(r);
     }
 
-    // Ordena por data desc
     merged.sort(
       (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
@@ -1334,7 +1452,9 @@
 
       const date = new Date(route.created_at || Date.now());
 
-      let metaText =
+      const dist = route.totalDistance || 0;
+
+      meta.textContent =
         date.toLocaleDateString("pt-BR") +
         " · " +
         date.toLocaleTimeString("pt-BR", {
@@ -1342,23 +1462,14 @@
           minute: "2-digit",
         }) +
         " · " +
-        (route.totalDistance || 0).toFixed(
-          (route.totalDistance || 0) > 1000 ? 1 : 0
-        ) +
+        dist.toFixed(dist > 1000 ? 1 : 0) +
         " m · " +
         (route.nests?.length || 0) +
-        " ninhos";
-
-      const unsynced = !route.id || route.synced === false;
-      if (unsynced) {
-        metaText += " · não sincronizado (só neste aparelho)";
-      }
-
-      meta.textContent = metaText;
+        " ninhos" +
+        (route.id ? "" : " · pendente de sincronizar");
 
       main.appendChild(meta);
 
-      // Thumbs
       if (route.nests && route.nests.length) {
         const thumbsRow = document.createElement("div");
         thumbsRow.className = "thumbs-row";
@@ -1436,15 +1547,13 @@
         );
         if (nest.photoUrl) {
           marker.bindPopup(
-            `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${nest.photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${
-              nest.description || ""
-            }</div>`
+            `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${nest.photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${nest.description ||
+              ""}</div>`
           );
         } else {
           marker.bindPopup(
-            `<div style="font-size:12px"><strong>Ninho</strong><br>${
-              nest.description || "Sem observações."
-            }</div>`
+            `<div style="font-size:12px"><strong>Ninho</strong><br>${nest.description ||
+              "Sem observações."}</div>`
           );
         }
       });
@@ -1469,9 +1578,6 @@
       } catch (e) {
         console.error(e);
       }
-    } else if (!route.id) {
-      route.synced = false;
-      persistLocalRoutes();
     }
   }
 
@@ -1513,10 +1619,12 @@
     btnToggleRoute.addEventListener("click", handleToggleRoute);
     btnAddNest.addEventListener("click", handleAddNest);
 
+    updateOnlineStatus();
     syncRoutes();
   }
 
   // Verifica sessão na primeira carga
+  updateOnlineStatus();
   checkSession();
 
   // Service Worker (PWA)
