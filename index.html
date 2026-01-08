@@ -77,9 +77,9 @@
       margin-bottom: 12px;
     }
 
-    .title-block h1 {
+    .title-block h2 {
       margin: 0;
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       letter-spacing: 0.03em;
     }
 
@@ -87,6 +87,12 @@
       margin: 2px 0 0;
       font-size: 0.9rem;
       color: var(--text-soft);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
     .status-pill {
@@ -148,13 +154,7 @@
       color: #e5e7eb;
     }
 
-    /* ========= AUTH ========= */
-
-    #auth-hero {
-      text-align: center;
-      margin-top: 24px;
-      margin-bottom: 16px;
-    }
+    /* ========= LOGO ========= */
 
     .bee-logo-circle {
       width: 112px;
@@ -167,24 +167,43 @@
       justify-content: center;
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.8);
       border: 2px solid rgba(250, 250, 250, 0.08);
+      font-size: 60px;
     }
 
-    .bee-logo-circle img {
-      width: 70%;
-      height: 70%;
-      object-fit: contain;
+    .bee-logo-circle.small {
+      width: 52px;
+      height: 52px;
+      margin: 0;
+      font-size: 28px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.75);
+    }
+
+    .mini-logo-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mini-logo-text {
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    /* ========= AUTH ========= */
+
+    #auth-hero {
+      text-align: center;
+      margin-top: 24px;
+      margin-bottom: 16px;
     }
 
     #auth-hero h1 {
-      margin: 0;
+      margin: 8px 0 0;
       font-size: 2rem;
       letter-spacing: 0.08em;
-    }
-
-    #auth-hero p {
-      margin: 6px 0 0;
-      font-size: 0.95rem;
-      color: var(--text-soft);
     }
 
     #auth-card {
@@ -416,7 +435,7 @@
       background: #020617;
     }
 
-    /* LISTA DE TRAJETOS */
+    /* TRILHAS / ROTAS */
 
     .routes-section {
       margin-top: 12px;
@@ -436,74 +455,13 @@
       font-size: 0.95rem;
     }
 
-    .route-empty {
+    .routes-hint {
       font-size: 0.8rem;
       color: var(--text-soft);
       padding: 10px 12px;
       border-radius: 10px;
       border: 1px dashed #1f2937;
       background: #02061766;
-    }
-
-    .route-card {
-      margin-top: 6px;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
-      background: #020617d9;
-      padding: 8px 10px 6px;
-      font-size: 0.8rem;
-      display: grid;
-      grid-template-columns: 1.5fr 1.1fr;
-      gap: 8px;
-      align-items: flex-start;
-    }
-
-    .route-main strong {
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    .route-meta {
-      color: var(--text-soft);
-      font-size: 0.75rem;
-    }
-
-    .route-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      justify-content: flex-end;
-    }
-
-    .btn-xs {
-      border-radius: 999px;
-      border: 1px solid #4b5563;
-      background: #020617;
-      color: var(--text-soft);
-      padding: 3px 8px;
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-
-    .btn-xs.danger {
-      border-color: #7f1d1d;
-      color: #fecaca;
-    }
-
-    .thumb {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #1f2937;
-      cursor: pointer;
-    }
-
-    .thumbs-row {
-      display: flex;
-      gap: 4px;
-      margin-top: 3px;
-      flex-wrap: wrap;
     }
 
     /* MODAL IMAGEM */
@@ -632,6 +590,108 @@
       box-shadow: 0 10px 25px rgba(16, 185, 129, 0.6);
     }
 
+    /* MODAL LISTA DE TRILHAS */
+
+    #routes-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9997;
+    }
+
+    #routes-modal .modal-card {
+      max-width: 720px;
+      width: 100%;
+      max-height: 90vh;
+      background: radial-gradient(circle at top left, #0f172a, #020617 65%);
+      border-radius: 18px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 22px 55px rgba(0, 0, 0, 0.9);
+      padding: 16px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .routes-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .routes-modal-header h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    #routes-modal-close {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: transparent;
+      color: var(--text-soft);
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .routes-modal-body {
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      background: #020617ee;
+      padding: 8px;
+      overflow: auto;
+    }
+
+    table.routes-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .routes-table thead {
+      background: #020617;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .routes-table th,
+    .routes-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #111827;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .routes-table th {
+      font-weight: 600;
+      color: var(--text-soft);
+      font-size: 0.78rem;
+    }
+
+    .routes-table tr {
+      cursor: pointer;
+    }
+
+    .routes-table tr:hover {
+      background: #020617;
+    }
+
+    .routes-table td.name-cell {
+      white-space: normal;
+      max-width: 220px;
+    }
+
+    .routes-empty-row td {
+      text-align: center;
+      color: var(--text-soft);
+    }
+
     /* MOBILE */
 
     @media (max-width: 900px) {
@@ -645,11 +705,19 @@
         flex-direction: column;
         align-items: flex-start;
       }
-      .user-info {
-        align-items: flex-start;
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
       }
-      .route-card {
-        grid-template-columns: 1fr;
+      .user-info {
+        align-items: flex-end;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .routes-table th:nth-child(2),
+      .routes-table td:nth-child(2) {
+        display: none; /* some data column can be escondida se quiser */
       }
     }
   </style>
@@ -659,12 +727,8 @@
 <!-- ============ TELA DE AUTENTICAÇÃO ============ -->
 <div id="auth-screen">
   <div id="auth-hero">
-    <div class="bee-logo-circle">
-      <!-- Ajuste o caminho do ícone se precisar -->
-      <img src="icon-192.png" alt="Logo SeeBee" />
-    </div>
+    <div class="bee-logo-circle">🐝</div>
     <h1>SeeBee</h1>
-    <p>Faça login para registrar trajetos, marcar ninhos com foto e consultar tudo depois com segurança na nuvem.</p>
   </div>
 
   <div id="auth-card">
@@ -699,17 +763,24 @@
 <div id="app-screen" class="hidden">
   <header class="app-header">
     <div class="title-block">
-      <h1>SeeBee – Rastreador de ninhos</h1>
+      <h2>Rastreador de ninhos</h2>
       <p>Registre seus trajetos, marque ninhos com foto e consulte depois.</p>
       <div class="status-pill" id="status-pill">
         <span class="status-dot"></span>
-        <span id="cloud-status">Conectado à nuvem (Supabase)</span>
+        <span id="cloud-status">Trabalhando online</span>
       </div>
     </div>
 
-    <div class="user-info">
-      <span class="user-email" id="user-email-label"></span>
-      <button class="btn-ghost" id="btn-logout">Sair</button>
+    <div class="header-right">
+      <div class="mini-logo-block">
+        <div class="bee-logo-circle small">🐝</div>
+        <span class="mini-logo-text">SeeBee</span>
+      </div>
+
+      <div class="user-info">
+        <span class="user-email" id="user-email-label"></span>
+        <button class="btn-ghost" id="btn-logout">Sair</button>
+      </div>
     </div>
   </header>
 
@@ -750,12 +821,15 @@
     </section>
   </div>
 
-  <!-- LISTA DE TRAJETOS -->
+  <!-- RESUMO DE TRILHAS -->
   <section class="routes-section">
     <div class="routes-header">
-      <h3>Trajetos salvos</h3>
+      <h3>Trilhas salvas</h3>
+      <button class="btn-ghost" id="btn-open-routes">Ver lista</button>
     </div>
-    <div id="routes-list"></div>
+    <div id="routes-list" class="routes-hint">
+      Nenhuma trilha salva ainda. Assim que você finalizar um trajeto ele aparecerá aqui.
+    </div>
   </section>
 </div>
 
@@ -773,10 +847,37 @@
       Comentário do ninho
     </h3>
     <p>Se quiser, registre alguma observação rápida sobre este ninho. Você pode deixar em branco.</p>
-    <textarea id="nest-description-input" placeholder="Ex.: Ninho em árvore oca, próximo a cerca de arame."></textarea>
+    <textarea id="nest-description-input" placeholder="Ex.: Ninho em árvore oca, próximo à cerca."></textarea>
     <div class="modal-footer">
       <button id="nest-modal-cancel">Cancelar</button>
       <button id="nest-modal-save">Continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PARA LISTA DE TRILHAS -->
+<div id="routes-modal">
+  <div class="modal-card">
+    <div class="routes-modal-header">
+      <h3>Trilhas salvas</h3>
+      <button id="routes-modal-close">Fechar</button>
+    </div>
+    <p style="margin:0;font-size:0.82rem;color:var(--text-soft);">
+      Toque em uma trilha para abrir o mapa com o caminho e os ninhos marcados.
+    </p>
+    <div class="routes-modal-body">
+      <table class="routes-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Data</th>
+            <th>Início</th>
+            <th>Fim</th>
+            <th>Ninhos</th>
+          </tr>
+        </thead>
+        <tbody id="routes-table-body"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -798,7 +899,7 @@
   let pathLayer = null;
   let nestsLayerGroup = null;
   let appInitialized = false;
-  let allRoutes = []; // carregados da nuvem + localStorage
+  let allRoutes = []; // nuvem + local
 
   let isOnline = navigator.onLine;
 
@@ -831,6 +932,10 @@
   const statusPill = document.getElementById("status-pill");
 
   const routesListEl = document.getElementById("routes-list");
+  const btnOpenRoutes = document.getElementById("btn-open-routes");
+  const routesModal = document.getElementById("routes-modal");
+  const routesModalClose = document.getElementById("routes-modal-close");
+  const routesTableBody = document.getElementById("routes-table-body");
 
   const photoModal = document.getElementById("photo-modal");
   const photoModalImg = document.getElementById("photo-modal-img");
@@ -847,13 +952,12 @@
     isOnline = navigator.onLine;
     if (isOnline) {
       statusPill.classList.remove("offline");
-      cloudStatus.textContent = "Conectado à nuvem (Supabase)";
-      // assim que voltar, tenta sincronizar
+      cloudStatus.textContent = "Trabalhando online";
+      // ao voltar, tenta sincronizar
       syncRoutes();
     } else {
       statusPill.classList.add("offline");
-      cloudStatus.textContent =
-        "Offline – dados só neste aparelho (sincronizaremos depois)";
+      cloudStatus.textContent = "Trabalhando offline – dados só neste aparelho";
     }
   }
 
@@ -933,7 +1037,6 @@
     const session = data.session;
 
     if (session) {
-      // Usuário logado
       authScreen.classList.add("hidden");
       appScreen.classList.remove("hidden");
       userEmailLabel.textContent = session.user.email || "";
@@ -942,7 +1045,6 @@
         initApp();
       }
     } else {
-      // Sem login
       authScreen.classList.remove("hidden");
       appScreen.classList.add("hidden");
     }
@@ -978,7 +1080,7 @@
           infoGps.textContent = "GPS: sinal ok";
         },
         () => {
-          map.setView([-15.601, -56.097], 13); // fallback Cuiabá
+          map.setView([-15.601, -56.097], 13); // fallback
           infoGps.textContent = "GPS: não autorizado";
         }
       );
@@ -1189,11 +1291,10 @@
 
     const description = await askNestDescription();
     if (description === null) {
-      // usuário cancelou
+      // cancelado
       return;
     }
 
-    // Input de foto temporário
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -1245,6 +1346,10 @@
         description: description || "",
         photoUrl,
         created_at: new Date().toISOString(),
+        // preparado para futura lógica de "abelha capturada":
+        captured: false,
+        captured_at: null,
+        reminder_at: null,
       };
 
       currentRoute.nests.push(nest);
@@ -1271,16 +1376,14 @@
   /* ======================= SALVAR & CARREGAR ======================= */
 
   async function saveRoute(route) {
-    // Sempre salva local
     allRoutes.push(route);
     persistLocalRoutes();
-    renderRoutesList();
+    renderRoutesSummary();
 
     if (!isOnline) {
-      // marca como pendente de sync
       route.synced = false;
       cloudStatus.textContent =
-        "Offline – dados só neste aparelho (sincronizaremos depois)";
+        "Trabalhando offline – dados só neste aparelho";
       return;
     }
 
@@ -1303,9 +1406,9 @@
       } else {
         route.id = data.id;
         route.synced = true;
-        cloudStatus.textContent = "Conectado à nuvem (Supabase)";
+        cloudStatus.textContent = "Trabalhando online";
         persistLocalRoutes();
-        renderRoutesList();
+        renderRoutesSummary();
       }
     } catch (e) {
       console.error(e);
@@ -1361,11 +1464,9 @@
   }
 
   async function syncRoutes() {
-    // Carrega o que já existe
     const local = loadLocalRoutes();
     const cloud = await loadCloudRoutes();
 
-    // Se estiver online, tentar subir trajetos locais que ainda não têm id
     if (isOnline) {
       const unsynced = local.filter((r) => !r.id);
       if (unsynced.length) {
@@ -1382,7 +1483,6 @@
             .select();
 
           if (!error && data) {
-            // Atribui ids retornados aos locais correspondentes
             data.forEach((row) => {
               const match = local.find(
                 (r) =>
@@ -1403,7 +1503,6 @@
       }
     }
 
-    // Por simplicidade: cloud tem prioridade; local entra como extra
     const merged = [...cloud];
 
     for (const r of local) {
@@ -1419,107 +1518,113 @@
 
     allRoutes = merged;
     persistLocalRoutes();
-    renderRoutesList();
+    renderRoutesSummary();
   }
 
-  /* ======================= LISTA DE TRAJETOS ======================= */
+  /* ======================= LISTA / RESUMO DE TRILHAS ======================= */
 
-  function renderRoutesList() {
-    routesListEl.innerHTML = "";
+  function renderRoutesSummary() {
+    const total = allRoutes.length;
+    if (!total) {
+      routesListEl.textContent =
+        "Nenhuma trilha salva ainda. Assim que você finalizar um trajeto ele aparecerá aqui.";
+      return;
+    }
+    routesListEl.textContent =
+      "Você tem " +
+      total +
+      " trilha" +
+      (total > 1 ? "s" : "") +
+      " salva" +
+      (total > 1 ? "s" : "") +
+      ". Use o botão \"Ver lista\" para consultar.";
+  }
+
+  function renderRoutesTable() {
+    routesTableBody.innerHTML = "";
 
     if (!allRoutes.length) {
-      const div = document.createElement("div");
-      div.className = "route-empty";
-      div.textContent =
-        "Nenhum trajeto salvo ainda. Depois de finalizar um trajeto ele aparecerá aqui.";
-      routesListEl.appendChild(div);
+      const tr = document.createElement("tr");
+      tr.className = "routes-empty-row";
+      const td = document.createElement("td");
+      td.colSpan = 5;
+      td.textContent =
+        "Nenhuma trilha salva ainda. Finalize um trajeto para aparecer aqui.";
+      tr.appendChild(td);
+      routesTableBody.appendChild(tr);
       return;
     }
 
     allRoutes.forEach((route, index) => {
-      const card = document.createElement("div");
-      card.className = "route-card";
+      const tr = document.createElement("tr");
+      tr.dataset.index = index;
 
-      const main = document.createElement("div");
-      main.className = "route-main";
+      const startDate = route.path?.[0]?.t
+        ? new Date(route.path[0].t)
+        : new Date(route.created_at || Date.now());
+      const endDate =
+        route.path && route.path.length
+          ? new Date(route.path[route.path.length - 1].t || route.created_at)
+          : startDate;
 
-      const strong = document.createElement("strong");
-      strong.textContent = route.name || "Trajeto sem nome";
-      main.appendChild(strong);
+      const tdName = document.createElement("td");
+      tdName.className = "name-cell";
+      tdName.textContent = route.name || "Trajeto sem nome";
 
-      const meta = document.createElement("div");
-      meta.className = "route-meta";
+      const tdDate = document.createElement("td");
+      tdDate.textContent = startDate.toLocaleDateString("pt-BR");
 
-      const date = new Date(route.created_at || Date.now());
+      const tdStart = document.createElement("td");
+      tdStart.textContent = startDate.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
-      const dist = route.totalDistance || 0;
+      const tdEnd = document.createElement("td");
+      tdEnd.textContent = endDate.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
 
-      meta.textContent =
-        date.toLocaleDateString("pt-BR") +
-        " · " +
-        date.toLocaleTimeString("pt-BR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }) +
-        " · " +
-        dist.toFixed(dist > 1000 ? 1 : 0) +
-        " m · " +
-        (route.nests?.length || 0) +
-        " ninhos" +
-        (route.id ? "" : " · pendente de sincronizar");
+      const tdNests = document.createElement("td");
+      tdNests.textContent = route.nests?.length || 0;
 
-      main.appendChild(meta);
+      tr.appendChild(tdName);
+      tr.appendChild(tdDate);
+      tr.appendChild(tdStart);
+      tr.appendChild(tdEnd);
+      tr.appendChild(tdNests);
 
-      if (route.nests && route.nests.length) {
-        const thumbsRow = document.createElement("div");
-        thumbsRow.className = "thumbs-row";
-        route.nests.forEach((nest) => {
-          if (!nest.photoUrl) return;
-          const img = document.createElement("img");
-          img.src = nest.photoUrl;
-          img.className = "thumb";
-          img.addEventListener("click", () => {
-            photoModalImg.src = nest.photoUrl;
-            photoModal.style.display = "flex";
-          });
-          thumbsRow.appendChild(img);
-        });
-        if (thumbsRow.childElementCount) {
-          main.appendChild(thumbsRow);
-        }
-      }
-
-      const actions = document.createElement("div");
-      actions.className = "route-actions";
-
-      const btnVer = document.createElement("button");
-      btnVer.className = "btn-xs";
-      btnVer.textContent = "Ver no mapa";
-      btnVer.addEventListener("click", () => showRouteOnMap(route));
-      actions.appendChild(btnVer);
-
-      const btnEdit = document.createElement("button");
-      btnEdit.className = "btn-xs";
-      btnEdit.textContent = "Renomear";
-      btnEdit.addEventListener("click", async () =>
-        renameRoute(index, route)
-      );
-      actions.appendChild(btnEdit);
-
-      const btnDelete = document.createElement("button");
-      btnDelete.className = "btn-xs danger";
-      btnDelete.textContent = "Excluir";
-      btnDelete.addEventListener("click", () =>
-        deleteRoute(index, route)
-      );
-      actions.appendChild(btnDelete);
-
-      card.appendChild(main);
-      card.appendChild(actions);
-
-      routesListEl.appendChild(card);
+      routesTableBody.appendChild(tr);
     });
   }
+
+  function openRoutesModal() {
+    renderRoutesTable();
+    routesModal.style.display = "flex";
+  }
+
+  function closeRoutesModal() {
+    routesModal.style.display = "none";
+  }
+
+  btnOpenRoutes.addEventListener("click", openRoutesModal);
+  routesModalClose.addEventListener("click", closeRoutesModal);
+  routesModal.addEventListener("click", (e) => {
+    if (e.target === routesModal) closeRoutesModal();
+  });
+
+  routesTableBody.addEventListener("click", (e) => {
+    const tr = e.target.closest("tr");
+    if (!tr || !tr.dataset.index) return;
+    const index = Number(tr.dataset.index);
+    const route = allRoutes[index];
+    if (!route) return;
+    showRouteOnMap(route);
+    closeRoutesModal();
+  });
+
+  /* ======================= MOSTRAR TRILHA NO MAPA ======================= */
 
   function showRouteOnMap(route) {
     if (!map) return;
@@ -1556,44 +1661,11 @@
               "Sem observações."}</div>`
           );
         }
+
+        // Aqui depois vamos encaixar a lógica de
+        // "Marcar abelha capturada? (Sim/Não/Cancelar)"
+        // para atualizar nest.captured / reminder_at.
       });
-    }
-  }
-
-  async function renameRoute(index, route) {
-    const newName = prompt("Novo nome para o trajeto:", route.name);
-    if (!newName || newName === route.name) return;
-
-    route.name = newName;
-    allRoutes[index] = route;
-    persistLocalRoutes();
-    renderRoutesList();
-
-    if (route.id && isOnline) {
-      try {
-        await supabaseClient
-          .from("routes")
-          .update({ name: newName })
-          .eq("id", route.id);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }
-
-  async function deleteRoute(index, route) {
-    if (!confirm("Tem certeza que deseja excluir este trajeto?")) return;
-
-    allRoutes.splice(index, 1);
-    persistLocalRoutes();
-    renderRoutesList();
-
-    if (route.id && isOnline) {
-      try {
-        await supabaseClient.from("routes").delete().eq("id", route.id);
-      } catch (e) {
-        console.error(e);
-      }
     }
   }
 
@@ -1623,11 +1695,9 @@
     syncRoutes();
   }
 
-  // Verifica sessão na primeira carga
   updateOnlineStatus();
   checkSession();
 
-  // Service Worker (PWA)
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker
