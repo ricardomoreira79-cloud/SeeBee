@@ -40,9 +40,7 @@
       --radius-lg: 14px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -51,142 +49,19 @@
       color: var(--text-main);
     }
 
-    button {
-      font-family: inherit;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+    button { font-family: inherit; }
+    .hidden { display: none !important; }
+    a { color: inherit; text-decoration: none; }
 
     /* ========= LAYOUT GERAL ========= */
-
-    #auth-screen,
-    #app-screen {
+    #auth-screen, #app-screen {
       max-width: 1200px;
       margin: 0 auto;
       padding: 16px;
     }
 
-    header.app-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 12px;
-    }
-
-    .title-block h1 {
-      margin: 0;
-      font-size: 1.4rem;
-      letter-spacing: 0.02em;
-    }
-
-    .title-block p {
-      margin: 4px 0 0;
-      font-size: 0.9rem;
-      color: var(--text-soft);
-    }
-
-    .header-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 6px;
-    }
-
-    .status-pill {
-      font-size: 0.8rem;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #15803d55;
-      background: #064e3b;
-      color: #bbf7d0;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .status-pill.offline {
-      border-color: #b91c1c88;
-      background: #450a0a;
-      color: #fecaca;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
-    }
-
-    .status-pill.offline .status-dot {
-      background: #f97316;
-      box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.25);
-    }
-
-    .brand-mini {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--text-soft);
-    }
-
-    .brand-mini-logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      background: radial-gradient(circle at 30% 20%, #facc15 0, #ea580c 45%, #7c2d12 100%);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7);
-    }
-
-    .user-info {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-      font-size: 0.8rem;
-    }
-
-    .user-email {
-      color: var(--text-soft);
-    }
-
-    .btn-ghost {
-      border-radius: 999px;
-      border: 1px solid #4b5563;
-      background: transparent;
-      color: var(--text-soft);
-      padding: 4px 12px;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-
-    .btn-ghost:hover {
-      border-color: #9ca3af;
-      color: #e5e7eb;
-    }
-
-    /* ========= HEADER DA TELA DE LOGIN ========= */
-
-    .auth-header {
-      margin-top: 32px;
-      margin-bottom: 8px;
-    }
+    /* ========= LOGIN (mais limpo) ========= */
+    .auth-header { margin-top: 28px; margin-bottom: 6px; }
 
     .brand-hero {
       display: flex;
@@ -209,74 +84,63 @@
 
     .brand-name {
       font-size: 2.1rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: none;
     }
 
-    /* ========= AUTH ========= */
-
     #auth-card {
-      margin-top: 24px;
+      margin-top: 18px;
       max-width: 420px;
       margin-left: auto;
       margin-right: auto;
-      padding: 24px 20px 20px;
+      padding: 22px 20px 18px;
       border-radius: var(--radius-lg);
       background: radial-gradient(circle at top left, #04785744, #020617 45%, #000 100%);
       border: 1px solid #1f2937;
       box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
     }
 
-    #auth-card h2 {
-      margin: 0 0 4px;
-      font-size: 1.3rem;
-    }
+    #auth-card h2 { margin: 0 0 8px; font-size: 1.15rem; }
 
-    #auth-card p {
-      margin: 0 0 20px;
-      color: var(--text-soft);
-      font-size: 0.9rem;
-    }
+    /* (removemos o parágrafo grande do login por pedido seu) */
+    #auth-card p { display: none; }
 
-    .auth-field {
-      margin-bottom: 14px;
-    }
-
+    .auth-field { margin-bottom: 14px; }
     .auth-field label {
       display: block;
       font-size: 0.8rem;
       margin-bottom: 4px;
       color: var(--text-soft);
     }
-
     .auth-field input {
       width: 100%;
-      padding: 8px 10px;
-      border-radius: 9px;
+      padding: 10px 10px;
+      border-radius: 10px;
       border: 1px solid #374151;
       background: #020617;
       color: var(--text-main);
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .auth-field input:focus {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.18);
     }
 
-    .auth-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 4px;
-    }
+    .auth-buttons { display: flex; gap: 8px; margin-top: 4px; }
 
     .btn-primary {
       flex: 1;
       background: linear-gradient(135deg, var(--green), #22c55e);
       border: none;
-      padding: 8px 10px;
+      padding: 10px 12px;
       border-radius: 999px;
       color: #022c22;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      font-size: 0.9rem;
-      box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
+      font-size: 0.95rem;
+      box-shadow: 0 10px 30px rgba(34, 197, 94, 0.35);
     }
 
     .btn-outline {
@@ -286,7 +150,8 @@
       border: 1px solid #4b5563;
       color: var(--text-main);
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
+      padding: 10px 12px;
     }
 
     .btn-google {
@@ -296,13 +161,13 @@
       border: 1px solid #1f2937;
       background: #020617;
       color: var(--text-main);
-      padding: 8px 10px;
+      padding: 10px 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
     }
 
@@ -321,20 +186,131 @@
 
     .auth-msg {
       margin-top: 12px;
-      font-size: 0.8rem;
-      min-height: 16px;
+      font-size: 0.85rem;
+      min-height: 18px;
+    }
+    .auth-msg.error { color: #fecaca; }
+    .auth-msg.ok { color: #bbf7d0; }
+
+    /* ========= APP HEADER (mais limpo) ========= */
+    header.app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 10px 10px;
+      border-radius: 16px;
+      border: 1px solid #1f2937;
+      background: rgba(2,6,23,0.55);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.55);
     }
 
-    .auth-msg.error {
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .header-left h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* removemos o texto grande de descrição (pedido seu) */
+    .header-left p { display: none; }
+
+    .status-pill {
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #15803d55;
+      background: #064e3b;
+      color: #bbf7d0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+    }
+
+    .status-pill.offline {
+      border-color: #b91c1c88;
+      background: #450a0a;
       color: #fecaca;
     }
 
-    .auth-msg.ok {
-      color: #bbf7d0;
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
     }
 
-    /* ========= APP ========= */
+    .status-pill.offline .status-dot {
+      background: #f97316;
+      box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.22);
+    }
 
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .brand-mini {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-soft);
+      line-height: 1;
+    }
+
+    .brand-mini-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      background: radial-gradient(circle at 30% 20%, #facc15 0, #ea580c 45%, #7c2d12 100%);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.7);
+    }
+
+    .brand-mini span {
+      font-size: 0.78rem;
+      letter-spacing: 0.03em;
+      opacity: 0.9;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      font-size: 0.8rem;
+    }
+
+    .user-email { color: var(--text-soft); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: transparent;
+      color: var(--text-soft);
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { border-color: #9ca3af; color: #e5e7eb; }
+
+    /* ========= APP ========= */
     .app-grid {
       display: grid;
       grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
@@ -366,7 +342,7 @@
 
     .badge {
       font-size: 0.7rem;
-      padding: 2px 6px;
+      padding: 2px 8px;
       border-radius: 999px;
       background: #022c22;
       color: #bbf7d0;
@@ -386,7 +362,7 @@
       padding: 10px 12px;
       border: none;
       font-size: 0.95rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -417,56 +393,91 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: var(--text-soft);
-      padding-top: 2px;
+      padding-top: 6px;
       border-top: 1px dashed #1f2937;
       margin-top: 10px;
     }
 
     .info-pill {
-      padding: 2px 8px;
+      padding: 4px 10px;
       border-radius: 999px;
       background: #020617;
       border: 1px solid #1f2937;
     }
 
-    /* MAPA */
-
+    /* MAPA (garantir que não cubra conteúdo) */
     #map {
       width: 100%;
       min-height: 320px;
-      height: 320px;
+      height: 360px;
       border-radius: var(--radius-lg);
       overflow: hidden;
     }
 
-    .leaflet-container {
+    .leaflet-container { background: #020617; }
+    /* dá um “respiro” para o attribution não encostar em texto visual */
+    .leaflet-control-attribution { font-size: 11px; opacity: 0.85; }
+
+    /* LISTA DE TRAJETOS (agora num painel, para não “embaralhar” a tela) */
+    .routes-open-row {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .btn-small {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
       background: #020617;
+      color: var(--text-main);
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.6);
     }
 
-    /* LISTA DE TRAJETOS */
+    .btn-small:hover { border-color: #9ca3af; }
 
-    .routes-section {
-      margin-top: 16px;
-      margin-bottom: 32px;
+    /* DRAWER / PAINEL DE TRILHAS */
+    #routes-drawer {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.78);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 9998;
+      padding: 14px;
     }
 
-    .routes-header {
+    .drawer-card {
+      width: 100%;
+      max-width: 620px;
+      max-height: 82vh;
+      overflow: auto;
+      background: #020617;
+      border: 1px solid #1f2937;
+      border-radius: 18px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.9);
+      padding: 14px;
+    }
+
+    .drawer-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
-      margin-bottom: 6px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
-    .routes-header h3 {
-      margin: 0;
-      font-size: 0.95rem;
-    }
+    .drawer-header h3 { margin: 0; font-size: 1rem; }
+    .drawer-header .muted { color: var(--text-soft); font-size: 0.85rem; }
 
     .route-empty {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: var(--text-soft);
       padding: 10px 12px;
       border-radius: 10px;
@@ -475,32 +486,25 @@
     }
 
     .route-card {
-      margin-top: 6px;
+      margin-top: 8px;
       border-radius: 12px;
       border: 1px solid #1f2937;
       background: #020617d9;
-      padding: 8px 10px 6px;
-      font-size: 0.8rem;
+      padding: 10px 12px;
+      font-size: 0.9rem;
       display: grid;
-      grid-template-columns: 1.5fr 1.1fr;
-      gap: 8px;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 10px;
       align-items: flex-start;
     }
 
-    .route-main strong {
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    .route-meta {
-      color: var(--text-soft);
-      font-size: 0.75rem;
-    }
+    .route-main strong { display: block; margin-bottom: 4px; }
+    .route-meta { color: var(--text-soft); font-size: 0.82rem; line-height: 1.25; }
 
     .route-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
+      gap: 6px;
       justify-content: flex-end;
     }
 
@@ -508,35 +512,31 @@
       border-radius: 999px;
       border: 1px solid #4b5563;
       background: #020617;
-      color: var(--text-soft);
-      padding: 3px 8px;
-      font-size: 0.75rem;
+      color: var(--text-main);
+      padding: 6px 10px;
+      font-size: 0.85rem;
       cursor: pointer;
     }
 
-    .btn-xs.danger {
-      border-color: #7f1d1d;
-      color: #fecaca;
-    }
+    .btn-xs.danger { border-color: #7f1d1d; color: #fecaca; }
 
     .thumb {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       object-fit: cover;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid #1f2937;
       cursor: pointer;
     }
 
     .thumbs-row {
       display: flex;
-      gap: 4px;
-      margin-top: 3px;
+      gap: 6px;
+      margin-top: 6px;
       flex-wrap: wrap;
     }
 
     /* MODAL FOTO */
-
     #photo-modal {
       position: fixed;
       inset: 0;
@@ -563,14 +563,13 @@
       border: none;
       background: #020617;
       color: #e5e7eb;
-      padding: 6px 10px;
+      padding: 8px 12px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       border: 1px solid #4b5563;
     }
 
-    /* MODAL NINHO (comentário + foto) */
-
+    /* MODAL NINHO */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -584,7 +583,7 @@
 
     .modal-card {
       width: 100%;
-      max-width: 380px;
+      max-width: 420px;
       background: #020617;
       border-radius: 18px;
       border: 1px solid #1f2937;
@@ -593,45 +592,45 @@
       color: var(--text-main);
     }
 
-    .modal-card h4 {
-      margin: 0 0 4px;
-    }
-
+    .modal-card h4 { margin: 0 0 6px; font-size: 1rem; }
     .modal-card p {
       margin: 0 0 12px;
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       color: var(--text-soft);
     }
 
-    .modal-field {
-      margin-bottom: 10px;
-    }
-
+    .modal-field { margin-bottom: 10px; }
     .modal-field label {
       display: block;
-      margin-bottom: 4px;
-      font-size: 0.8rem;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
       color: var(--text-soft);
     }
 
     .modal-field textarea {
       width: 100%;
-      min-height: 80px;
-      border-radius: 10px;
-      border: 1px solid #374151;
-      background: #020617;
+      min-height: 90px;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      background: #0b1220;
       color: var(--text-main);
-      padding: 8px 10px;
-      font-size: 0.9rem;
+      padding: 10px 12px;
+      font-size: 0.95rem;
       resize: vertical;
-      box-shadow: inset 0 0 0 1px #020617, 0 0 0 1px #111827;
+      outline: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+
+    .modal-field textarea:focus {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.18), 0 10px 26px rgba(0,0,0,0.55);
     }
 
     .modal-actions {
       display: flex;
       justify-content: flex-end;
       gap: 8px;
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
     .btn-sm {
@@ -639,8 +638,8 @@
       border: 1px solid #4b5563;
       background: #020617;
       color: var(--text-main);
-      padding: 5px 10px;
-      font-size: 0.8rem;
+      padding: 7px 12px;
+      font-size: 0.9rem;
       cursor: pointer;
     }
 
@@ -648,65 +647,46 @@
       border-color: #15803d;
       background: linear-gradient(135deg, #16a34a, #22c55e);
       color: #022c22;
+      font-weight: 800;
     }
 
     .modal-file-label {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
+      gap: 8px;
+      padding: 10px 12px;
       border-radius: 999px;
-      background: #020617;
-      border: 1px dashed #4b5563;
-      font-size: 0.8rem;
+      background: #0b1220;
+      border: 1px dashed #475569;
+      font-size: 0.9rem;
       cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
     }
 
-    .modal-file-label span {
-      color: var(--text-soft);
-    }
-
-    .modal-file-label:hover {
-      border-style: solid;
-    }
-
-    .modal-file-label input {
-      display: none;
-    }
+    .modal-file-label span { color: var(--text-soft); }
+    .modal-file-label:hover { border-style: solid; }
+    .modal-file-label input { display: none; }
 
     .modal-file-name {
       display: block;
-      margin-top: 4px;
-      font-size: 0.75rem;
+      margin-top: 6px;
+      font-size: 0.85rem;
       color: var(--text-soft);
     }
 
     /* MOBILE */
-
     @media (max-width: 900px) {
-      .app-grid {
-        grid-template-columns: 1fr;
-      }
-      #map {
-        min-height: 260px;
-        height: 260px;
-      }
-      header.app-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .header-right {
-        align-items: flex-start;
-      }
-      .user-info {
-        align-items: flex-start;
-      }
-      .route-card {
-        grid-template-columns: 1fr;
-      }
+      .app-grid { grid-template-columns: 1fr; }
+      #map { min-height: 280px; height: 320px; }
+      header.app-header { flex-direction: column; align-items: flex-start; }
+      .header-right { width: 100%; justify-content: space-between; }
+      .user-info { align-items: flex-start; }
+      .route-card { grid-template-columns: 1fr; }
+      .user-email { max-width: 62vw; }
     }
   </style>
 </head>
+
 <body>
 
 <!-- ============ TELA DE AUTENTICAÇÃO ============ -->
@@ -720,7 +700,6 @@
 
   <div id="auth-card">
     <h2>Entrar ou criar conta</h2>
-    <p>Use um e-mail e senha ou conecte com sua conta Google para salvar seus trajetos na nuvem.</p>
 
     <div class="auth-field">
       <label for="auth-email">E-mail</label>
@@ -749,25 +728,24 @@
 <!-- ============ TELA DO APP ============ -->
 <div id="app-screen" class="hidden">
   <header class="app-header">
-    <div class="title-block">
+    <div class="header-left">
       <h1>Rastreador de ninhos</h1>
-      <p>Registre seus trajetos, marque ninhos com foto e consulte depois.</p>
-    </div>
 
-    <div class="header-right">
       <div class="status-pill" id="status-pill">
         <span class="status-dot"></span>
         <span id="cloud-status">Trabalhando online</span>
       </div>
+    </div>
 
-      <div class="brand-mini">
-        <div class="brand-mini-logo">🐝</div>
-        <div>SeeBee</div>
-      </div>
-
+    <div class="header-right">
       <div class="user-info">
         <span class="user-email" id="user-email-label"></span>
         <button class="btn-ghost" id="btn-logout">Sair</button>
+      </div>
+
+      <div class="brand-mini" title="SeeBee">
+        <div class="brand-mini-logo">🐝</div>
+        <span>SeeBee</span>
       </div>
     </div>
   </header>
@@ -797,6 +775,10 @@
         <span class="info-pill" id="info-nests">Ninhos: 0</span>
         <span class="info-pill" id="info-gps">GPS: aguardando...</span>
       </div>
+
+      <div class="routes-open-row">
+        <button class="btn-small" id="btn-open-routes">Ver trilhas</button>
+      </div>
     </section>
 
     <!-- COLUNA MAPA -->
@@ -808,14 +790,20 @@
       <div id="map"></div>
     </section>
   </div>
+</div>
 
-  <!-- LISTA DE TRAJETOS -->
-  <section class="routes-section">
-    <div class="routes-header">
-      <h3>Trajetos salvos</h3>
+<!-- DRAWER DE TRILHAS -->
+<div id="routes-drawer">
+  <div class="drawer-card">
+    <div class="drawer-header">
+      <div>
+        <h3>Trilhas gravadas</h3>
+        <div class="muted" id="routes-count"></div>
+      </div>
+      <button class="btn-small" id="btn-close-routes">Fechar</button>
     </div>
     <div id="routes-list"></div>
-  </section>
+  </div>
 </div>
 
 <!-- MODAL PARA FOTO GRANDE -->
@@ -854,14 +842,11 @@
 
 <script>
   /* ======================= CONFIG SUPABASE ======================= */
-
   const SUPABASE_URL = "https://sgrtyotwnlwpwfecnoze.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNncnR5b3R3bmx3cHdmZWNub3plIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3NjgxMjcsImV4cCI6MjA4MzM0NDEyN30.QZvTN3mHUwqBwvXeL6q89qNW_4s1Cvopa40nt4TFa9w";
-
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ======================= ESTADO GLOBAL ======================= */
-
   let map;
   let userMarker;
   let currentRoute = null;
@@ -875,7 +860,6 @@
   const STORAGE_KEY = "seebee_routes_v1";
 
   /* ======================= ELEMENTOS DOM ======================= */
-
   const authScreen = document.getElementById("auth-screen");
   const appScreen = document.getElementById("app-screen");
   const authEmailInput = document.getElementById("auth-email");
@@ -886,6 +870,7 @@
   const btnGoogle = document.getElementById("btn-google");
   const btnLogout = document.getElementById("btn-logout");
   const userEmailLabel = document.getElementById("user-email-label");
+
   const statusPill = document.getElementById("status-pill");
   const cloudStatus = document.getElementById("cloud-status");
 
@@ -900,7 +885,11 @@
   const infoNests = document.getElementById("info-nests");
   const infoGps = document.getElementById("info-gps");
 
+  const routesDrawer = document.getElementById("routes-drawer");
+  const routesCount = document.getElementById("routes-count");
   const routesListEl = document.getElementById("routes-list");
+  const btnOpenRoutes = document.getElementById("btn-open-routes");
+  const btnCloseRoutes = document.getElementById("btn-close-routes");
 
   const photoModal = document.getElementById("photo-modal");
   const photoModalImg = document.getElementById("photo-modal-img");
@@ -917,33 +906,28 @@
   let selectedNestFile = null;
 
   /* ======================= ONLINE / OFFLINE ======================= */
-
   function updateOnlineStatus() {
     isOnline = navigator.onLine;
-    if (!statusPill) return;
 
     if (isOnline) {
       statusPill.classList.remove("offline");
       cloudStatus.textContent = "Trabalhando online";
     } else {
       statusPill.classList.add("offline");
-      cloudStatus.textContent = "Trabalhando offline – dados só neste aparelho";
+      cloudStatus.textContent = "Trabalhando offline";
     }
   }
 
   window.addEventListener("online", async () => {
     updateOnlineStatus();
-    if (appInitialized) {
-      await syncRoutes();
-    }
+    if (appInitialized) await syncRoutes();
   });
 
   window.addEventListener("offline", () => {
     updateOnlineStatus();
   });
 
-  /* ======================= AUTENTICAÇÃO ======================= */
-
+  /* ======================= AUTH ======================= */
   function setAuthMessage(text, isError = false) {
     authMsg.textContent = text || "";
     authMsg.classList.toggle("error", !!text && isError);
@@ -954,39 +938,21 @@
     setAuthMessage("Criando conta...");
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
-
-    if (!email || !password) {
-      setAuthMessage("Preencha e-mail e senha.", true);
-      return;
-    }
+    if (!email || !password) return setAuthMessage("Preencha e-mail e senha.", true);
 
     const { error } = await supabaseClient.auth.signUp({ email, password });
-    if (error) {
-      setAuthMessage(error.message, true);
-    } else {
-      setAuthMessage("Conta criada! Agora é só clicar em Entrar.", false);
-    }
+    if (error) setAuthMessage(error.message, true);
+    else setAuthMessage("Conta criada! Agora clique em Entrar.", false);
   }
 
   async function handleSignIn() {
     setAuthMessage("Entrando...");
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
+    if (!email || !password) return setAuthMessage("Preencha e-mail e senha.", true);
 
-    if (!email || !password) {
-      setAuthMessage("Preencha e-mail e senha.", true);
-      return;
-    }
-
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setAuthMessage(error.message, true);
-      return;
-    }
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) return setAuthMessage(error.message, true);
 
     setAuthMessage("");
     await checkSession();
@@ -997,9 +963,7 @@
     try {
       await supabaseClient.auth.signInWithOAuth({
         provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-        },
+        options: { redirectTo: window.location.origin }
       });
     } catch (e) {
       console.error(e);
@@ -1020,6 +984,7 @@
       authScreen.classList.add("hidden");
       appScreen.classList.remove("hidden");
       userEmailLabel.textContent = session.user.email || "";
+
       if (!appInitialized) {
         appInitialized = true;
         initApp();
@@ -1030,17 +995,14 @@
     }
   }
 
-  supabaseClient.auth.onAuthStateChange(() => {
-    checkSession();
-  });
+  supabaseClient.auth.onAuthStateChange(() => checkSession());
 
   btnSignUp.addEventListener("click", handleSignUp);
   btnSignIn.addEventListener("click", handleSignIn);
   btnGoogle.addEventListener("click", handleGoogleSignIn);
   btnLogout.addEventListener("click", handleLogout);
 
-  /* ======================= APP PRINCIPAL ======================= */
-
+  /* ======================= MAPA ======================= */
   function initMap() {
     map = L.map("map");
 
@@ -1068,6 +1030,9 @@
       map.setView([-15.601, -56.097], 13);
       infoGps.textContent = "GPS: não disponível";
     }
+
+    // Importante: quando abre drawer e volta, o Leaflet às vezes precisa recalcular tamanho.
+    setTimeout(() => map.invalidateSize(), 250);
   }
 
   function updateUserMarker(lat, lng) {
@@ -1084,6 +1049,7 @@
     }
   }
 
+  /* ======================= ROTAS / GRAVAÇÃO ======================= */
   function startRoute() {
     if (!navigator.geolocation) {
       alert("Seu dispositivo não suporta GPS.");
@@ -1100,16 +1066,8 @@
       synced: isOnline,
     };
 
-    if (pathLayer) {
-      map.removeLayer(pathLayer);
-      pathLayer = null;
-    }
-
-    pathLayer = L.polyline([], {
-      color: "#22c55e",
-      weight: 4,
-    }).addTo(map);
-
+    if (pathLayer) { map.removeLayer(pathLayer); pathLayer = null; }
+    pathLayer = L.polyline([], { color: "#22c55e", weight: 4 }).addTo(map);
     nestsLayerGroup.clearLayers();
 
     btnAddNest.disabled = false;
@@ -1124,11 +1082,7 @@
     watchId = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        const point = {
-          lat: latitude,
-          lng: longitude,
-          t: new Date().toISOString(),
-        };
+        const point = { lat: latitude, lng: longitude, t: new Date().toISOString() };
         currentRoute.path.push(point);
 
         updateUserMarker(latitude, longitude);
@@ -1136,8 +1090,7 @@
 
         const d = calculateTotalDistance(currentRoute.path);
         currentRoute.totalDistance = d;
-        infoDistance.textContent =
-          "Distância: " + d.toFixed(d > 1000 ? 1 : 0) + " m";
+        infoDistance.textContent = "Distância: " + d.toFixed(d > 1000 ? 1 : 0) + " m";
 
         map.panTo([latitude, longitude], { animate: true });
         infoGps.textContent = "GPS: acompanhando...";
@@ -1146,11 +1099,7 @@
         console.error(error);
         infoGps.textContent = "GPS: erro ao ler posição";
       },
-      {
-        enableHighAccuracy: true,
-        maximumAge: 1000,
-        timeout: 10000,
-      }
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
     );
   }
 
@@ -1168,10 +1117,7 @@
 
     if (!currentRoute || currentRoute.path.length < 2) {
       alert("Poucos pontos registrados. O trajeto foi descartado.");
-      if (pathLayer) {
-        map.removeLayer(pathLayer);
-        pathLayer = null;
-      }
+      if (pathLayer) { map.removeLayer(pathLayer); pathLayer = null; }
       currentRoute = null;
       infoRouteName.textContent = "Trajeto: —";
       infoDistance.textContent = "Distância: 0 m";
@@ -1179,14 +1125,10 @@
       return;
     }
 
-    const defaultName = `Trajeto em ${new Date().toLocaleDateString(
-      "pt-BR"
-    )} ${new Date().toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })}`;
+    const now = new Date();
+    const defaultName = `Trilha ${now.toLocaleDateString("pt-BR")} ${now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 
-    const name = prompt("Dê um nome para este trajeto:", defaultName);
+    const name = prompt("Dê um nome para esta trilha:", defaultName);
     currentRoute.name = name || defaultName;
 
     infoRouteName.textContent = "Trajeto: " + currentRoute.name;
@@ -1200,9 +1142,7 @@
   function calculateTotalDistance(points) {
     if (points.length < 2) return 0;
     let total = 0;
-    for (let i = 1; i < points.length; i++) {
-      total += haversineDistance(points[i - 1], points[i]);
-    }
+    for (let i = 1; i < points.length; i++) total += haversineDistance(points[i - 1], points[i]);
     return total;
   }
 
@@ -1217,23 +1157,17 @@
     const sinDLat = Math.sin(dLat / 2);
     const sinDLng = Math.sin(dLng / 2);
 
-    const c =
-      sinDLat * sinDLat +
-      Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
+    const c = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLng * sinDLng;
     const d = 2 * Math.atan2(Math.sqrt(c), Math.sqrt(1 - c));
     return R * d;
   }
 
   async function handleToggleRoute() {
-    if (!currentRoute) {
-      startRoute();
-    } else {
-      await stopRoute();
-    }
+    if (!currentRoute) startRoute();
+    else await stopRoute();
   }
 
-  /* ===== Modal de Ninho (comentário + foto) ===== */
-
+  /* ======================= MODAL NINHO ======================= */
   function openNestModal() {
     selectedNestFile = null;
     nestNotes.value = "";
@@ -1241,9 +1175,7 @@
     nestFileName.textContent = "";
     nestModal.style.display = "flex";
 
-    return new Promise((resolve) => {
-      pendingNestResolve = resolve;
-    });
+    return new Promise((resolve) => { pendingNestResolve = resolve; });
   }
 
   function closeNestModal() {
@@ -1254,29 +1186,17 @@
     }
   }
 
-  nestCancel.addEventListener("click", () => {
-    closeNestModal();
-  });
+  nestCancel.addEventListener("click", closeNestModal);
 
   nestFileInput.addEventListener("change", (ev) => {
     const file = ev.target.files[0];
     selectedNestFile = file || null;
-    if (file) {
-      nestFileName.textContent = file.name;
-    } else {
-      nestFileName.textContent = "";
-    }
+    nestFileName.textContent = file ? file.name : "";
   });
 
   nestSave.addEventListener("click", () => {
-    if (!pendingNestResolve) {
-      nestModal.style.display = "none";
-      return;
-    }
-    const payload = {
-      description: nestNotes.value.trim(),
-      file: selectedNestFile,
-    };
+    if (!pendingNestResolve) { nestModal.style.display = "none"; return; }
+    const payload = { description: nestNotes.value.trim(), file: selectedNestFile };
     nestModal.style.display = "none";
     pendingNestResolve(payload);
     pendingNestResolve = null;
@@ -1289,7 +1209,6 @@
     }
 
     const lastPoint = currentRoute.path[currentRoute.path.length - 1];
-
     const modalResult = await openNestModal();
     if (!modalResult) return;
 
@@ -1299,13 +1218,7 @@
     if (file) {
       try {
         const fileExt = file.name.split(".").pop();
-        const filePath =
-          "ninho-" +
-          Date.now() +
-          "-" +
-          Math.random().toString(36).slice(2) +
-          "." +
-          fileExt;
+        const filePath = "ninho-" + Date.now() + "-" + Math.random().toString(36).slice(2) + "." + fileExt;
 
         if (isOnline) {
           const { error: uploadError } = await supabaseClient.storage
@@ -1314,19 +1227,13 @@
 
           if (uploadError) {
             console.error(uploadError);
-            alert(
-              "Não foi possível enviar a foto para a nuvem. O ninho será salvo sem foto."
-            );
+            alert("Não foi possível enviar a foto para a nuvem. O ninho será salvo sem foto.");
           } else {
-            const { data: publicData } = supabaseClient.storage
-              .from("ninhos-fotos")
-              .getPublicUrl(filePath);
+            const { data: publicData } = supabaseClient.storage.from("ninhos-fotos").getPublicUrl(filePath);
             photoUrl = publicData.publicUrl;
           }
         } else {
-          alert(
-            "Você está offline. O ninho será salvo sem foto (no momento ainda não armazenamos fotos offline)."
-          );
+          alert("Você está offline. Por enquanto o ninho será salvo sem foto.");
         }
       } catch (e) {
         console.error(e);
@@ -1349,65 +1256,28 @@
 
     if (photoUrl) {
       marker.bindPopup(
-        `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${nest.description ||
-          ""}</div>`
+        `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${photoUrl}" style="max-width:140px;border-radius:8px;margin-top:6px;display:block"/><div style="margin-top:6px">${escapeHtml(nest.description || "")}</div></div>`
       );
     } else {
       marker.bindPopup(
-        `<div style="font-size:12px"><strong>Ninho</strong><br>${nest.description ||
-          "Sem observações."}</div>`
+        `<div style="font-size:12px"><strong>Ninho</strong><br>${escapeHtml(nest.description || "Sem observações.")}</div>`
       );
     }
   }
 
-  /* ======================= SALVAR & CARREGAR ======================= */
-
-  async function saveRoute(route) {
-    allRoutes.push(route);
-    persistLocalRoutes();
-    renderRoutesList();
-
-    if (!isOnline) {
-      cloudStatus.textContent =
-        "Trabalhando offline – trajeto salvo só neste aparelho";
-      return;
-    }
-
-    try {
-      const { data, error } = await supabaseClient
-        .from("routes")
-        .insert({
-          name: route.name,
-          path: route.path,
-          traps: route.nests,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error(error);
-        cloudStatus.textContent =
-          "Erro ao salvar na nuvem (usando cópia local).";
-      } else {
-        route.id = data.id;
-        route.synced = true;
-        cloudStatus.textContent = "Trabalhando online";
-        persistLocalRoutes();
-        renderRoutesList();
-      }
-    } catch (e) {
-      console.error(e);
-      cloudStatus.textContent =
-        "Erro ao salvar na nuvem (usando cópia local).";
-    }
+  function escapeHtml(str) {
+    return String(str || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
+  /* ======================= STORAGE / CLOUD / SYNC ======================= */
   function persistLocalRoutes() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(allRoutes));
-    } catch (e) {
-      console.error("Erro ao gravar no localStorage", e);
-    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(allRoutes)); }
+    catch (e) { console.error("Erro ao gravar no localStorage", e); }
   }
 
   function loadLocalRoutes() {
@@ -1423,7 +1293,6 @@
 
   async function loadCloudRoutes() {
     if (!isOnline) return [];
-
     try {
       const { data, error } = await supabaseClient
         .from("routes")
@@ -1431,6 +1300,7 @@
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+
       return data.map((row) => ({
         id: row.id,
         name: row.name,
@@ -1442,9 +1312,43 @@
       }));
     } catch (e) {
       console.error(e);
-      cloudStatus.textContent =
-        "Erro ao ler dados da nuvem (mostrando só dados locais).";
       return [];
+    }
+  }
+
+  async function saveRoute(route) {
+    allRoutes.push(route);
+    persistLocalRoutes();
+
+    if (!isOnline) {
+      // offline: marca que não sincronizou
+      route.synced = false;
+      renderRoutesList();
+      return;
+    }
+
+    try {
+      const { data, error } = await supabaseClient
+        .from("routes")
+        .insert({ name: route.name, path: route.path, traps: route.nests })
+        .select()
+        .single();
+
+      if (error) {
+        console.error(error);
+        route.synced = false;
+      } else {
+        route.id = data.id;
+        route.synced = true;
+      }
+
+      persistLocalRoutes();
+      renderRoutesList();
+    } catch (e) {
+      console.error(e);
+      route.synced = false;
+      persistLocalRoutes();
+      renderRoutesList();
     }
   }
 
@@ -1452,18 +1356,14 @@
     updateOnlineStatus();
     const local = loadLocalRoutes();
 
-    // Tenta subir o que ainda não tem id (criado offline)
+    // 1) sobe offline (sem id)
     if (isOnline) {
       for (const r of local) {
         if (!r.id) {
           try {
             const { data, error } = await supabaseClient
               .from("routes")
-              .insert({
-                name: r.name,
-                path: r.path,
-                traps: r.nests,
-              })
+              .insert({ name: r.name, path: r.path, traps: r.nests })
               .select()
               .single();
 
@@ -1478,43 +1378,60 @@
       }
     }
 
+    // 2) baixa nuvem
     const cloud = await loadCloudRoutes();
 
+    // 3) merge
     let merged = [];
-
     if (isOnline) {
       merged = [...cloud];
       for (const r of local) {
-        if (!r.id) {
-          merged.push(r); // ainda não conseguiu subir
-        } else {
-          const exists = merged.some((c) => c.id === r.id);
-          if (!exists) merged.push(r);
-        }
+        if (!r.id) merged.push(r);
+        else if (!merged.some((c) => c.id === r.id)) merged.push(r);
       }
     } else {
       merged = [...local];
     }
 
-    merged.sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at)
-    );
-
+    merged.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     allRoutes = merged;
     persistLocalRoutes();
     renderRoutesList();
   }
 
-  /* ======================= LISTA DE TRAJETOS ======================= */
+  /* ======================= LISTA (no drawer) ======================= */
+  function openRoutesDrawer() {
+    renderRoutesList();
+    routesDrawer.style.display = "flex";
+    setTimeout(() => { if (map) map.invalidateSize(); }, 300);
+  }
+
+  function closeRoutesDrawer() {
+    routesDrawer.style.display = "none";
+    setTimeout(() => { if (map) map.invalidateSize(); }, 220);
+  }
+
+  btnOpenRoutes.addEventListener("click", openRoutesDrawer);
+  btnCloseRoutes.addEventListener("click", closeRoutesDrawer);
+
+  routesDrawer.addEventListener("click", (e) => {
+    if (e.target === routesDrawer) closeRoutesDrawer();
+  });
+
+  function getRouteStartEnd(route) {
+    const first = route?.path?.[0]?.t ? new Date(route.path[0].t) : null;
+    const last = route?.path?.[route.path.length - 1]?.t ? new Date(route.path[route.path.length - 1].t) : null;
+    return { first, last };
+  }
 
   function renderRoutesList() {
     routesListEl.innerHTML = "";
+    routesCount.textContent = allRoutes.length ? `${allRoutes.length} trilha(s) salva(s)` : "Nenhuma trilha salva";
 
     if (!allRoutes.length) {
       const div = document.createElement("div");
       div.className = "route-empty";
-      div.textContent =
-        "Nenhum trajeto salvo ainda. Depois de finalizar um trajeto ele aparecerá aqui.";
+      div.textContent = "Nenhuma trilha salva ainda. Finalize um trajeto para ele aparecer aqui.";
       routesListEl.appendChild(div);
       return;
     }
@@ -1527,38 +1444,30 @@
       main.className = "route-main";
 
       const strong = document.createElement("strong");
-      strong.textContent = route.name || "Trajeto sem nome";
+      strong.textContent = route.name || "Trilha sem nome";
       main.appendChild(strong);
 
       const meta = document.createElement("div");
       meta.className = "route-meta";
 
-      const date = new Date(route.created_at || Date.now());
+      const created = new Date(route.created_at || Date.now());
+      const { first, last } = getRouteStartEnd(route);
 
-      meta.textContent =
-        date.toLocaleDateString("pt-BR") +
-        " · " +
-        date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) +
-        " · " +
-        (route.totalDistance || 0).toFixed(
-          (route.totalDistance || 0) > 1000 ? 1 : 0
-        ) +
-        " m · " +
-        (route.nests?.length || 0) +
-        " ninhos";
+      const startStr = first ? first.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—";
+      const endStr = last ? last.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—";
 
-      if (!route.id) {
-        const span = document.createElement("span");
-        span.textContent = " · não sincronizado";
-        span.style.color = "#facc15";
-        meta.appendChild(span);
-      }
+      const syncedLabel = route.id ? "sincronizado" : "não sincronizado";
+
+      meta.innerHTML =
+        `${created.toLocaleDateString("pt-BR")} · ${startStr} → ${endStr}<br>` +
+        `${(route.nests?.length || 0)} ninho(s) · ${(route.totalDistance || 0).toFixed((route.totalDistance || 0) > 1000 ? 1 : 0)} m · <span style="color:${route.id ? "#bbf7d0" : "#facc15"}">${syncedLabel}</span>`;
 
       main.appendChild(meta);
 
       if (route.nests && route.nests.length) {
         const thumbsRow = document.createElement("div");
         thumbsRow.className = "thumbs-row";
+
         route.nests.forEach((nest) => {
           if (!nest.photoUrl) return;
           const img = document.createElement("img");
@@ -1570,9 +1479,8 @@
           });
           thumbsRow.appendChild(img);
         });
-        if (thumbsRow.childElementCount) {
-          main.appendChild(thumbsRow);
-        }
+
+        if (thumbsRow.childElementCount) main.appendChild(thumbsRow);
       }
 
       const actions = document.createElement("div");
@@ -1580,24 +1488,23 @@
 
       const btnVer = document.createElement("button");
       btnVer.className = "btn-xs";
-      btnVer.textContent = "Ver no mapa";
-      btnVer.addEventListener("click", () => showRouteOnMap(route));
+      btnVer.textContent = "Abrir no mapa";
+      btnVer.addEventListener("click", () => {
+        closeRoutesDrawer();
+        showRouteOnMap(route);
+      });
       actions.appendChild(btnVer);
 
       const btnEdit = document.createElement("button");
       btnEdit.className = "btn-xs";
       btnEdit.textContent = "Renomear";
-      btnEdit.addEventListener("click", async () =>
-        renameRoute(index, route)
-      );
+      btnEdit.addEventListener("click", async () => renameRoute(index, route));
       actions.appendChild(btnEdit);
 
       const btnDelete = document.createElement("button");
       btnDelete.className = "btn-xs danger";
       btnDelete.textContent = "Excluir";
-      btnDelete.addEventListener("click", () =>
-        deleteRoute(index, route)
-      );
+      btnDelete.addEventListener("click", () => deleteRoute(index, route));
       actions.appendChild(btnDelete);
 
       card.appendChild(main);
@@ -1610,44 +1517,34 @@
   function showRouteOnMap(route) {
     if (!map) return;
 
-    if (pathLayer) {
-      map.removeLayer(pathLayer);
-      pathLayer = null;
-    }
+    if (pathLayer) { map.removeLayer(pathLayer); pathLayer = null; }
     nestsLayerGroup.clearLayers();
 
     if (!route.path || !route.path.length) return;
 
-    pathLayer = L.polyline(
-      route.path.map((p) => [p.lat, p.lng]),
-      { color: "#22c55e", weight: 4 }
-    ).addTo(map);
-
-    const bounds = pathLayer.getBounds();
-    map.fitBounds(bounds.pad(0.2));
+    pathLayer = L.polyline(route.path.map((p) => [p.lat, p.lng]), { color: "#22c55e", weight: 4 }).addTo(map);
+    map.fitBounds(pathLayer.getBounds().pad(0.2));
 
     if (route.nests && route.nests.length) {
       route.nests.forEach((nest) => {
-        const marker = L.marker([nest.lat, nest.lng]).addTo(
-          nestsLayerGroup
-        );
+        const marker = L.marker([nest.lat, nest.lng]).addTo(nestsLayerGroup);
         if (nest.photoUrl) {
           marker.bindPopup(
-            `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${nest.photoUrl}" style="max-width:120px;border-radius:6px;margin-top:4px"/><br>${nest.description ||
-              ""}</div>`
+            `<div style="font-size:12px"><strong>Ninho</strong><br><img src="${nest.photoUrl}" style="max-width:140px;border-radius:8px;margin-top:6px;display:block"/><div style="margin-top:6px">${escapeHtml(nest.description || "")}</div></div>`
           );
         } else {
           marker.bindPopup(
-            `<div style="font-size:12px"><strong>Ninho</strong><br>${nest.description ||
-              "Sem observações."}</div>`
+            `<div style="font-size:12px"><strong>Ninho</strong><br>${escapeHtml(nest.description || "Sem observações.")}</div>`
           );
         }
       });
     }
+
+    setTimeout(() => map.invalidateSize(), 350);
   }
 
   async function renameRoute(index, route) {
-    const newName = prompt("Novo nome para o trajeto:", route.name);
+    const newName = prompt("Novo nome para a trilha:", route.name);
     if (!newName || newName === route.name) return;
 
     route.name = newName;
@@ -1657,34 +1554,25 @@
 
     if (route.id && isOnline) {
       try {
-        await supabaseClient
-          .from("routes")
-          .update({ name: newName })
-          .eq("id", route.id);
-      } catch (e) {
-        console.error(e);
-      }
+        await supabaseClient.from("routes").update({ name: newName }).eq("id", route.id);
+      } catch (e) { console.error(e); }
     }
   }
 
   async function deleteRoute(index, route) {
-    if (!confirm("Tem certeza que deseja excluir este trajeto?")) return;
+    if (!confirm("Tem certeza que deseja excluir esta trilha?")) return;
 
     allRoutes.splice(index, 1);
     persistLocalRoutes();
     renderRoutesList();
 
     if (route.id && isOnline) {
-      try {
-        await supabaseClient.from("routes").delete().eq("id", route.id);
-      } catch (e) {
-        console.error(e);
-      }
+      try { await supabaseClient.from("routes").delete().eq("id", route.id); }
+      catch (e) { console.error(e); }
     }
   }
 
   /* ======================= MODAL FOTO ======================= */
-
   photoModalClose.addEventListener("click", () => {
     photoModal.style.display = "none";
     photoModalImg.src = "";
@@ -1698,7 +1586,6 @@
   });
 
   /* ======================= INICIALIZAÇÃO ======================= */
-
   function initApp() {
     updateOnlineStatus();
     initMap();
@@ -1713,11 +1600,10 @@
   updateOnlineStatus();
   checkSession();
 
-  // Service Worker (PWA)
+  // PWA SW
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("./sw.js")
+      navigator.serviceWorker.register("./sw.js")
         .catch((err) => console.error("SW registration failed:", err));
     });
   }
