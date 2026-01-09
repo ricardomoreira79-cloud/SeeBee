@@ -2,14 +2,13 @@ export const state = {
   map: null,
   userMarker: null,
   pathLayer: null,
-  nestsLayer: null,
+  nestsLayerGroup: null,
 
-  watchId: null,
   currentRoute: null,
+  watchId: null,
 
+  appInitialized: false,
   allRoutes: [],
-  isOnline: navigator.onLine,
 
-  user: null,
-  initialized: false,
+  isOnline: navigator.onLine,
 };
