@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>SeeBee — Rastreador de ninhos</title>
 
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <meta name="theme-color" content="#0b1220" />
-
     <link rel="stylesheet" href="./css/style.css" />
 
     <!-- Leaflet -->
@@ -21,44 +18,40 @@
 
   <body>
     <header class="topbar">
-      <div class="topbar__left">
-        <div class="brand">
-          <div class="brand__logo">🐝</div>
-          <div class="brand__text">
-            <div class="brand__title">SeeBee</div>
-            <div class="brand__subtitle">Rastreador de ninhos</div>
-          </div>
+      <div class="brand">
+        <div class="brand_logo">🐝</div>
+        <div class="brand_text">
+          <div class="brand_title">SeeBee</div>
+          <div class="brand_subtitle">Rastreador de ninhos</div>
         </div>
       </div>
 
-      <div class="topbar__right">
-        <div id="userEmail" class="userEmail">—</div>
-        <button id="btnLogout" class="btn btn--ghost">Sair</button>
+      <div class="topbar_right">
+        <div id="userEmail" class="user_email"></div>
+        <button id="btnLogout" class="btn btn_ghost">Sair</button>
       </div>
     </header>
 
-    <main class="layout">
+    <main class="shell">
       <!-- AUTH -->
-      <section id="authPanel" class="authPanel hidden">
-        <div class="card authCard">
-          <h1>Entrar</h1>
-          <p class="muted">
-            Use seu e-mail e senha do Supabase Auth.
-          </p>
+      <section id="authScreen" class="auth_screen">
+        <div class="auth_card">
+          <h2>Entrar</h2>
+          <p>Use seu e-mail e senha (Supabase Auth).</p>
 
           <label class="field">
             <span>E-mail</span>
-            <input id="email" type="email" placeholder="seuemail@dominio.com" autocomplete="email" />
+            <input id="loginEmail" type="email" placeholder="seuemail@..." />
           </label>
 
           <label class="field">
             <span>Senha</span>
-            <input id="password" type="password" placeholder="********" autocomplete="current-password" />
+            <input id="loginPass" type="password" placeholder="••••••••" />
           </label>
 
-          <div class="row">
-            <button id="btnLogin" class="btn btn--primary">Entrar</button>
-            <button id="btnSignup" class="btn btn--secondary">Criar conta</button>
+          <div class="row gap">
+            <button id="btnLogin" class="btn btn_primary">Entrar</button>
+            <button id="btnSignup" class="btn btn_soft">Criar conta</button>
           </div>
 
           <div id="authMsg" class="msg"></div>
@@ -66,53 +59,45 @@
       </section>
 
       <!-- APP -->
-      <section id="appPanel" class="appPanel">
+      <section id="appScreen" class="app_screen hidden">
         <div class="grid">
-          <aside class="leftCol">
-            <!-- TRAJETO -->
-            <div class="card">
-              <h2>Trajeto</h2>
-              <p class="muted">
-                Inicie o trajeto e depois marque ninhos com observação e foto.
-              </p>
+          <div class="col_left">
+            <section class="card">
+              <h3>Trajeto</h3>
+              <p class="muted">Inicie o trajeto e depois marque ninhos com observação e foto.</p>
 
-              <div class="row">
-                <button id="btnStartRoute" class="btn btn--primary">Iniciar trajeto</button>
-                <button id="btnFinishRoute" class="btn btn--ghost" disabled>Finalizar trajeto</button>
+              <div class="row gap">
+                <button id="btnStartRoute" class="btn btn_primary">Iniciar trajeto</button>
+                <button id="btnFinishRoute" class="btn btn_soft" disabled>Finalizar trajeto</button>
               </div>
 
               <div class="stats">
                 <div class="stat">
-                  <div class="stat__label">Distância</div>
-                  <div id="distance" class="stat__value">0 m</div>
+                  <div class="stat_label">Distância</div>
+                  <div id="statDistance" class="stat_value">0 m</div>
                 </div>
                 <div class="stat">
-                  <div class="stat__label">Última posição</div>
-                  <div id="lastPos" class="stat__value">—</div>
-                </div>
-                <div class="stat">
-                  <div class="stat__label">Ninhos no trajeto</div>
-                  <div id="routeNestsCount" class="stat__value">0</div>
+                  <div class="stat_label">Última posição</div>
+                  <div id="statPos" class="stat_value">—</div>
                 </div>
               </div>
 
               <div id="routeMsg" class="msg"></div>
-            </div>
+            </section>
 
-            <!-- MARCAR NINHO -->
-            <div class="card">
-              <h2>Marcar ninho</h2>
+            <section class="card">
+              <h3>Marcar ninho</h3>
 
               <label class="field">
                 <span>Observação</span>
-                <input id="nestNotes" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
+                <input id="nestObs" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
               </label>
 
               <label class="field">
                 <span>Status</span>
                 <select id="nestStatus">
+                  <option value="DEPLOYED">DEPLOYED</option>
                   <option value="PLANNED">PLANNED</option>
-                  <option value="DEPLOYED" selected>DEPLOYED</option>
                   <option value="OCCUPIED">OCCUPIED</option>
                   <option value="REMOVED">REMOVED</option>
                   <option value="REDEPLOYED">REDEPLOYED</option>
@@ -124,34 +109,19 @@
               <label class="field">
                 <span>Foto (opcional)</span>
                 <input id="nestPhoto" type="file" accept="image/*" capture="environment" />
-                <small class="muted">
-                  A foto é enviada para o Storage em <code>ninhos-fotos/&lt;seu_user_id&gt;/...</code>
-                </small>
               </label>
 
-              <button id="btnMarkNest" class="btn btn--primary">Marcar ninho</button>
+              <button id="btnMarkNest" class="btn btn_primary" disabled>Marcar ninho</button>
 
               <div id="nestMsg" class="msg"></div>
-            </div>
+            </section>
+          </div>
 
-            <!-- LISTA -->
-            <div class="card">
-              <div class="row row--space">
-                <h2>Ninhos</h2>
-                <button id="btnRefresh" class="btn btn--ghost">Atualizar</button>
-              </div>
-              <div id="nestsList" class="list"></div>
-            </div>
-          </aside>
-
-          <section class="mapCol">
-            <div class="mapWrap card">
+          <div class="col_right">
+            <section class="map_card">
               <div id="map" class="map"></div>
-              <div class="mapHint">
-                Clique no mapa para ajustar a posição do próximo ninho.
-              </div>
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
       </section>
     </main>

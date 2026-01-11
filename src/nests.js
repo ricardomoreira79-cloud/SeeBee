@@ -1,79 +1,51 @@
-import { supabase, BUCKET_NINHOS_FOTOS } from "./supabaseClient.js";
+import { supabase } from "./supabaseClient.js";
 
 /**
- * Retorna { data, error }
- */
-export async function listMyNests(limit = 50) {
-  const { data, error } = await supabase
-    .from("nests")
-    .select("id, created_at, title, notes, status, lat, lng, trail_id")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  return { data, error };
-}
-
-/**
- * Cria um ninho na tabela public.nests.
- * Campos mínimos esperados (pelo que vimos do seu schema):
- * - user_id (uuid)
- * - title (text)
- * - notes (text)
- * - status (nest_status)
- * - lat (float8)
- * - lng (float8)
- * - trail_id (uuid) (opcional)
- */
-export async function createNest({ userId, lat, lng, notes, status, trailId, photoUrl }) {
-  const payload = {
-    user_id: userId,
-    title: `Ninho em ${new Date().toLocaleString("pt-BR")}`,
-    notes: notes || null,
-    status: status || "DEPLOYED",
-    lat,
-    lng,
-    trail_id: trailId || null,
-  };
-
-  // Se você tiver coluna na tabela "nests" para URL da foto (ex.: photo_url),
-  // descomente e ajuste o nome:
-  // payload.photo_url = photoUrl || null;
-
-  const { data, error } = await supabase
-    .from("nests")
-    .insert(payload)
-    .select()
-    .single();
-
-  return { data, error };
-}
-
-/**
- * Upload de foto para o bucket, obedecendo sua policy:
- * storage.foldername(name)[1] = auth.uid()
+ * Cria ninho na tabela public.nests
+ * Campos esperados (mínimo): id (uuid default), user_id (se houver), route_id (se houver), lat,lng, status, notes
  *
- * Então o "path" TEM QUE começar com: `${user.id}/...`
+ * Como seu schema pode variar, eu mando de forma resiliente:
+ * tenta inserir com vários campos; se falhar por coluna inexistente, tenta com menos.
  */
-export async function uploadNestPhoto({ user, file }) {
-  if (!file) return { publicUrl: null, path: null, error: null };
+export async function createNest({ userId, routeId, lat, lng, status, notes }) {
+  const candidates = [
+    { user_id: userId, route_id: routeId, lat, lng, status, notes },
+    { user_id: userId, lat, lng, status, notes },
+    { route_id: routeId, lat, lng, status, notes },
+    { lat, lng, status, notes },
+  ];
 
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-  const safeExt = ["jpg", "jpeg", "png", "webp"].includes(ext) ? ext : "jpg";
+  let lastErr = null;
 
-  // ✅ Caminho que passa na policy: <uid>/<arquivo>
-  const path = `${user.id}/${Date.now()}_${Math.random().toString(16).slice(2)}.${safeExt}`;
+  for (const payload of candidates) {
+    const res = await supabase.from("nests").insert(payload).select("*").single();
+    if (!res.error) return res.data;
+    lastErr = res.error;
+  }
 
-  const { error: upErr } = await supabase.storage
-    .from(BUCKET_NINHOS_FOTOS)
-    .upload(path, file, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: file.type || "image/jpeg",
-    });
+  throw lastErr;
+}
 
-  if (upErr) return { publicUrl: null, path: null, error: upErr };
+/**
+ * Registra a foto na tabela public.photos
+ * Sugestão de campos: user_id, nest_id, path, kind, created_at
+ */
+export async function createPhotoRow({ userId, nestId, path }) {
+  const candidates = [
+    { user_id: userId, nest_id: nestId, path, kind: "NINHO" },
+    { user_id: userId, nest_id: nestId, path },
+    { nest_id: nestId, path },
+    { path },
+  ];
 
-  // Como seu bucket está PUBLIC, dá pra gerar publicUrl direto
-  const { data } = supabase.storage.from(BUCKET_NINHOS_FOTOS).getPublicUrl(path);
-  return { publicUrl: data?.publicUrl || null, path, error: null };
+  let lastErr = null;
+  for (const payload of candidates) {
+    const res = await supabase.from("photos").insert(payload).select("*").single();
+    if (!res.error) return res.data;
+    lastErr = res.error;
+  }
+
+  // Se a tabela photos não existir, não derruba o fluxo do app:
+  console.warn("Falha ao registrar em photos:", lastErr?.message || lastErr);
+  return null;
 }
