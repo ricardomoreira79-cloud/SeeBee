@@ -1,14 +1,14 @@
 {
-  "name": "SeeBee",
+  "name": "SeeBee — Rastreador de ninhos",
   "short_name": "SeeBee",
-  "start_url": "./",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#020617",
-  "theme_color": "#14532d",
+  "background_color": "#07101f",
+  "theme_color": "#0b1220",
   "icons": [
     {
-      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=",
-      "sizes": "192x192",
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAJUlEQVR4nO3BAQ0AAADCoPdPbQ43oAAAAAAAAAAAAAAAAAAA4G0GZgAAAZ8W3iAAAAAASUVORK5CYII=",
+      "sizes": "64x64",
       "type": "image/png"
     }
   ]

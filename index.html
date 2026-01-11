@@ -1,176 +1,168 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>SeeBee – Rastreador de ninhos</title>
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SeeBee — Rastreador de ninhos</title>
 
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#14532d" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" content="#0b1220" />
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="./css/style.css" />
 
-  <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+    <!-- Leaflet -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+  </head>
 
-  <!-- Supabase -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
-  <!-- App CSS -->
-  <link rel="stylesheet" href="./css/main.css" />
-</head>
-<body>
-
-<!-- ============ TELA DE AUTENTICAÇÃO ============ -->
-<div id="auth-screen">
-  <header class="auth-header">
-    <div class="brand-hero">
-      <div class="brand-logo" aria-hidden="true">🐝</div>
-      <div class="brand-name">SeeBee</div>
-    </div>
-  </header>
-
-  <div id="auth-card">
-    <h2>Entrar ou criar conta</h2>
-    <p>Use e-mail e senha ou conecte com Google.</p>
-
-    <div class="auth-field">
-      <label for="auth-email">E-mail</label>
-      <input id="auth-email" type="email" autocomplete="email" />
-    </div>
-
-    <div class="auth-field">
-      <label for="auth-password">Senha</label>
-      <input id="auth-password" type="password" autocomplete="current-password" />
-    </div>
-
-    <div class="auth-buttons">
-      <button class="btn-primary" id="btn-signin">Entrar</button>
-      <button class="btn-outline" id="btn-signup">Criar conta</button>
-    </div>
-
-    <button class="btn-google" id="btn-google">
-      <span class="btn-google-icon"></span>
-      <span>Entrar com Google</span>
-    </button>
-
-    <div id="auth-msg" class="auth-msg"></div>
-  </div>
-</div>
-
-<!-- ============ TELA DO APP ============ -->
-<div id="app-screen" class="hidden">
-  <header class="app-header">
-    <div class="title-block">
-      <h1>Rastreador de ninhos</h1>
-      <p class="subtle">Registre trajetos e marque ninhos.</p>
-    </div>
-
-    <div class="header-right">
-      <div class="status-pill" id="status-pill">
-        <span class="status-dot"></span>
-        <span id="cloud-status">Trabalhando online</span>
-      </div>
-
-      <div class="brand-mini">
-        <div class="brand-mini-logo" aria-hidden="true">🐝</div>
-        <div class="brand-mini-name">SeeBee</div>
-      </div>
-
-      <div class="user-info">
-        <span class="user-email" id="user-email-label"></span>
-        <button class="btn-ghost" id="btn-logout">Sair</button>
-      </div>
-    </div>
-  </header>
-
-  <div class="app-grid">
-    <section class="card">
-      <h3>Trajeto em andamento <span class="badge" id="badge-status">Parado</span></h3>
-      <p class="card-subtitle">
-        Inicie o trajeto e marque ninhos com observação e foto.
-      </p>
-
-      <div class="controls-grid">
-        <button class="btn-lg btn-start" id="btn-toggle-route">
-          <span id="btn-toggle-icon">▶</span>
-          <span id="btn-toggle-text">Iniciar trajeto</span>
-        </button>
-
-        <button class="btn-lg btn-secondary" id="btn-add-nest" disabled>
-          🐝 Marcar ninho
-        </button>
-      </div>
-
-      <div class="info-row">
-        <span class="info-pill" id="info-route-name">Trajeto: —</span>
-        <span class="info-pill" id="info-distance">Distância: 0 m</span>
-        <span class="info-pill" id="info-nests">Ninhos: 0</span>
-        <span class="info-pill" id="info-gps">GPS: aguardando...</span>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="map-head">
-        <div>
-          <h3>Mapa</h3>
-          <p class="card-subtitle">O mapa acompanha seu caminho e mostra os ninhos.</p>
+  <body>
+    <header class="topbar">
+      <div class="topbar__left">
+        <div class="brand">
+          <div class="brand__logo">🐝</div>
+          <div class="brand__text">
+            <div class="brand__title">SeeBee</div>
+            <div class="brand__subtitle">Rastreador de ninhos</div>
+          </div>
         </div>
       </div>
-      <div id="map"></div>
-    </section>
-  </div>
 
-  <section class="routes-section">
-    <div class="routes-header">
-      <h3>Trajetos salvos</h3>
-      <button class="btn-xs" id="btn-refresh">Atualizar</button>
-    </div>
-    <div id="routes-list"></div>
-  </section>
-</div>
+      <div class="topbar__right">
+        <div id="userEmail" class="userEmail">—</div>
+        <button id="btnLogout" class="btn btn--ghost">Sair</button>
+      </div>
+    </header>
 
-<div id="photo-modal">
-  <button id="photo-modal-close">Fechar</button>
-  <img id="photo-modal-img" src="" alt="Foto do ninho" />
-</div>
+    <main class="layout">
+      <!-- AUTH -->
+      <section id="authPanel" class="authPanel hidden">
+        <div class="card authCard">
+          <h1>Entrar</h1>
+          <p class="muted">
+            Use seu e-mail e senha do Supabase Auth.
+          </p>
 
-<div id="nest-modal" class="modal-backdrop">
-  <div class="modal-card">
-    <h4>Marcar ninho</h4>
-    <p>Adicione observação e (opcional) uma foto.</p>
+          <label class="field">
+            <span>E-mail</span>
+            <input id="email" type="email" placeholder="seuemail@dominio.com" autocomplete="email" />
+          </label>
 
-    <div class="modal-field">
-      <label for="nest-notes">Observações (opcional)</label>
-      <textarea id="nest-notes" placeholder="Ex.: árvore grande perto da rua 14..."></textarea>
-    </div>
+          <label class="field">
+            <span>Senha</span>
+            <input id="password" type="password" placeholder="********" autocomplete="current-password" />
+          </label>
 
-    <div class="modal-field">
-      <label>Foto do ninho (opcional)</label>
-      <label class="modal-file-label">
-        📷 <span>Selecionar ou tirar foto</span>
-        <input id="nest-file-input" type="file" accept="image/*" capture="environment" />
-      </label>
-      <span id="nest-file-name" class="modal-file-name"></span>
-    </div>
+          <div class="row">
+            <button id="btnLogin" class="btn btn--primary">Entrar</button>
+            <button id="btnSignup" class="btn btn--secondary">Criar conta</button>
+          </div>
 
-    <div class="modal-actions">
-      <button class="btn-sm" id="nest-cancel">Cancelar</button>
-      <button class="btn-sm btn-sm-primary" id="nest-save">Salvar ninho</button>
-    </div>
-  </div>
-</div>
+          <div id="authMsg" class="msg"></div>
+        </div>
+      </section>
 
-<script type="module" src="./js/app.js"></script>
-</body>
+      <!-- APP -->
+      <section id="appPanel" class="appPanel">
+        <div class="grid">
+          <aside class="leftCol">
+            <!-- TRAJETO -->
+            <div class="card">
+              <h2>Trajeto</h2>
+              <p class="muted">
+                Inicie o trajeto e depois marque ninhos com observação e foto.
+              </p>
+
+              <div class="row">
+                <button id="btnStartRoute" class="btn btn--primary">Iniciar trajeto</button>
+                <button id="btnFinishRoute" class="btn btn--ghost" disabled>Finalizar trajeto</button>
+              </div>
+
+              <div class="stats">
+                <div class="stat">
+                  <div class="stat__label">Distância</div>
+                  <div id="distance" class="stat__value">0 m</div>
+                </div>
+                <div class="stat">
+                  <div class="stat__label">Última posição</div>
+                  <div id="lastPos" class="stat__value">—</div>
+                </div>
+                <div class="stat">
+                  <div class="stat__label">Ninhos no trajeto</div>
+                  <div id="routeNestsCount" class="stat__value">0</div>
+                </div>
+              </div>
+
+              <div id="routeMsg" class="msg"></div>
+            </div>
+
+            <!-- MARCAR NINHO -->
+            <div class="card">
+              <h2>Marcar ninho</h2>
+
+              <label class="field">
+                <span>Observação</span>
+                <input id="nestNotes" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
+              </label>
+
+              <label class="field">
+                <span>Status</span>
+                <select id="nestStatus">
+                  <option value="PLANNED">PLANNED</option>
+                  <option value="DEPLOYED" selected>DEPLOYED</option>
+                  <option value="OCCUPIED">OCCUPIED</option>
+                  <option value="REMOVED">REMOVED</option>
+                  <option value="REDEPLOYED">REDEPLOYED</option>
+                  <option value="FAILED">FAILED</option>
+                  <option value="UNKNOWN">UNKNOWN</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Foto (opcional)</span>
+                <input id="nestPhoto" type="file" accept="image/*" capture="environment" />
+                <small class="muted">
+                  A foto é enviada para o Storage em <code>ninhos-fotos/&lt;seu_user_id&gt;/...</code>
+                </small>
+              </label>
+
+              <button id="btnMarkNest" class="btn btn--primary">Marcar ninho</button>
+
+              <div id="nestMsg" class="msg"></div>
+            </div>
+
+            <!-- LISTA -->
+            <div class="card">
+              <div class="row row--space">
+                <h2>Ninhos</h2>
+                <button id="btnRefresh" class="btn btn--ghost">Atualizar</button>
+              </div>
+              <div id="nestsList" class="list"></div>
+            </div>
+          </aside>
+
+          <section class="mapCol">
+            <div class="mapWrap card">
+              <div id="map" class="map"></div>
+              <div class="mapHint">
+                Clique no mapa para ajustar a posição do próximo ninho.
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <!-- Leaflet -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
 </html>
