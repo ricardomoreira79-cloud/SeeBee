@@ -1,18 +1,17 @@
-import { supabase } from "./supabaseClient.js";
+import { State } from "./state.js";
 import { CONFIG } from "./config.js";
 
-export async function uploadNestPhoto({ userId, routeId, file }) {
-  if (!file) return { publicUrl: null, path: null };
+export async function uploadNestPhoto({ nestId, file }) {
+  if (!file) return null;
 
-  // caminho compatível com sua policy:
-  // storage.foldername(name)[1] = auth.uid()
-  // então o "primeiro diretório" precisa ser o userId
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-  const safeExt = ["jpg","jpeg","png","webp","heic"].includes(ext) ? ext : "jpg";
-  const filename = `${crypto.randomUUID()}.${safeExt}`;
-  const path = `${userId}/${routeId}/${filename}`;
+  const user = State.user;
+  if (!user) throw new Error("Você precisa estar logado para enviar foto.");
 
-  const { error: upErr } = await supabase.storage
+  const ext = guessExt(file);
+  const ts = Date.now();
+  const path = `${user.id}/nests/${nestId}/${ts}.${ext}`;
+
+  const { error: upErr } = await State.supabase.storage
     .from(CONFIG.STORAGE_BUCKET)
     .upload(path, file, {
       cacheControl: "3600",
@@ -22,6 +21,16 @@ export async function uploadNestPhoto({ userId, routeId, file }) {
 
   if (upErr) throw upErr;
 
-  const { data } = supabase.storage.from(CONFIG.STORAGE_BUCKET).getPublicUrl(path);
-  return { publicUrl: data.publicUrl, path };
+  const { data } = State.supabase.storage
+    .from(CONFIG.STORAGE_BUCKET)
+    .getPublicUrl(path);
+
+  return data.publicUrl || null;
+}
+
+function guessExt(file){
+  const t = (file.type || "").toLowerCase();
+  if (t.includes("png")) return "png";
+  if (t.includes("webp")) return "webp";
+  return "jpg";
 }

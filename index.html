@@ -2,12 +2,11 @@
 <html lang="pt-br">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>SeeBee — Meliponicultura</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SeeBee • Meliponicultura</title>
 
-  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#0b1220" />
-
   <link rel="stylesheet" href="./css/style.css" />
 
   <!-- Leaflet -->
@@ -21,155 +20,127 @@
 
 <body>
   <header class="topbar">
-    <div class="topbar_left">
-      <div class="brand brand_center" id="brandCenter">
-        <div class="brand_logo" aria-hidden="true"></div>
-        <div class="brand_text">
-          <div class="brand_title">SeeBee</div>
-          <div class="brand_subtitle">Meliponicultura</div>
-        </div>
+    <div class="brand center-on-guest">
+      <div class="brand_logo" aria-hidden="true">🐝</div>
+      <div class="brand_text">
+        <div class="brand_title">SeeBee</div>
+        <div class="brand_subtitle">Meliponicultura</div>
       </div>
     </div>
 
-    <div class="topbar_right">
-      <div class="userpill" id="userPill" hidden>
-        <span id="userEmail"></span>
-      </div>
-      <button class="btn btn_ghost" id="btnLogout" hidden>Sair</button>
+    <div class="userbar" id="userbar" hidden>
+      <div class="user_email" id="userEmail"></div>
+      <button class="btn ghost" id="btnLogout">Sair</button>
     </div>
   </header>
 
   <main class="container">
-    <!-- LOGIN -->
-    <section class="card auth" id="authView">
-      <h1>Entrar</h1>
+    <!-- AUTH CARD (só aparece deslogado) -->
+    <section class="card auth" id="authCard">
+      <h2>Entrar</h2>
       <p class="muted">Use seu e-mail e senha (Supabase Auth) ou Google.</p>
 
-      <form id="loginForm" class="form">
-        <label>
+      <div class="grid2">
+        <label class="field">
           <span>E-mail</span>
-          <input id="loginEmail" type="email" autocomplete="email" placeholder="seuemail@..." required />
+          <input id="authEmail" type="email" placeholder="seuemail@..." autocomplete="email" />
         </label>
 
-        <label>
+        <label class="field">
           <span>Senha</span>
-          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="••••••••" required />
+          <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
         </label>
-
-        <div class="row gap">
-          <button class="btn btn_primary" type="submit" id="btnLogin">Entrar</button>
-          <button class="btn btn_soft" type="button" id="btnGoSignup">Criar conta</button>
-        </div>
-
-        <div class="divider"></div>
-
-        <button class="btn btn_google" type="button" id="btnGoogle">
-          Entrar com Google
-        </button>
-
-        <div class="msg" id="authMsg" aria-live="polite"></div>
-      </form>
-
-      <form id="signupForm" class="form" hidden>
-        <h2>Criar conta</h2>
-
-        <label>
-          <span>E-mail</span>
-          <input id="signupEmail" type="email" autocomplete="email" placeholder="seuemail@..." required />
-        </label>
-
-        <label>
-          <span>Senha</span>
-          <input id="signupPassword" type="password" autocomplete="new-password" placeholder="mínimo 6 caracteres" required />
-        </label>
-
-        <div class="row gap">
-          <button class="btn btn_primary" type="submit" id="btnSignup">Criar</button>
-          <button class="btn btn_soft" type="button" id="btnBackLogin">Voltar</button>
-        </div>
-
-        <div class="msg" id="signupMsg" aria-live="polite"></div>
-      </form>
-    </section>
-
-    <!-- APP -->
-    <section class="appgrid" id="appView" hidden>
-      <div class="leftcol">
-        <section class="card">
-          <h2>Trajeto</h2>
-          <p class="muted">Inicie o trajeto e marque ninhos com observação e foto.</p>
-
-          <div class="row gap">
-            <button class="btn btn_primary" id="btnStartRoute">Iniciar trajeto</button>
-            <button class="btn btn_soft" id="btnFinishRoute" disabled>Finalizar trajeto</button>
-          </div>
-
-          <div class="stats">
-            <div class="stat">
-              <div class="label">Distância</div>
-              <div class="value" id="distValue">0 m</div>
-            </div>
-            <div class="stat">
-              <div class="label">Última posição</div>
-              <div class="value mono" id="posValue">-</div>
-            </div>
-          </div>
-
-          <div class="hint" id="routeHint"></div>
-        </section>
-
-        <section class="card">
-          <h2>Marcar ninho</h2>
-
-          <label class="labelblock">
-            <span>Observação</span>
-            <input id="nestObs" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
-          </label>
-
-          <label class="labelblock">
-            <span>Status</span>
-            <select id="nestStatus">
-              <option value="DEPLOYED">DEPLOYED</option>
-              <option value="CAPTURED">CAPTURED</option>
-              <option value="FAILED">FAILED</option>
-            </select>
-          </label>
-
-          <label class="labelblock">
-            <span>Foto (opcional)</span>
-            <input id="nestPhoto" type="file" accept="image/*" />
-          </label>
-
-          <button class="btn btn_primary full" id="btnMarkNest" disabled>Marcar ninho</button>
-
-          <div class="msg" id="nestMsg" aria-live="polite"></div>
-        </section>
-
-        <section class="card">
-          <h2>Registros desta trilha</h2>
-          <p class="muted">As fotos/ninhos marcados aparecem aqui para você conferir.</p>
-          <div class="thumbs" id="thumbs"></div>
-        </section>
       </div>
 
-      <div class="mapcol">
-        <section class="card mapcard">
-          <div id="map"></div>
-          <div class="mapbadge" id="mapBadge">Mapa pronto</div>
-        </section>
+      <div class="row">
+        <button class="btn primary" id="btnLogin">Entrar</button>
+        <button class="btn" id="btnSignup">Criar conta</button>
+      </div>
+
+      <div class="row">
+        <button class="btn google" id="btnGoogle">Entrar com Google</button>
+      </div>
+
+      <div class="msg" id="authMsg" hidden></div>
+    </section>
+
+    <!-- APP (só aparece logado) -->
+    <section id="appArea" hidden>
+      <div class="layout">
+        <div class="left">
+          <section class="card">
+            <h2>Trajeto</h2>
+            <p class="muted">Inicie o trajeto e depois marque ninhos com observação e foto.</p>
+
+            <div class="row">
+              <button class="btn primary" id="btnStartRoute">Iniciar trajeto</button>
+              <button class="btn" id="btnStopRoute" disabled>Finalizar trajeto</button>
+            </div>
+
+            <div class="stats">
+              <div class="stat">
+                <div class="stat_label">Distância</div>
+                <div class="stat_value" id="distValue">0 m</div>
+              </div>
+              <div class="stat">
+                <div class="stat_label">Última posição</div>
+                <div class="stat_value mono" id="posValue">—</div>
+              </div>
+            </div>
+
+            <div class="msg" id="routeMsg" hidden></div>
+          </section>
+
+          <section class="card">
+            <h2>Marcar ninho</h2>
+
+            <label class="field">
+              <span>Observação</span>
+              <input id="nestNote" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
+            </label>
+
+            <div class="grid2">
+              <label class="field">
+                <span>Status</span>
+                <select id="nestStatus">
+                  <option value="DEPLOYED">CATALOGADO</option>
+                  <option value="CAPTURED">CAPTURADO</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span>Foto (opcional)</span>
+                <input id="nestPhoto" type="file" accept="image/*" />
+              </label>
+            </div>
+
+            <button class="btn primary" id="btnSaveNest">Marcar ninho</button>
+            <div class="msg" id="nestMsg" hidden></div>
+          </section>
+
+          <section class="card">
+            <h2>Registros desta trilha</h2>
+            <p class="muted">As fotos/ninhos marcados aparecem aqui para conferir.</p>
+            <div class="thumbs" id="thumbs"></div>
+          </section>
+        </div>
+
+        <div class="right">
+          <section class="card mapcard">
+            <div id="map" class="map"></div>
+            <div class="maphint">O trajeto e os ninhos serão desenhados no mapa em tempo real.</div>
+          </section>
+        </div>
       </div>
     </section>
   </main>
 
-  <!-- Leaflet -->
+  <!-- Leaflet JS -->
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
     crossorigin=""
   ></script>
-
-  <!-- Supabase JS v2 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script type="module" src="./src/main.js"></script>
 </body>

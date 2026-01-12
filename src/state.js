@@ -1,24 +1,17 @@
-export const state = {
+export const State = {
+  supabase: null,
   session: null,
+  user: null,
 
-  // mapa/trajeto
   map: null,
-  polyline: null,
-  lastLatLng: null,
+  routeLine: null,
+
+  // trajeto
+  activeRouteId: null,
   watchId: null,
+  lastPos: null,
+  totalDistanceM: 0,
 
-  // trajeto ativo
-  routeId: null,
-  routePoints: [],
-  distanceM: 0,
-
-  // wake lock (quando suportado)
-  wakeLock: null
+  // marcados na trilha atual
+  marked: []
 };
-
-export function resetRouteState() {
-  state.routeId = null;
-  state.routePoints = [];
-  state.distanceM = 0;
-  state.lastLatLng = null;
-}

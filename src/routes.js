@@ -1,43 +1,48 @@
-import { supabase } from "./supabaseClient.js";
-import { state } from "./state.js";
+import { State } from "./state.js";
 
-/**
- * Cria um trajeto no banco e retorna routeId.
- * IMPORTANTE: não usa coluna "status" (porque seu schema não tem).
- */
-export async function createRoute(name) {
-  const userId = state.session?.user?.id;
-  if (!userId) throw new Error("Sem sessão.");
+export async function createRouteIfNeeded(name){
+  if (State.activeRouteId) return State.activeRouteId;
 
+  const user = State.user;
+  if (!user) throw new Error("Você precisa estar logado para iniciar um trajeto.");
+
+  // Ajuste para o SEU schema real (não usar coluna status!)
   const payload = {
-    user_id: userId,
-    name: name || `Trajeto ${new Date().toLocaleString("pt-BR")}`,
-    path: [],   // você já tem no schema
-    traps: []   // você já tem no schema
+    user_id: user.id,
+    name: name || `Trilha ${new Date().toLocaleString("pt-BR")}`,
+    path: [],   // jsonb
+    traps: []   // jsonb (se você usa isso)
   };
 
-  const { data, error } = await supabase
+  const { data, error } = await State.supabase
     .from("routes")
     .insert(payload)
     .select("id")
     .single();
 
   if (error) throw error;
+
+  State.activeRouteId = data.id;
   return data.id;
 }
 
-export async function appendRoutePoint(routeId, point) {
-  // Para simplificar e evitar leitura/merge concorrente:
-  // vamos guardar path local no state e ao finalizar salvamos tudo.
-  // (Se quiser tempo real no DB, eu ajusto depois com RPC/merge seguro.)
-  return true;
-}
-
-export async function finishRoute(routeId, allPoints) {
-  const { error } = await supabase
+export async function appendPointToRoute(routeId, point){
+  // point: { t, lat, lng, acc }
+  const { data: route, error: e1 } = await State.supabase
     .from("routes")
-    .update({ path: allPoints })
+    .select("id,path")
+    .eq("id", routeId)
+    .single();
+
+  if (e1) throw e1;
+
+  const path = Array.isArray(route.path) ? route.path : [];
+  path.push(point);
+
+  const { error: e2 } = await State.supabase
+    .from("routes")
+    .update({ path })
     .eq("id", routeId);
 
-  if (error) throw error;
+  if (e2) throw e2;
 }

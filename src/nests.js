@@ -1,50 +1,43 @@
-import { supabase } from "./supabaseClient.js";
-import { state } from "./state.js";
+import { State } from "./state.js";
 import { uploadNestPhoto } from "./storage.js";
 
-export async function createNest({ routeId, obs, status, lat, lng, file }) {
-  const userId = state.session?.user?.id;
-  if (!userId) throw new Error("Sem sessão.");
-  if (!routeId) throw new Error("Inicie um trajeto antes de marcar ninho.");
+export async function createNest({ routeId, note, status, lat, lng, photoFile }) {
+  const user = State.user;
+  if (!user) throw new Error("Você precisa estar logado para marcar um ninho.");
 
-  let photo_url = null;
-  let photo_path = null;
-
-  if (file) {
-    const up = await uploadNestPhoto({ userId, routeId, file });
-    photo_url = up.publicUrl;
-    photo_path = up.path;
-  }
-
+  // 1) cria registro (SEM foto primeiro)
   const payload = {
-    user_id: userId,
+    user_id: user.id,
     route_id: routeId,
-    obs: obs || null,
+    note: note || "",
     status: status || "DEPLOYED",
     lat,
-    lng,
-    photo_url,
-    photo_path,
-    created_at: new Date().toISOString()
+    lng
   };
 
-  const { data, error } = await supabase
+  const { data: nest, error: e1 } = await State.supabase
     .from("nests")
     .insert(payload)
-    .select("id, obs, status, lat, lng, photo_url, created_at")
+    .select("*")
     .single();
 
-  if (error) throw error;
-  return data;
-}
+  if (e1) throw e1;
 
-export async function listNestsByRoute(routeId) {
-  const { data, error } = await supabase
-    .from("nests")
-    .select("id, obs, status, lat, lng, photo_url, created_at")
-    .eq("route_id", routeId)
-    .order("created_at", { ascending: false });
+  // 2) upload de foto (se houver) e atualiza
+  if (photoFile){
+    const publicUrl = await uploadNestPhoto({ nestId: nest.id, file: photoFile });
 
-  if (error) throw error;
-  return data || [];
+    const { data: updated, error: e2 } = await State.supabase
+      .from("nests")
+      .update({ photo_url: publicUrl })
+      .eq("id", nest.id)
+      .select("*")
+      .single();
+
+    if (e2) throw e2;
+
+    return updated;
+  }
+
+  return nest;
 }
