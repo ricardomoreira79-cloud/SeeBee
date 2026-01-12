@@ -1,200 +1,140 @@
 import { state } from "./state.js";
 
 export const ui = {
-  // topbar/drawer
+  // screens
   topbar: document.getElementById("topbar"),
-  netBadge: document.getElementById("netBadge"),
-  btnMenu: document.getElementById("btnMenu"),
-  drawer: document.getElementById("drawer"),
-  btnCloseMenu: document.getElementById("btnCloseMenu"),
-  drawerBackdrop: document.getElementById("drawerBackdrop"),
-  userEmail: document.getElementById("userEmail"),
-  btnLogout: document.getElementById("btnLogout"),
+  authScreen: document.getElementById("authScreen"),
+  appScreen: document.getElementById("appScreen"),
 
-  navHome: document.getElementById("navHome"),
-  navInstalacoes: document.getElementById("navInstalacoes"),
-  navProfile: document.getElementById("navProfile"),
-
-  // views
-  authCard: document.getElementById("authCard"),
-  app: document.getElementById("app"),
-  viewHome: document.getElementById("viewHome"),
-  viewInstalacoes: document.getElementById("viewInstalacoes"),
-  viewProfile: document.getElementById("viewProfile"),
+  screenHome: document.getElementById("screenHome"),
+  screenTrails: document.getElementById("screenTrails"),
+  screenNests: document.getElementById("screenNests"),
+  screenProfile: document.getElementById("screenProfile"),
 
   // auth
-  email: document.getElementById("email"),
-  password: document.getElementById("password"),
+  authEmail: document.getElementById("authEmail"),
+  authPass: document.getElementById("authPass"),
   btnLogin: document.getElementById("btnLogin"),
   btnSignup: document.getElementById("btnSignup"),
   btnGoogle: document.getElementById("btnGoogle"),
   authMsg: document.getElementById("authMsg"),
 
-  // home: route/nest
+  // drawer
+  drawer: document.getElementById("drawer"),
+  backdrop: document.getElementById("backdrop"),
+  btnMenu: document.getElementById("btnMenu"),
+  btnCloseDrawer: document.getElementById("btnCloseDrawer"),
+  btnLogout: document.getElementById("btnLogout"),
+  drawerEmail: document.getElementById("drawerEmail"),
+
+  // online pill
+  onlinePill: document.getElementById("onlinePill"),
+  onlineDot: document.getElementById("onlineDot"),
+  onlineText: document.getElementById("onlineText"),
+
+  // route
   btnStartRoute: document.getElementById("btnStartRoute"),
   btnFinishRoute: document.getElementById("btnFinishRoute"),
-  distance: document.getElementById("distance"),
-  nestCount: document.getElementById("nestCount"),
+  distanceText: document.getElementById("distanceText"),
+  nestsCountText: document.getElementById("nestsCountText"),
+  routeHint: document.getElementById("routeHint"),
 
-  note: document.getElementById("note"),
-  status: document.getElementById("status"),
-  species: document.getElementById("species"),
-  photo: document.getElementById("photo"),
-  photoName: document.getElementById("photoName"),
+  // nests
+  nestNote: document.getElementById("nestNote"),
+  nestStatus: document.getElementById("nestStatus"),
+  nestSpecies: document.getElementById("nestSpecies"),
+  nestPhoto: document.getElementById("nestPhoto"),
   btnMarkNest: document.getElementById("btnMarkNest"),
   nestMsg: document.getElementById("nestMsg"),
   nestList: document.getElementById("nestList"),
 
-  // meus ninhos
-  routesMsg: document.getElementById("routesMsg"),
-  routesList: document.getElementById("routesList"),
-  routeDetailTitle: document.getElementById("routeDetailTitle"),
-  routeNestsMsg: document.getElementById("routeNestsMsg"),
-  routeNestsList: document.getElementById("routeNestsList"),
+  // trails list
+  trailsEmpty: document.getElementById("trailsEmpty"),
+  trailsList: document.getElementById("trailsList"),
+
+  // all nests list
+  nestsEmpty: document.getElementById("nestsEmpty"),
+  allNestsList: document.getElementById("allNestsList"),
 
   // profile
-  profileEmail: document.getElementById("profileEmail"),
-  userType: document.getElementById("userType"),
+  p_full_name: document.getElementById("p_full_name"),
+  p_email: document.getElementById("p_email"),
+  p_whatsapp: document.getElementById("p_whatsapp"),
+  p_role_type: document.getElementById("p_role_type"),
+  p_doc_type: document.getElementById("p_doc_type"),
+  p_doc_value: document.getElementById("p_doc_value"),
+  p_address_street: document.getElementById("p_address_street"),
+  p_address_city: document.getElementById("p_address_city"),
+  p_address_state: document.getElementById("p_address_state"),
+  p_address_zip: document.getElementById("p_address_zip"),
+  p_meliponary_name: document.getElementById("p_meliponary_name"),
+  p_meliponary_has_own_address: document.getElementById("p_meliponary_has_own_address"),
+  p_meliponary_address_street: document.getElementById("p_meliponary_address_street"),
+  p_meliponary_address_city: document.getElementById("p_meliponary_address_city"),
+  p_meliponary_address_state: document.getElementById("p_meliponary_address_state"),
+  p_meliponary_address_zip: document.getElementById("p_meliponary_address_zip"),
   btnSaveProfile: document.getElementById("btnSaveProfile"),
   profileMsg: document.getElementById("profileMsg")
 };
 
-let toastEl = null;
-let toastTimer = null;
-
-function ensureToast() {
-  if (toastEl) return toastEl;
-  toastEl = document.createElement("div");
-  toastEl.style.position = "fixed";
-  toastEl.style.left = "50%";
-  toastEl.style.bottom = "22px";
-  toastEl.style.transform = "translateX(-50%)";
-  toastEl.style.zIndex = "9999";
-  toastEl.style.maxWidth = "min(560px, calc(100vw - 28px))";
-  toastEl.style.padding = "12px 14px";
-  toastEl.style.borderRadius = "16px";
-  toastEl.style.background = "rgba(0,0,0,.65)";
-  toastEl.style.border = "1px solid rgba(255,255,255,.18)";
-  toastEl.style.backdropFilter = "blur(12px)";
-  toastEl.style.boxShadow = "0 18px 50px rgba(0,0,0,.45)";
-  toastEl.style.color = "white";
-  toastEl.style.fontWeight = "800";
-  toastEl.style.display = "none";
-  toastEl.style.textAlign = "center";
-  document.body.appendChild(toastEl);
-  return toastEl;
+export function showAuth() {
+  ui.topbar.classList.add("hidden");
+  ui.appScreen.classList.add("hidden");
+  ui.authScreen.classList.remove("hidden");
 }
 
-export function toast(text, ms = 2600) {
-  const el = ensureToast();
-  el.textContent = text;
-  el.style.display = "block";
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    el.style.display = "none";
-  }, ms);
+export function showApp() {
+  ui.authScreen.classList.add("hidden");
+  ui.topbar.classList.remove("hidden");
+  ui.appScreen.classList.remove("hidden");
 }
 
-export function setNetBadge(isOnline) {
-  const label = isOnline ? "Online" : "Offline";
-  ui.netBadge.classList.toggle("net--online", isOnline);
-  ui.netBadge.querySelector(".net__text").textContent = label;
-}
+export function showScreen(name) {
+  const screens = [ui.screenHome, ui.screenTrails, ui.screenNests, ui.screenProfile];
+  screens.forEach(s => s.classList.add("hidden"));
 
-export function showMsg(el, text) {
-  el.textContent = text;
-  el.classList.remove("msg--hidden");
-}
+  if (name === "home") ui.screenHome.classList.remove("hidden");
+  if (name === "trails") ui.screenTrails.classList.remove("hidden");
+  if (name === "nests") ui.screenNests.classList.remove("hidden");
+  if (name === "profile") ui.screenProfile.classList.remove("hidden");
 
-export function hideMsg(el) {
-  el.textContent = "";
-  el.classList.add("msg--hidden");
+  closeDrawer();
 }
 
 export function openDrawer() {
-  ui.drawer.classList.remove("drawer--hidden");
+  ui.drawer.classList.remove("hidden");
+  ui.backdrop.classList.remove("hidden");
+  ui.drawer.setAttribute("aria-hidden", "false");
 }
+
 export function closeDrawer() {
-  ui.drawer.classList.add("drawer--hidden");
+  ui.drawer.classList.add("hidden");
+  ui.backdrop.classList.add("hidden");
+  ui.drawer.setAttribute("aria-hidden", "true");
 }
 
-export function setActiveNav(which) {
-  const map = { home: ui.navHome, inst: ui.navInstalacoes, profile: ui.navProfile };
-  for (const k of Object.keys(map)) map[k].classList.remove("navItem--active");
-  map[which].classList.add("navItem--active");
+export function toast(el, text, type = "") {
+  el.textContent = text;
+  el.classList.remove("hidden", "error", "ok");
+  if (type) el.classList.add(type);
+  setTimeout(() => el.classList.add("hidden"), 2800);
 }
 
-export function showView(which) {
-  ui.viewHome.classList.remove("view--active");
-  ui.viewInstalacoes.classList.remove("view--active");
-  ui.viewProfile.classList.remove("view--active");
-
-  if (which === "home") ui.viewHome.classList.add("view--active");
-  if (which === "inst") ui.viewInstalacoes.classList.add("view--active");
-  if (which === "profile") ui.viewProfile.classList.add("view--active");
+export function setOnlineUI(isOnline) {
+  ui.onlinePill.classList.remove("hidden");
+  ui.onlineDot.classList.remove("online", "offline");
+  ui.onlineDot.classList.add(isOnline ? "online" : "offline");
+  ui.onlineText.textContent = isOnline ? "Online" : "Offline";
 }
 
-export function setLoggedInUI(user) {
-  const logged = !!user;
-
-  // auth/app
-  ui.authCard.style.display = logged ? "none" : "";
-  ui.app.classList.toggle("app--hidden", !logged);
-
-  // topbar só após login
-  ui.topbar.classList.toggle("topbar--hidden", !logged);
-
-  // drawer info
-  ui.userEmail.textContent = logged ? (user.email || "") : "";
-
-  // perfil
-  ui.profileEmail.value = logged ? (user.email || "") : "";
-}
-
-export function renderStats() {
-  ui.distance.textContent =
-    state.route.distanceMeters < 1000
-      ? `${Math.round(state.route.distanceMeters)} m`
-      : `${(state.route.distanceMeters / 1000).toFixed(2)} km`;
-
-  ui.nestCount.textContent = String(state.nests.count || 0);
+export function setHeaderUser(email) {
+  ui.drawerEmail.textContent = email || "—";
 }
 
 export function clearNestForm() {
-  ui.note.value = "";
-  ui.status.value = "CATALOGADO";
-  ui.species.value = "";
-  ui.photo.value = "";
-  ui.photoName.textContent = "";
-}
-
-export function renderNestList() {
-  ui.nestList.innerHTML = "";
-
-  for (const n of state.nests.list) {
-    const div = document.createElement("div");
-    div.className = "nestItem";
-
-    if (n.photo_url) {
-      const img = document.createElement("img");
-      img.src = n.photo_url;
-      img.alt = "Foto do ninho";
-      div.appendChild(img);
-    }
-
-    const meta = document.createElement("div");
-    meta.className = "meta";
-
-    const created = n.created_at ? new Date(n.created_at).toLocaleDateString("pt-BR") : "";
-    const captured = n.captured_at ? new Date(n.captured_at).toLocaleDateString("pt-BR") : "";
-
-    meta.innerHTML = `
-      <div><strong>${n.status || "CATALOGADO"}</strong></div>
-      <div>${(n.note || "").slice(0, 40)}</div>
-      <div>${n.status === "CAPTURADO" ? `Capturado em: ${captured}` : `Catalogado em: ${created}`}</div>
-    `;
-    div.appendChild(meta);
-
-    ui.nestList.appendChild(div);
-  }
+  ui.nestNote.value = "";
+  ui.nestSpecies.value = "";
+  ui.nestStatus.value = "CATALOGADO";
+  ui.nestPhoto.value = "";       // crucial: limpa o file input ao trocar usuário
+  state.selectedFile = null;
 }

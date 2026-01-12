@@ -1,259 +1,290 @@
 <!doctype html>
-<html lang="pt-br">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-    <title>SeeBee • Meliponicultura</title>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>SeeBee – Meliponicultura</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
 
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <meta name="theme-color" content="#071a12" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./css/style.css" />
 
-    <link rel="stylesheet" href="./css/style.css" />
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Leaflet -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin=""
-    />
-  </head>
+  <!-- Supabase JS (CDN) -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
 
-  <body>
-    <!-- TOPBAR (só aparece logado via JS) -->
-    <header id="topbar" class="topbar topbar--hidden">
-      <div class="brand">
-        <div class="brand__icon">🐝</div>
-        <div class="brand__text">
-          <div class="brand__title">SeeBee</div>
-          <div class="brand__subtitle">Meliponicultura</div>
-        </div>
+<body>
+  <!-- TOPBAR (aparece só logado) -->
+  <header id="topbar" class="topbar hidden">
+    <div class="brand">
+      <div class="brandIcon">🐝</div>
+      <div class="brandText">
+        <div class="brandTitle">SeeBee</div>
+        <div class="brandSub">Meliponicultura</div>
+      </div>
+    </div>
+
+    <div class="topbarRight">
+      <div id="onlinePill" class="pill hidden" title="Status de conexão">
+        <span id="onlineDot" class="dot"></span>
+        <span id="onlineText">Online</span>
       </div>
 
-      <div class="topbar__right">
-        <!-- indicador online/offline (só logado) -->
-        <div id="netBadge" class="net net--offline" title="Status de conexão">
-          <span class="net__dot"></span>
-          <span class="net__text">Offline</span>
-        </div>
+      <button id="btnMenu" class="iconBtn" aria-label="Menu">☰</button>
+    </div>
+  </header>
 
-        <!-- hamburger -->
-        <button id="btnMenu" class="iconBtn" aria-label="Menu">
-          ☰
-        </button>
-      </div>
-    </header>
-
-    <!-- DRAWER / MENU -->
-    <aside id="drawer" class="drawer drawer--hidden">
-      <div class="drawer__panel">
-        <div class="drawer__header">
-          <div class="drawer__title">Menu</div>
-          <button id="btnCloseMenu" class="iconBtn" aria-label="Fechar">✕</button>
-        </div>
-
-        <div class="drawer__user">
-          <div class="drawer__userLabel">Usuário</div>
-          <div id="userEmail" class="drawer__userEmail"></div>
-        </div>
-
-        <nav class="drawer__nav">
-          <button id="navHome" class="navItem navItem--active">Trilhas</button>
-          <button id="navInstalacoes" class="navItem">Meus ninhos</button>
-          <button id="navProfile" class="navItem">Meus dados</button>
-
-        </nav>
-
-        <div class="drawer__footer">
-          <button id="btnLogout" class="btn btn--secondary w100">Sair</button>
+  <!-- DRAWER MENU -->
+  <aside id="drawer" class="drawer hidden" aria-hidden="true">
+    <div class="drawerHeader">
+      <div class="drawerUser">
+        <div class="avatar" id="drawerAvatar">👤</div>
+        <div class="drawerUserText">
+          <div id="drawerEmail" class="drawerEmail">—</div>
+          <div class="drawerSmall">Conta ativa</div>
         </div>
       </div>
-      <div id="drawerBackdrop" class="drawer__backdrop"></div>
-    </aside>
+      <button id="btnCloseDrawer" class="iconBtn" aria-label="Fechar">✕</button>
+    </div>
 
-    <main class="page">
-      <!-- AUTH -->
-      <section id="authCard" class="card authCard">
-        <div class="authBrand">
-          <div class="authBrand__icon">🐝</div>
-          <div class="authBrand__title">SeeBee</div>
-          <div class="authBrand__subtitle">Meliponicultura</div>
-        </div>
+    <nav class="drawerNav">
+      <button class="drawerItem" data-nav="home">🏕️ Registrar</button>
+      <button class="drawerItem" data-nav="trails">🧭 Minhas Trilhas</button>
+      <button class="drawerItem" data-nav="nests">📍 Meus ninhos</button>
+      <button class="drawerItem" data-nav="profile">👤 Meus dados</button>
+    </nav>
 
-        <h1 class="h1">Entrar</h1>
-        <p class="muted">Use seu e-mail e senha (Supabase Auth) ou Google.</p>
+    <div class="drawerFooter">
+      <button id="btnLogout" class="btn danger">Sair</button>
+    </div>
+  </aside>
 
-        <div class="field">
-          <label for="email">E-mail</label>
-          <input id="email" type="email" placeholder="seuemail@..." autocomplete="email" />
-        </div>
+  <div id="backdrop" class="backdrop hidden"></div>
 
-        <div class="field">
-          <label for="password">Senha</label>
-          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
-        </div>
+  <!-- AUTH SCREEN -->
+  <main id="authScreen" class="authScreen">
+    <section class="card authCard">
+      <div class="authBrand">
+        <div class="authBee">🐝</div>
+        <div class="authTitle">SeeBee</div>
+        <div class="authSub">Meliponicultura</div>
+      </div>
 
-        <div class="row row--gap">
-          <button id="btnLogin" class="btn btn--primary">Entrar</button>
-          <button id="btnSignup" class="btn btn--secondary">Criar conta</button>
+      <h2 class="h2">Entrar</h2>
+      <p class="muted">Use seu e-mail e senha (Supabase Auth) ou Google.</p>
+
+      <div class="form">
+        <label>E-mail</label>
+        <input id="authEmail" type="email" placeholder="seuemail@..." autocomplete="email" />
+
+        <label>Senha</label>
+        <input id="authPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+
+        <div class="row">
+          <button id="btnLogin" class="btn primary">Entrar</button>
+          <button id="btnSignup" class="btn">Criar conta</button>
         </div>
 
         <div class="divider"></div>
 
-        <button id="btnGoogle" class="btn btn--google w100">Entrar com Google</button>
+        <button id="btnGoogle" class="btn google">Entrar com Google</button>
 
-        <div id="authMsg" class="msg msg--hidden"></div>
+        <div id="authMsg" class="msg hidden"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- APP SCREEN -->
+  <main id="appScreen" class="appScreen hidden">
+    <!-- HOME: Registrar -->
+    <section id="screenHome" class="screen">
+      <div class="grid">
+        <section class="card">
+          <h2 class="h2">Trilha</h2>
+          <p class="muted">Inicie a trilha e depois marque ninhos com observação e foto.</p>
+
+          <div class="row">
+            <button id="btnStartRoute" class="btn primary">Iniciar trilha</button>
+            <button id="btnFinishRoute" class="btn" disabled>Finalizar trilha</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="statLabel">Distância</div>
+              <div id="distanceText" class="statValue">0 m</div>
+            </div>
+            <div class="stat">
+              <div class="statLabel">Ninhos nesta trilha</div>
+              <div id="nestsCountText" class="statValue">0</div>
+            </div>
+          </div>
+
+          <div id="routeHint" class="hint hidden"></div>
+        </section>
+
+        <section class="card">
+          <h2 class="h2">Marcar ninho</h2>
+
+          <label>Observação</label>
+          <input id="nestNote" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
+
+          <label>Status</label>
+          <select id="nestStatus">
+            <option value="CATALOGADO">CATALOGADO</option>
+            <option value="CAPTURADO">CAPTURADO</option>
+          </select>
+
+          <label>Espécie (opcional)</label>
+          <input id="nestSpecies" type="text" placeholder="Ex.: Jataí, Uruçu, Mandaçaia... ou Não identifiquei" />
+
+          <label>Foto (opcional)</label>
+          <input id="nestPhoto" type="file" accept="image/*" />
+
+          <button id="btnMarkNest" class="btn primary">Marcar ninho</button>
+
+          <div id="nestMsg" class="msg hidden"></div>
+        </section>
+      </div>
+
+      <section class="card">
+        <h2 class="h2">Registros desta trilha</h2>
+        <p class="muted">Os ninhos marcados aparecem aqui para conferência rápida.</p>
+        <div id="nestList" class="nestList"></div>
       </section>
 
-      <!-- APP VIEWS -->
-      <section id="app" class="app app--hidden">
-        <!-- VIEW: HOME / TRAJETO -->
-        <section id="viewHome" class="view view--active">
-          <section class="grid">
-            <div class="col col--left">
-              <section class="card">
-                <h2 class="h2">Trajeto</h2>
-                <p class="muted">Inicie o trajeto e depois marque ninhos com observação e foto.</p>
-
-                <div class="row row--gap">
-                  <button id="btnStartRoute" class="btn btn--primary">Iniciar trajeto</button>
-                  <button id="btnFinishRoute" class="btn btn--secondary" disabled>Finalizar trajeto</button>
-                </div>
-
-                <div class="stats">
-                  <div class="stat">
-                    <div class="stat__label">Distância</div>
-                    <div id="distance" class="stat__value">0 m</div>
-                  </div>
-
-                  <div class="stat">
-                    <div class="stat__label">Ninhos</div>
-                    <div id="nestCount" class="stat__value">0</div>
-                  </div>
-                </div>
-
-                <div id="routeHint" class="hint">
-                  Ao iniciar, o mapa acompanha sua caminhada e desenha a linha em tempo real.
-                </div>
-              </section>
-
-              <section class="card">
-                <h2 class="h2">Marcar ninho</h2>
-
-                <div class="field">
-                  <label for="note">Observação</label>
-                  <input id="note" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
-                </div>
-
-                <div class="field">
-                  <label for="status">Status</label>
-                  <select id="status">
-                    <option value="CATALOGADO" selected>CATALOGADO</option>
-                    <option value="CAPTURADO">CAPTURADO</option>
-                  </select>
-                </div>
-
-                <div class="field">
-                  <label for="species">Espécie (opcional)</label>
-                  <input id="species" type="text" placeholder="Ex.: Jataí, Uruçu, Mandaçaia… ou Não identifiquei" />
-                </div>
-
-                <div class="field">
-                  <label for="photo">Foto (opcional)</label>
-                  <input id="photo" type="file" accept="image/*" />
-                  <div id="photoName" class="muted small"></div>
-                </div>
-
-                <button id="btnMarkNest" class="btn btn--primary">Marcar ninho</button>
-
-                <div id="nestMsg" class="msg msg--hidden"></div>
-              </section>
-
-              <section class="card">
-                <h2 class="h2">Registros desta trilha</h2>
-                <p class="muted">Os ninhos marcados aparecem aqui para conferência rápida.</p>
-                <div id="nestList" class="nestList"></div>
-              </section>
-            </div>
-
-            <div class="col col--right">
-              <section class="card mapCard">
-                <div id="map" class="map"></div>
-              </section>
-            </div>
-          </section>
-        </section>
-
-        <!-- VIEW: INSTALAÇÕES -->
-        <section id="viewInstalacoes" class="view">
-          <section class="grid">
-            <div class="col col--left">
-              <section class="card">
-                <h2 class="h2">Minhas instalações</h2>
-                <p class="muted">
-                  Aqui ficam seus trajetos gravados. Clique para abrir, ver rota + ninhos e atualizar para “CAPTURADO”.
-                </p>
-
-                <div id="routesMsg" class="msg msg--hidden"></div>
-                <div id="routesList" class="list"></div>
-              </section>
-
-              <section class="card">
-                <h2 class="h2">Ninhos do trajeto selecionado</h2>
-                <p class="muted">Você pode alterar o status para CAPTURADO (sem perder a data do CATALOGADO).</p>
-
-                <div id="routeDetailTitle" class="muted"></div>
-                <div id="routeNestsMsg" class="msg msg--hidden"></div>
-                <div id="routeNestsList" class="list"></div>
-              </section>
-            </div>
-
-            <div class="col col--right">
-              <section class="card mapCard">
-                <div id="map2" class="map"></div>
-              </section>
-            </div>
-          </section>
-        </section>
-
-        <!-- VIEW: PERFIL -->
-        <section id="viewProfile" class="view">
-          <section class="card profileCard">
-            <h2 class="h2">Meus dados</h2>
-            <p class="muted">Vamos começar pelo essencial e evoluir depois (modo claro/escuro virá aqui também).</p>
-
-            <div class="field">
-              <label>E-mail</label>
-              <input id="profileEmail" type="text" disabled />
-            </div>
-
-            <div class="field">
-              <label for="userType">Você é:</label>
-              <select id="userType">
-                <option value="">Selecione…</option>
-                <option value="enthusiasta">Entusiasta</option>
-                <option value="meliponicultor">Meliponicultor</option>
-                <option value="pesquisador">Pesquisador</option>
-              </select>
-            </div>
-
-            <button id="btnSaveProfile" class="btn btn--primary">Salvar</button>
-            <div id="profileMsg" class="msg msg--hidden"></div>
-          </section>
-        </section>
+      <section class="card mapCard">
+        <div id="map" class="map"></div>
+        <div class="muted small">O trajeto e os ninhos serão desenhados no mapa em tempo real.</div>
       </section>
-    </main>
+    </section>
 
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Trails -->
+    <section id="screenTrails" class="screen hidden">
+      <section class="card">
+        <h2 class="h2">Minhas Trilhas</h2>
+        <div id="trailsEmpty" class="empty hidden">Nenhuma trilha salva.</div>
+        <div id="trailsList" class="list"></div>
+      </section>
+    </section>
 
-    <!-- Leaflet -->
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-      crossorigin=""
-    ></script>
+    <!-- Nests -->
+    <section id="screenNests" class="screen hidden">
+      <section class="card">
+        <h2 class="h2">Meus ninhos</h2>
+        <div id="nestsEmpty" class="empty hidden">Nenhum ninho catalogado.</div>
+        <div id="allNestsList" class="list"></div>
+      </section>
+    </section>
 
-    <script type="module" src="./src/main.js"></script>
-  </body>
+    <!-- Profile -->
+    <section id="screenProfile" class="screen hidden">
+      <section class="card">
+        <h2 class="h2">Meus dados</h2>
+
+        <div class="grid2">
+          <div>
+            <label>Nome completo</label>
+            <input id="p_full_name" type="text" placeholder="Seu nome" />
+          </div>
+          <div>
+            <label>E-mail</label>
+            <input id="p_email" type="email" placeholder="email@..." disabled />
+          </div>
+
+          <div>
+            <label>WhatsApp</label>
+            <input id="p_whatsapp" type="text" placeholder="(xx) xxxxx-xxxx" />
+          </div>
+
+          <div>
+            <label>Você é</label>
+            <select id="p_role_type">
+              <option value="">Selecione...</option>
+              <option value="entusiasta">Entusiasta</option>
+              <option value="estudante">Estudante</option>
+              <option value="meliponicultor">Meliponicultor</option>
+              <option value="pesquisador">Pesquisador</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Documento</label>
+            <select id="p_doc_type">
+              <option value="CPF">CPF</option>
+              <option value="CNPJ">CNPJ</option>
+            </select>
+          </div>
+          <div>
+            <label>Nº do documento</label>
+            <input id="p_doc_value" type="text" placeholder="CPF/CNPJ" />
+          </div>
+
+          <div class="colspan2">
+            <h3 class="h3">Endereço</h3>
+          </div>
+
+          <div>
+            <label>Rua</label>
+            <input id="p_address_street" type="text" />
+          </div>
+          <div>
+            <label>Cidade</label>
+            <input id="p_address_city" type="text" />
+          </div>
+          <div>
+            <label>Estado</label>
+            <input id="p_address_state" type="text" />
+          </div>
+          <div>
+            <label>CEP</label>
+            <input id="p_address_zip" type="text" />
+          </div>
+
+          <div class="colspan2">
+            <h3 class="h3">Meliponário (se aplicável)</h3>
+            <p class="muted">Se você for meliponicultor e usar CNPJ, pode cadastrar aqui.</p>
+          </div>
+
+          <div>
+            <label>Nome do meliponário</label>
+            <input id="p_meliponary_name" type="text" placeholder="Ex.: Meliponário do João" />
+          </div>
+
+          <div class="row alignCenter">
+            <input id="p_meliponary_has_own_address" type="checkbox" />
+            <span class="muted">Meliponário tem endereço diferente do usuário</span>
+          </div>
+
+          <div>
+            <label>Rua (meliponário)</label>
+            <input id="p_meliponary_address_street" type="text" />
+          </div>
+          <div>
+            <label>Cidade (meliponário)</label>
+            <input id="p_meliponary_address_city" type="text" />
+          </div>
+          <div>
+            <label>Estado (meliponário)</label>
+            <input id="p_meliponary_address_state" type="text" />
+          </div>
+          <div>
+            <label>CEP (meliponário)</label>
+            <input id="p_meliponary_address_zip" type="text" />
+          </div>
+
+          <div class="colspan2">
+            <button id="btnSaveProfile" class="btn primary">Salvar meus dados</button>
+            <div id="profileMsg" class="msg hidden"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
 </html>

@@ -1,23 +1,20 @@
-import { supabase } from "./supabaseClient.js";
 import { CONFIG } from "./config.js";
 import { state } from "./state.js";
 
-export async function uploadNestPhoto(file, routeId) {
-  const user = state.user;
-  if (!user) throw new Error("Usuário não autenticado.");
+export async function uploadNestPhoto(supabase, file) {
+  if (!file) return null;
+  if (!state.user) throw new Error("Sem usuário.");
 
-  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-  const safeExt = ["jpg", "jpeg", "png", "webp", "heic"].includes(ext) ? ext : "jpg";
+  const ext = file.name.split(".").pop() || "jpg";
+  const fileName = `${crypto.randomUUID()}.${ext}`;
+  const path = `${state.user.id}/${fileName}`;
 
-  const path = `${user.id}/${routeId || "sem-rota"}/${Date.now()}-${crypto.randomUUID()}.${safeExt}`;
-
-  const { error: upErr } = await supabase.storage
+  const { error } = await supabase.storage
     .from(CONFIG.STORAGE_BUCKET)
-    .upload(path, file, { upsert: false });
+    .upload(path, file, { upsert: false, contentType: file.type });
 
-  if (upErr) throw upErr;
+  if (error) throw error;
 
   const { data } = supabase.storage.from(CONFIG.STORAGE_BUCKET).getPublicUrl(path);
-
   return { path, publicUrl: data.publicUrl };
 }

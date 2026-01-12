@@ -1,84 +1,59 @@
-import { supabase } from "./supabaseClient.js";
-import { ui, showMsg, hideMsg, setLoggedInUI, closeDrawer, showView, setActiveNav } from "./ui.js";
+import { ui, toast, showApp, showAuth, setHeaderUser, closeDrawer } from "./ui.js";
 import { state, resetSessionState } from "./state.js";
 
-export async function initAuth() {
-  ui.btnLogin.addEventListener("click", loginWithEmail);
-  ui.btnSignup.addEventListener("click", signupWithEmail);
-  ui.btnGoogle.addEventListener("click", loginWithGoogle);
+export function bindAuth(supabase, onLoggedIn) {
+  ui.btnLogin.addEventListener("click", async () => {
+    const email = ui.authEmail.value.trim();
+    const password = ui.authPass.value.trim();
+    if (!email || !password) return toast(ui.authMsg, "Informe e-mail e senha.", "error");
 
-  // 🔥 logout com "stopPropagation" pra não conflitar com drawer/backdrop
-  ui.btnLogout.addEventListener("click", async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    await logout();
-  });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return toast(ui.authMsg, error.message, "error");
 
-  const { data } = await supabase.auth.getSession();
-  state.user = data.session?.user || null;
-  setLoggedInUI(state.user);
-
-  supabase.auth.onAuthStateChange((_event, session) => {
-    // ✅ ponto-chave: atualiza state.user SEMPRE
-    state.user = session?.user || null;
-
-    resetSessionState();
-    setLoggedInUI(state.user);
-
-    hideMsg(ui.authMsg);
-    hideMsg(ui.nestMsg);
-
+    state.user = data.user;
+    setHeaderUser(state.user?.email);
+    showApp();
     closeDrawer();
-    showView("home");
-    setActiveNav("home");
-  });
-}
-
-async function loginWithEmail() {
-  hideMsg(ui.authMsg);
-  const email = ui.email.value.trim();
-  const password = ui.password.value;
-
-  if (!email || !password) return showMsg(ui.authMsg, "Informe e-mail e senha.");
-
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) showMsg(ui.authMsg, error.message);
-}
-
-async function signupWithEmail() {
-  hideMsg(ui.authMsg);
-  const email = ui.email.value.trim();
-  const password = ui.password.value;
-
-  if (!email || !password) return showMsg(ui.authMsg, "Informe e-mail e senha.");
-
-  const { error } = await supabase.auth.signUp({ email, password });
-  if (error) return showMsg(ui.authMsg, error.message);
-
-  showMsg(ui.authMsg, "Conta criada! Se o Supabase exigir confirmação, verifique seu e-mail.");
-}
-
-async function loginWithGoogle() {
-  hideMsg(ui.authMsg);
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: window.location.origin }
+    await onLoggedIn();
   });
 
-  if (error) showMsg(ui.authMsg, error.message);
-}
+  ui.btnSignup.addEventListener("click", async () => {
+    const email = ui.authEmail.value.trim();
+    const password = ui.authPass.value.trim();
+    if (!email || !password) return toast(ui.authMsg, "Informe e-mail e senha.", "error");
 
-async function logout() {
-  try {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) return toast(ui.authMsg, error.message, "error");
+
+    toast(ui.authMsg, "Conta criada. Se o Supabase pedir confirmação por e-mail, confirme e depois entre.", "ok");
+  });
+
+  ui.btnGoogle.addEventListener("click", async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+    if (error) return toast(ui.authMsg, error.message, "error");
+  });
+
+  ui.btnLogout.addEventListener("click", async () => {
     await supabase.auth.signOut();
-  } finally {
-    // ✅ garante UI voltando pro login mesmo se algo der erro
     state.user = null;
     resetSessionState();
-    setLoggedInUI(null);
+    showAuth();
     closeDrawer();
-    showView("home");
-    setActiveNav("home");
-  }
+  });
+
+  supabase.auth.onAuthStateChange(async (_event, session) => {
+    state.user = session?.user || null;
+    if (state.user) {
+      setHeaderUser(state.user.email);
+      showApp();
+      await onLoggedIn();
+    } else {
+      showAuth();
+    }
+  });
 }
