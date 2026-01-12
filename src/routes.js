@@ -1,42 +1,43 @@
 import { supabase } from "./supabaseClient.js";
+import { state } from "./state.js";
 
 /**
- * Cria trajeto (routes).
- * Não depende de 'status' para não quebrar seu banco atual.
+ * Cria um trajeto no banco e retorna routeId.
+ * IMPORTANTE: não usa coluna "status" (porque seu schema não tem).
  */
-export async function createRoute({ userId, name, startLat, startLng }) {
+export async function createRoute(name) {
+  const userId = state.session?.user?.id;
+  if (!userId) throw new Error("Sem sessão.");
+
   const payload = {
-    name,
-    user_id: userId, // se não existir no banco, vai falhar -> nesse caso remova esta linha
-    path: [{ t: new Date().toISOString(), lat: startLat, lng: startLng }],
-    traps: [],
+    user_id: userId,
+    name: name || `Trajeto ${new Date().toLocaleString("pt-BR")}`,
+    path: [],   // você já tem no schema
+    traps: []   // você já tem no schema
   };
 
-  // Tenta inserir com user_id; se o banco não tiver essa coluna, removemos e tentamos novamente
-  let res = await supabase.from("routes").insert(payload).select("*").single();
-  if (res.error && String(res.error.message || "").includes("user_id")) {
-    delete payload.user_id;
-    res = await supabase.from("routes").insert(payload).select("*").single();
-  }
-
-  if (res.error) throw res.error;
-  return res.data;
-}
-
-export async function appendPoint(routeId, point) {
-  // Busca route atual
-  const { data: route, error } = await supabase.from("routes").select("id,path").eq("id", routeId).single();
-  if (error) throw error;
-
-  const nextPath = Array.isArray(route.path) ? [...route.path, point] : [point];
-
-  const { data, error: upErr } = await supabase
+  const { data, error } = await supabase
     .from("routes")
-    .update({ path: nextPath })
-    .eq("id", routeId)
-    .select("id,path")
+    .insert(payload)
+    .select("id")
     .single();
 
-  if (upErr) throw upErr;
-  return data;
+  if (error) throw error;
+  return data.id;
+}
+
+export async function appendRoutePoint(routeId, point) {
+  // Para simplificar e evitar leitura/merge concorrente:
+  // vamos guardar path local no state e ao finalizar salvamos tudo.
+  // (Se quiser tempo real no DB, eu ajusto depois com RPC/merge seguro.)
+  return true;
+}
+
+export async function finishRoute(routeId, allPoints) {
+  const { error } = await supabase
+    .from("routes")
+    .update({ path: allPoints })
+    .eq("id", routeId);
+
+  if (error) throw error;
 }

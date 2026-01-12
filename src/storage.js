@@ -1,33 +1,27 @@
 import { supabase } from "./supabaseClient.js";
-import { STORAGE_BUCKET_NINHOS } from "./config.js";
+import { CONFIG } from "./config.js";
 
-/**
- * Faz upload da foto para:
- *   <userId>/nests/<nestId>.jpg
- *
- * IMPORTANTE: isso casa com sua policy:
- * storage.foldername(name)[1] = auth.uid()::text
- */
-export async function uploadNestPhoto({ userId, nestId, file }) {
-  const ext = (file.name?.split(".").pop() || "jpg").toLowerCase();
-  const path = `${userId}/nests/${nestId}.${ext}`;
+export async function uploadNestPhoto({ userId, routeId, file }) {
+  if (!file) return { publicUrl: null, path: null };
 
-  const { data, error } = await supabase.storage
-    .from(STORAGE_BUCKET_NINHOS)
-    .upload(path, file, { upsert: true, contentType: file.type });
+  // caminho compatível com sua policy:
+  // storage.foldername(name)[1] = auth.uid()
+  // então o "primeiro diretório" precisa ser o userId
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const safeExt = ["jpg","jpeg","png","webp","heic"].includes(ext) ? ext : "jpg";
+  const filename = `${crypto.randomUUID()}.${safeExt}`;
+  const path = `${userId}/${routeId}/${filename}`;
 
-  if (error) throw error;
-  return { path: data.path };
-}
+  const { error: upErr } = await supabase.storage
+    .from(CONFIG.STORAGE_BUCKET)
+    .upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type || "image/jpeg"
+    });
 
-/**
- * Cria URL assinada para visualizar (funciona mesmo com bucket privado).
- */
-export async function getSignedUrl(path, expiresIn = 60 * 30) {
-  const { data, error } = await supabase.storage
-    .from(STORAGE_BUCKET_NINHOS)
-    .createSignedUrl(path, expiresIn);
+  if (upErr) throw upErr;
 
-  if (error) throw error;
-  return data.signedUrl;
+  const { data } = supabase.storage.from(CONFIG.STORAGE_BUCKET).getPublicUrl(path);
+  return { publicUrl: data.publicUrl, path };
 }
