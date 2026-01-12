@@ -1,24 +1,33 @@
 import { supabase } from "./supabaseClient.js";
 import { ui, showMsg, hideMsg, setLoggedInUI, closeDrawer, showView, setActiveNav } from "./ui.js";
-import { resetSessionState } from "./state.js";
+import { state, resetSessionState } from "./state.js";
 
 export async function initAuth() {
   ui.btnLogin.addEventListener("click", loginWithEmail);
   ui.btnSignup.addEventListener("click", signupWithEmail);
   ui.btnGoogle.addEventListener("click", loginWithGoogle);
-  ui.btnLogout.addEventListener("click", logout);
+
+  // 🔥 logout com "stopPropagation" pra não conflitar com drawer/backdrop
+  ui.btnLogout.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await logout();
+  });
 
   const { data } = await supabase.auth.getSession();
-  setLoggedInUI(data.session?.user || null);
+  state.user = data.session?.user || null;
+  setLoggedInUI(state.user);
 
   supabase.auth.onAuthStateChange((_event, session) => {
+    // ✅ ponto-chave: atualiza state.user SEMPRE
+    state.user = session?.user || null;
+
     resetSessionState();
-    setLoggedInUI(session?.user || null);
+    setLoggedInUI(state.user);
 
     hideMsg(ui.authMsg);
     hideMsg(ui.nestMsg);
 
-    // fecha menu e volta pro trajeto
     closeDrawer();
     showView("home");
     setActiveNav("home");
@@ -61,5 +70,15 @@ async function loginWithGoogle() {
 }
 
 async function logout() {
-  await supabase.auth.signOut();
+  try {
+    await supabase.auth.signOut();
+  } finally {
+    // ✅ garante UI voltando pro login mesmo se algo der erro
+    state.user = null;
+    resetSessionState();
+    setLoggedInUI(null);
+    closeDrawer();
+    showView("home");
+    setActiveNav("home");
+  }
 }

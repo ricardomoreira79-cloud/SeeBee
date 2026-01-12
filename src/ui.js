@@ -35,7 +35,6 @@ export const ui = {
   btnFinishRoute: document.getElementById("btnFinishRoute"),
   distance: document.getElementById("distance"),
   nestCount: document.getElementById("nestCount"),
-  routeHint: document.getElementById("routeHint"),
 
   note: document.getElementById("note"),
   status: document.getElementById("status"),
@@ -46,7 +45,7 @@ export const ui = {
   nestMsg: document.getElementById("nestMsg"),
   nestList: document.getElementById("nestList"),
 
-  // instalações
+  // meus ninhos
   routesMsg: document.getElementById("routesMsg"),
   routesList: document.getElementById("routesList"),
   routeDetailTitle: document.getElementById("routeDetailTitle"),
@@ -59,6 +58,42 @@ export const ui = {
   btnSaveProfile: document.getElementById("btnSaveProfile"),
   profileMsg: document.getElementById("profileMsg")
 };
+
+let toastEl = null;
+let toastTimer = null;
+
+function ensureToast() {
+  if (toastEl) return toastEl;
+  toastEl = document.createElement("div");
+  toastEl.style.position = "fixed";
+  toastEl.style.left = "50%";
+  toastEl.style.bottom = "22px";
+  toastEl.style.transform = "translateX(-50%)";
+  toastEl.style.zIndex = "9999";
+  toastEl.style.maxWidth = "min(560px, calc(100vw - 28px))";
+  toastEl.style.padding = "12px 14px";
+  toastEl.style.borderRadius = "16px";
+  toastEl.style.background = "rgba(0,0,0,.65)";
+  toastEl.style.border = "1px solid rgba(255,255,255,.18)";
+  toastEl.style.backdropFilter = "blur(12px)";
+  toastEl.style.boxShadow = "0 18px 50px rgba(0,0,0,.45)";
+  toastEl.style.color = "white";
+  toastEl.style.fontWeight = "800";
+  toastEl.style.display = "none";
+  toastEl.style.textAlign = "center";
+  document.body.appendChild(toastEl);
+  return toastEl;
+}
+
+export function toast(text, ms = 2600) {
+  const el = ensureToast();
+  el.textContent = text;
+  el.style.display = "block";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    el.style.display = "none";
+  }, ms);
+}
 
 export function setNetBadge(isOnline) {
   const label = isOnline ? "Online" : "Offline";

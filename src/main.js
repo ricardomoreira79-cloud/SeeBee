@@ -3,7 +3,7 @@ import { CONFIG } from "./config.js";
 import { state, resetSessionState } from "./state.js";
 import {
   ui, setNetBadge, showMsg, hideMsg, renderStats, renderNestList, clearNestForm,
-  openDrawer, closeDrawer, showView, setActiveNav
+  openDrawer, closeDrawer, showView, setActiveNav, toast
 } from "./ui.js";
 import { initAuth } from "./auth.js";
 import { initMaps, setUserPosition, resetRouteLineHome, addRoutePointHome, addNestMarkerHome, renderRouteOnMap2 } from "./map.js";
@@ -31,13 +31,20 @@ function bindNetIndicator() {
   refresh();
 }
 
+function stopTracking() {
+  if (watchId != null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+}
+
 function startTracking() {
   if (!("geolocation" in navigator)) {
     showMsg(ui.nestMsg, "Geolocalização não disponível neste dispositivo.");
     return;
   }
 
-  stopTracking(); // garante que não fica duplicado
+  stopTracking();
 
   watchId = navigator.geolocation.watchPosition(
     (pos) => {
@@ -48,22 +55,19 @@ function startTracking() {
 
       const now = { lat, lng, t: Date.now() };
 
-      // sempre guarda o "último ponto" internamente
-      // mas não exibimos mais na UI
       if (state.route.active) {
-        // desenha e calcula distância
         if (lastLatLng) {
           const d = metersBetween(lastLatLng, now);
-          if (d < 80) { // corta saltos absurdos
+          if (d < 80) {
             state.route.distanceMeters += d;
             addRoutePointHome(lat, lng);
             state.route.points.push(now);
           }
         } else {
+          // primeiro ponto da trilha
           addRoutePointHome(lat, lng);
           state.route.points.push(now);
         }
-
         renderStats();
       }
 
@@ -76,20 +80,13 @@ function startTracking() {
   );
 }
 
-function stopTracking() {
-  if (watchId != null) {
-    navigator.geolocation.clearWatch(watchId);
-    watchId = null;
-  }
-}
-
 async function startRoute() {
   hideMsg(ui.nestMsg);
 
   try {
-    if (!state.user) throw new Error("Faça login para iniciar o trajeto.");
+    if (!state.user) throw new Error("Faça login para iniciar a trilha.");
 
-    // reseta estado do trajeto atual
+    // reset
     state.route.active = false;
     state.route.id = null;
     state.route.points = [];
@@ -105,7 +102,7 @@ async function startRoute() {
     resetRouteLineHome();
     lastLatLng = null;
 
-    // cria rota no banco
+    // cria trilha no banco
     const created = await createRoute();
     state.route.id = created.id;
 
@@ -116,7 +113,15 @@ async function startRoute() {
     ui.btnFinishRoute.disabled = false;
 
     startTracking();
-    showMsg(ui.nestMsg, "Trajeto iniciado. Caminhe para desenhar a rota no mapa.");
+
+    // reforço: se em 4s não vier posição, avisa
+    setTimeout(() => {
+      if (state.route.active && (!lastLatLng || state.route.points.length === 0)) {
+        showMsg(ui.nestMsg, "Aguardando GPS… permita localização e caminhe alguns passos.");
+      }
+    }, 4000);
+
+    showMsg(ui.nestMsg, "Trilha iniciada. Caminhe para desenhar a rota no mapa.");
   } catch (e) {
     showMsg(ui.nestMsg, e.message || String(e));
   }
@@ -126,7 +131,7 @@ async function finishRoute() {
   hideMsg(ui.nestMsg);
 
   try {
-    if (!state.route.id) throw new Error("Nenhum trajeto ativo.");
+    if (!state.route.id) throw new Error("Nenhuma trilha ativa.");
     state.route.active = false;
 
     ui.btnStartRoute.disabled = false;
@@ -134,10 +139,9 @@ async function finishRoute() {
 
     stopTracking();
 
-    // salva path completo
     await updateRoutePath(state.route.id, state.route.points);
 
-    showMsg(ui.nestMsg, "Trajeto finalizado e salvo.");
+    showMsg(ui.nestMsg, "Trilha finalizada e salva.");
   } catch (e) {
     showMsg(ui.nestMsg, e.message || String(e));
   }
@@ -148,7 +152,7 @@ async function markNest() {
 
   try {
     if (!state.user) throw new Error("Faça login para marcar ninhos.");
-    if (!state.route.id || !state.route.active) throw new Error("Inicie um trajeto antes de marcar o ninho.");
+    if (!state.route.id || !state.route.active) throw new Error("Inicie uma trilha antes de marcar o ninho.");
     if (!lastLatLng) throw new Error("Aguardando GPS… caminhe um pouco para obter posição.");
 
     const file = ui.photo.files?.[0] || null;
@@ -163,10 +167,8 @@ async function markNest() {
       file
     });
 
-    // pino no mapa (IMEDIATO)
     addNestMarkerHome(created.lat, created.lng, created.status);
 
-    // atualiza lista local
     const list = await listNestsByRoute(state.route.id);
     state.nests.list = list;
     state.nests.count = list.length;
@@ -186,10 +188,20 @@ function bindDrawerAndNav() {
   ui.btnCloseMenu.addEventListener("click", closeDrawer);
   ui.drawerBackdrop.addEventListener("click", closeDrawer);
 
-  ui.navHome.addEventListener("click", () => {
+  ui.navHome.addEventListener("click", async () => {
     setActiveNav("home");
     showView("home");
     closeDrawer();
+
+    // toast “nenhuma trilha salva” se não tem nenhuma e não tem trilha ativa
+    if (!state.route.id) {
+      try {
+        const r = await listMyRoutes();
+        if (!r.length) toast("Nenhuma trilha salva ainda. Clique em “Iniciar trajeto” para começar.", 2600);
+      } catch {
+        // sem barulho aqui
+      }
+    }
   });
 
   ui.navInstalacoes.addEventListener("click", async () => {
@@ -209,26 +221,22 @@ function bindDrawerAndNav() {
 
 async function refreshProfile() {
   hideMsg(ui.profileMsg);
-
   try {
     if (!state.user) return;
-
     ui.profileEmail.value = state.user.email || "";
     const p = await loadProfile();
     ui.userType.value = p?.user_type || "";
   } catch {
-    // se não tiver tabela profiles, não quebra
+    // se não existir tabela profiles, não quebra
   }
 }
 
 async function saveProfile() {
   hideMsg(ui.profileMsg);
-
   try {
     await saveProfileUserType(ui.userType.value);
     showMsg(ui.profileMsg, "Dados salvos.");
-  } catch (e) {
-    // se não existir a tabela, avisamos claramente
+  } catch {
     showMsg(ui.profileMsg, "Não foi possível salvar. Verifique se existe a tabela 'profiles' com coluna 'user_type'.");
   }
 }
@@ -243,7 +251,8 @@ async function refreshRoutes() {
     const routes = await listMyRoutes();
 
     if (!routes.length) {
-      showMsg(ui.routesMsg, "Você ainda não tem trajetos gravados.");
+      toast("Nenhum ninho catalogado ainda. Inicie uma trilha e marque o primeiro ninho.", 2600);
+      showMsg(ui.routesMsg, "Nenhum registro encontrado.");
       return;
     }
 
@@ -255,7 +264,7 @@ async function refreshRoutes() {
       div.innerHTML = `
         <div class="item__top">
           <div>
-            <div class="item__title">${r.name || "Trajeto"}</div>
+            <div class="item__title">${r.name || "Trilha"}</div>
             <div class="item__sub">Criado em: ${created}</div>
           </div>
         </div>
@@ -285,13 +294,13 @@ async function openRouteDetails(route) {
   try {
     const nests = await listNestsByRoute(route.id);
 
-    // desenha rota + pinos no mapa2
     const pts = Array.isArray(route.path) ? route.path : [];
     renderRouteOnMap2({ routePoints: pts, nests });
 
-    ui.routeDetailTitle.textContent = `Trajeto: ${route.name || route.id}`;
+    ui.routeDetailTitle.textContent = `Trilha: ${route.name || route.id}`;
 
     if (!nests.length) {
+      toast("Nenhum ninho catalogado nesta trilha.", 2200);
       showMsg(ui.routeNestsMsg, "Nenhum ninho registrado neste trajeto.");
       return;
     }
@@ -318,13 +327,14 @@ async function openRouteDetails(route) {
         </div>
 
         <div class="item__actions">
-          ${n.status !== "CAPTURADO" ? `<button class="btn btn--primary" data-capture="${n.id}">Marcar como CAPTURADO</button>` : ""}
+          ${n.status !== "CAPTURADO"
+            ? `<button class="btn btn--primary" data-capture="${n.id}">Marcar como CAPTURADO</button>`
+            : ""}
         </div>
       `;
 
       ui.routeNestsList.appendChild(div);
 
-      // opcional: mostrar miniatura
       if (n.photo_url) {
         const img = document.createElement("img");
         img.src = n.photo_url;
@@ -339,11 +349,9 @@ async function openRouteDetails(route) {
     ui.routeNestsList.querySelectorAll("[data-capture]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const nestId = btn.getAttribute("data-capture");
-
         try {
-          const updated = await updateNestCaptured(nestId, { status: "CAPTURADO" });
-          showMsg(ui.routeNestsMsg, "Atualizado para CAPTURADO.");
-          // recarrega detalhes do trajeto (para refletir datas/status)
+          await updateNestCaptured(nestId, { status: "CAPTURADO" });
+          toast("Atualizado para CAPTURADO.", 1800);
           await openRouteDetails(route);
         } catch (e) {
           showMsg(ui.routeNestsMsg, e.message || String(e));
@@ -362,7 +370,6 @@ async function bootstrap() {
   await initAuth();
   bindDrawerAndNav();
 
-  // ações do home
   ui.photo.addEventListener("change", () => {
     const f = ui.photo.files?.[0];
     ui.photoName.textContent = f ? f.name : "";
@@ -372,12 +379,7 @@ async function bootstrap() {
   ui.btnFinishRoute.addEventListener("click", finishRoute);
   ui.btnMarkNest.addEventListener("click", markNest);
 
-  // perfil
   ui.btnSaveProfile.addEventListener("click", saveProfile);
-
-  // carregar user
-  const { data } = await supabase.auth.getSession();
-  state.user = data.session?.user || null;
 
   supabase.auth.onAuthStateChange((_event, session) => {
     state.user = session?.user || null;
@@ -387,12 +389,8 @@ async function bootstrap() {
     ui.nestList.innerHTML = "";
     renderStats();
 
-    if (!state.user) {
-      stopTracking();
-    } else {
-      // logado: já prepara o perfil (se existir)
-      refreshProfile();
-    }
+    if (!state.user) stopTracking();
+    else refreshProfile();
   });
 
   renderStats();
