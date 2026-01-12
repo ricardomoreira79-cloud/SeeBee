@@ -1,156 +1,201 @@
-import { createSupabaseClient } from "./supabaseClient.js";
-import { State } from "./state.js";
-import { $, showMsg, hideMsg, renderThumbs } from "./ui.js";
-import { initAuth } from "./auth.js";
-import { initMap, setRoutePolyline, addNestMarker, panTo } from "./map.js";
-import { createRouteIfNeeded, appendPointToRoute } from "./routes.js";
-import { createNest } from "./nests.js";
+import { supabase } from "./supabaseClient.js";
 import { CONFIG } from "./config.js";
+import { state, resetSessionState } from "./state.js";
+import { ui, setNetBadge, showMsg, hideMsg, renderStats, renderNestList, clearNestForm } from "./ui.js";
+import { initAuth } from "./auth.js";
+import { initMap, setUserPosition, resetRouteLine, addRoutePoint, addNestMarker } from "./map.js";
+import { createRoute, updateRoutePath } from "./routes.js";
+import { insertNest, listNestsByRoute } from "./nests.js";
 
-async function boot(){
-  State.supabase = await createSupabaseClient();
+let watchId = null;
+let lastLatLng = null;
 
+function metersBetween(a, b) {
+  const R = 6371000;
+  const toRad = (x) => (x * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const s1 = Math.sin(dLat / 2) ** 2;
+  const s2 = Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s1 + s2));
+}
+
+function bindNetIndicator() {
+  const refresh = () => setNetBadge(navigator.onLine);
+  window.addEventListener("online", refresh);
+  window.addEventListener("offline", refresh);
+  refresh();
+}
+
+async function bootstrap() {
+  bindNetIndicator();
   initMap();
+
+  // PWA / SW opcional
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  }
+
   await initAuth();
 
-  wireRouteButtons();
-  wireNestButton();
-}
+  // pega usuário atual
+  const { data } = await supabase.auth.getSession();
+  state.user = data.session?.user || null;
 
-function wireRouteButtons(){
-  $("btnStartRoute").addEventListener("click", async () => {
-    const msg = $("routeMsg");
-    hideMsg(msg);
+  // manter state.user atualizado
+  supabase.auth.onAuthStateChange((_event, session) => {
+    state.user = session?.user || null;
 
-    try{
-      if (!State.user) throw new Error("Faça login para iniciar o trajeto.");
+    // reset forte de UI quando troca usuário (evita foto/lista de um usuário aparecer no outro)
+    resetSessionState();
+    clearNestForm();
+    ui.nestList.innerHTML = "";
+    renderStats();
 
-      const id = await createRouteIfNeeded();
-      State.totalDistanceM = 0;
-      State.lastPos = null;
-      $("distValue").textContent = "0 m";
-      $("posValue").textContent = "—";
-
-      $("btnStartRoute").disabled = true;
-      $("btnStopRoute").disabled = false;
-
-      startWatchPosition(id);
-
-      showMsg(msg, "Trajeto iniciado. Caminhe e o mapa vai desenhar a linha em tempo real.");
-    }catch(err){
-      showMsg(msg, `Erro ao iniciar trajeto: ${err.message}`, true);
+    if (!state.user) {
+      stopTracking();
     }
   });
 
-  $("btnStopRoute").addEventListener("click", async () => {
-    const msg = $("routeMsg");
-    hideMsg(msg);
-
-    try{
-      stopWatchPosition();
-      $("btnStartRoute").disabled = false;
-      $("btnStopRoute").disabled = true;
-      showMsg(msg, "Trajeto finalizado.");
-    }catch(err){
-      showMsg(msg, `Erro ao finalizar: ${err.message}`, true);
-    }
+  ui.photo.addEventListener("change", () => {
+    const f = ui.photo.files?.[0];
+    ui.photoName.textContent = f ? f.name : "";
   });
+
+  ui.btnStartRoute.addEventListener("click", startRoute);
+  ui.btnFinishRoute.addEventListener("click", finishRoute);
+  ui.btnMarkNest.addEventListener("click", markNest);
+
+  // esconder logout na tela inicial (auth)
+  ui.btnLogout.style.display = "none";
 }
 
-function startWatchPosition(routeId){
-  stopWatchPosition();
+async function startRoute() {
+  hideMsg(ui.nestMsg);
 
-  const latlngs = [];
+  try {
+    if (!state.user) throw new Error("Faça login para iniciar o trajeto.");
 
-  State.watchId = navigator.geolocation.watchPosition(async (pos) => {
-    const { latitude: lat, longitude: lng, accuracy: acc } = pos.coords;
+    resetSessionState();
+    clearNestForm();
+    ui.nestList.innerHTML = "";
+    renderStats();
 
-    $("posValue").textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    state.route.id = await createRoute();
+    state.route.active = true;
 
-    // distância acumulada
-    if (State.lastPos){
-      State.totalDistanceM += haversineM(State.lastPos.lat, State.lastPos.lng, lat, lng);
-      $("distValue").textContent = formatDistance(State.totalDistanceM);
-    }
+    ui.btnStartRoute.disabled = true;
+    ui.btnFinishRoute.disabled = false;
 
-    State.lastPos = { lat, lng };
-
-    // desenhar linha
-    latlngs.push([lat, lng]);
-    setRoutePolyline(latlngs);
-    panTo(lat, lng);
-
-    // gravar no banco (em tempo real)
-    const point = { t: new Date().toISOString(), lat, lng, acc };
-    await appendPointToRoute(routeId, point);
-
-  }, (err) => {
-    const msg = $("routeMsg");
-    showMsg(msg, `Geolocalização falhou: ${err.message}`, true);
-  }, CONFIG.GEO);
-}
-
-function stopWatchPosition(){
-  if (State.watchId != null){
-    navigator.geolocation.clearWatch(State.watchId);
-    State.watchId = null;
+    resetRouteLine();
+    lastLatLng = null;
+    stopTracking();
+    startTracking();
+  } catch (e) {
+    showMsg(ui.nestMsg, e.message || String(e));
   }
 }
 
-function wireNestButton(){
-  $("btnSaveNest").addEventListener("click", async () => {
-    const msg = $("nestMsg");
-    hideMsg(msg);
+async function finishRoute() {
+  hideMsg(ui.nestMsg);
 
-    try{
-      if (!State.user) throw new Error("Faça login para marcar um ninho.");
-      if (!State.activeRouteId) throw new Error("Inicie um trajeto antes de marcar um ninho.");
-      if (!State.lastPos) throw new Error("Aguardando posição GPS... caminhe um pouco e tente novamente.");
+  try {
+    if (!state.route.id) throw new Error("Nenhum trajeto ativo.");
 
-      const note = $("nestNote").value.trim();
-      const status = $("nestStatus").value;
-      const file = $("nestPhoto").files?.[0] || null;
+    state.route.active = false;
+    ui.btnStartRoute.disabled = false;
+    ui.btnFinishRoute.disabled = true;
 
-      const saved = await createNest({
-        routeId: State.activeRouteId,
-        note,
-        status,
-        lat: State.lastPos.lat,
-        lng: State.lastPos.lng,
-        photoFile: file
-      });
+    stopTracking();
+    await updateRoutePath(state.route.id, state.route.points);
+  } catch (e) {
+    showMsg(ui.nestMsg, e.message || String(e));
+  }
+}
 
-      addNestMarker(saved.lat, saved.lng, saved.status);
-      State.marked.unshift(saved);
-      renderThumbs(State.marked);
+function startTracking() {
+  if (!("geolocation" in navigator)) {
+    showMsg(ui.nestMsg, "Geolocalização não disponível neste dispositivo.");
+    return;
+  }
 
-      $("nestNote").value = "";
-      $("nestPhoto").value = "";
+  watchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
 
-      showMsg(msg, "Ninho salvo com sucesso.");
-    }catch(err){
-      showMsg(msg, err.message || String(err), true);
+      setUserPosition(lat, lng, { pan: false });
+
+      if (!state.route.active) return;
+
+      const now = { lat, lng, t: Date.now() };
+
+      if (lastLatLng) {
+        const d = metersBetween(lastLatLng, now);
+        // ignora saltos absurdos
+        if (d < 80) {
+          state.route.distanceMeters += d;
+          addRoutePoint(lat, lng);
+          state.route.points.push(now);
+        }
+      } else {
+        addRoutePoint(lat, lng);
+        state.route.points.push(now);
+      }
+
+      lastLatLng = now;
+      renderStats();
+    },
+    (err) => {
+      showMsg(ui.nestMsg, `Erro GPS: ${err.message}`);
+    },
+    CONFIG.GEO
+  );
+}
+
+function stopTracking() {
+  if (watchId != null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+}
+
+async function markNest() {
+  hideMsg(ui.nestMsg);
+
+  try {
+    if (!state.user) throw new Error("Faça login para marcar ninhos.");
+    if (!state.route.id || !state.route.active) {
+      throw new Error("Inicie um trajeto antes de marcar o ninho.");
     }
-  });
+    if (!lastLatLng) throw new Error("Aguardando GPS… caminhe um pouco para obter posição.");
+
+    const file = ui.photo.files?.[0] || null;
+
+    const created = await insertNest({
+      routeId: state.route.id,
+      lat: lastLatLng.lat,
+      lng: lastLatLng.lng,
+      status: ui.status.value,
+      note: ui.note.value.trim(),
+      file
+    });
+
+    // atualiza UI local
+    addNestMarker(created.lat, created.lng, created.status);
+
+    const list = await listNestsByRoute(state.route.id);
+    state.nests.list = list;
+    state.nests.count = list.length;
+
+    renderNestList();
+    renderStats();
+
+    clearNestForm();
+    showMsg(ui.nestMsg, "Ninho registrado com sucesso.");
+  } catch (e) {
+    showMsg(ui.nestMsg, e.message || String(e));
+  }
 }
 
-function formatDistance(m){
-  if (m < 1000) return `${Math.round(m)} m`;
-  const km = (m/1000);
-  return `${km.toFixed(2)} km`;
-}
-
-function haversineM(lat1, lon1, lat2, lon2){
-  const R = 6371000;
-  const toRad = (v) => (v * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat/2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLon/2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R * c;
-}
-
-boot();
+bootstrap();

@@ -1,147 +1,162 @@
 <!doctype html>
 <html lang="pt-br">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SeeBee • Meliponicultura</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>SeeBee • Meliponicultura</title>
 
-  <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#0b1220" />
-  <link rel="stylesheet" href="./css/style.css" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" content="#071a12" />
 
-  <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
-  />
-</head>
+    <link rel="stylesheet" href="./css/style.css" />
 
-<body>
-  <header class="topbar">
-    <div class="brand center-on-guest">
-      <div class="brand_logo" aria-hidden="true">🐝</div>
-      <div class="brand_text">
-        <div class="brand_title">SeeBee</div>
-        <div class="brand_subtitle">Meliponicultura</div>
-      </div>
-    </div>
+    <!-- Leaflet -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+  </head>
 
-    <div class="userbar" id="userbar" hidden>
-      <div class="user_email" id="userEmail"></div>
-      <button class="btn ghost" id="btnLogout">Sair</button>
-    </div>
-  </header>
-
-  <main class="container">
-    <!-- AUTH CARD (só aparece deslogado) -->
-    <section class="card auth" id="authCard">
-      <h2>Entrar</h2>
-      <p class="muted">Use seu e-mail e senha (Supabase Auth) ou Google.</p>
-
-      <div class="grid2">
-        <label class="field">
-          <span>E-mail</span>
-          <input id="authEmail" type="email" placeholder="seuemail@..." autocomplete="email" />
-        </label>
-
-        <label class="field">
-          <span>Senha</span>
-          <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
-        </label>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand__icon">🐝</div>
+        <div class="brand__text">
+          <div class="brand__title">SeeBee</div>
+          <div class="brand__subtitle">Meliponicultura</div>
+        </div>
       </div>
 
-      <div class="row">
-        <button class="btn primary" id="btnLogin">Entrar</button>
-        <button class="btn" id="btnSignup">Criar conta</button>
+      <div class="topbar__right">
+        <div id="netBadge" class="net net--offline" title="Status de conexão">
+          <span class="net__dot"></span>
+          <span class="net__text">Offline</span>
+        </div>
+
+        <div id="userEmail" class="userEmail"></div>
+        <button id="btnLogout" class="btn btn--ghost">Sair</button>
       </div>
+    </header>
 
-      <div class="row">
-        <button class="btn google" id="btnGoogle">Entrar com Google</button>
-      </div>
+    <main class="page">
+      <!-- AUTH CARD -->
+      <section id="authCard" class="card authCard">
+        <h1 class="h1">Entrar</h1>
+        <p class="muted">Use seu e-mail e senha (Supabase Auth) ou Google.</p>
 
-      <div class="msg" id="authMsg" hidden></div>
-    </section>
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" placeholder="seuemail@..." autocomplete="email" />
+        </div>
 
-    <!-- APP (só aparece logado) -->
-    <section id="appArea" hidden>
-      <div class="layout">
-        <div class="left">
-          <section class="card">
-            <h2>Trajeto</h2>
-            <p class="muted">Inicie o trajeto e depois marque ninhos com observação e foto.</p>
+        <div class="field">
+          <label for="password">Senha</label>
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
 
-            <div class="row">
-              <button class="btn primary" id="btnStartRoute">Iniciar trajeto</button>
-              <button class="btn" id="btnStopRoute" disabled>Finalizar trajeto</button>
-            </div>
+        <div class="row row--gap">
+          <button id="btnLogin" class="btn btn--primary">Entrar</button>
+          <button id="btnSignup" class="btn btn--secondary">Criar conta</button>
+        </div>
 
-            <div class="stats">
-              <div class="stat">
-                <div class="stat_label">Distância</div>
-                <div class="stat_value" id="distValue">0 m</div>
+        <div class="divider"></div>
+
+        <button id="btnGoogle" class="btn btn--google">
+          Entrar com Google
+        </button>
+
+        <div id="authMsg" class="msg msg--hidden"></div>
+      </section>
+
+      <!-- APP -->
+      <section id="app" class="app app--hidden">
+        <section class="grid">
+          <div class="col col--left">
+            <!-- TRAJETO -->
+            <section class="card">
+              <h2 class="h2">Trajeto</h2>
+              <p class="muted">Inicie o trajeto e depois marque ninhos com observação e foto.</p>
+
+              <div class="row row--gap">
+                <button id="btnStartRoute" class="btn btn--primary">Iniciar trajeto</button>
+                <button id="btnFinishRoute" class="btn btn--secondary" disabled>Finalizar trajeto</button>
               </div>
-              <div class="stat">
-                <div class="stat_label">Última posição</div>
-                <div class="stat_value mono" id="posValue">—</div>
+
+              <div class="stats">
+                <div class="stat">
+                  <div class="stat__label">Distância</div>
+                  <div id="distance" class="stat__value">0 m</div>
+                </div>
+
+                <div class="stat">
+                  <div class="stat__label">Ninhos</div>
+                  <div id="nestCount" class="stat__value">0</div>
+                </div>
               </div>
-            </div>
 
-            <div class="msg" id="routeMsg" hidden></div>
-          </section>
+              <div id="routeHint" class="hint">
+                Inicie o trajeto. Caminhe e o mapa vai desenhar a linha em tempo real.
+              </div>
+            </section>
 
-          <section class="card">
-            <h2>Marcar ninho</h2>
+            <!-- MARCAR NINHO -->
+            <section class="card">
+              <h2 class="h2">Marcar ninho</h2>
 
-            <label class="field">
-              <span>Observação</span>
-              <input id="nestNote" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
-            </label>
+              <div class="field">
+                <label for="note">Observação</label>
+                <input id="note" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
+              </div>
 
-            <div class="grid2">
-              <label class="field">
-                <span>Status</span>
-                <select id="nestStatus">
-                  <option value="DEPLOYED">CATALOGADO</option>
-                  <option value="CAPTURED">CAPTURADO</option>
+              <div class="field">
+                <label for="status">Status</label>
+                <select id="status">
+                  <option value="CATALOGADO" selected>CATALOGADO</option>
+                  <option value="CAPTURADO">CAPTURADO</option>
                 </select>
-              </label>
+              </div>
 
-              <label class="field">
-                <span>Foto (opcional)</span>
-                <input id="nestPhoto" type="file" accept="image/*" />
-              </label>
-            </div>
+              <div class="field">
+                <label for="photo">Foto (opcional)</label>
+                <input id="photo" type="file" accept="image/*" />
+                <div id="photoName" class="muted small"></div>
+              </div>
 
-            <button class="btn primary" id="btnSaveNest">Marcar ninho</button>
-            <div class="msg" id="nestMsg" hidden></div>
-          </section>
+              <button id="btnMarkNest" class="btn btn--primary">Marcar ninho</button>
 
-          <section class="card">
-            <h2>Registros desta trilha</h2>
-            <p class="muted">As fotos/ninhos marcados aparecem aqui para conferir.</p>
-            <div class="thumbs" id="thumbs"></div>
-          </section>
-        </div>
+              <div id="nestMsg" class="msg msg--hidden"></div>
+            </section>
 
-        <div class="right">
-          <section class="card mapcard">
-            <div id="map" class="map"></div>
-            <div class="maphint">O trajeto e os ninhos serão desenhados no mapa em tempo real.</div>
-          </section>
-        </div>
-      </div>
-    </section>
-  </main>
+            <!-- REGISTROS -->
+            <section class="card">
+              <h2 class="h2">Registros desta trilha</h2>
+              <p class="muted">As fotos/ninhos marcados aparecem aqui para conferir.</p>
 
-  <!-- Leaflet JS -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin=""
-  ></script>
+              <div id="nestList" class="nestList"></div>
+            </section>
+          </div>
 
-  <script type="module" src="./src/main.js"></script>
-</body>
+          <div class="col col--right">
+            <section class="card mapCard">
+              <div id="map" class="map"></div>
+            </section>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <!-- Supabase JS v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Leaflet -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
 </html>

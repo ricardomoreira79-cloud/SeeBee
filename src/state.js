@@ -1,17 +1,25 @@
-export const State = {
-  supabase: null,
-  session: null,
+export const state = {
   user: null,
 
-  map: null,
-  routeLine: null,
+  route: {
+    active: false,
+    id: null,
+    points: [],
+    distanceMeters: 0
+  },
 
-  // trajeto
-  activeRouteId: null,
-  watchId: null,
-  lastPos: null,
-  totalDistanceM: 0,
-
-  // marcados na trilha atual
-  marked: []
+  nests: {
+    list: [],
+    count: 0
+  }
 };
+
+export function resetSessionState() {
+  state.route.active = false;
+  state.route.id = null;
+  state.route.points = [];
+  state.route.distanceMeters = 0;
+
+  state.nests.list = [];
+  state.nests.count = 0;
+}

@@ -1,20 +1,18 @@
-import { State } from "./state.js";
+import { supabase } from "./supabaseClient.js";
+import { state } from "./state.js";
 
-export async function createRouteIfNeeded(name){
-  if (State.activeRouteId) return State.activeRouteId;
+export async function createRoute(name = null) {
+  const user = state.user;
+  if (!user) throw new Error("Usuário não autenticado.");
 
-  const user = State.user;
-  if (!user) throw new Error("Você precisa estar logado para iniciar um trajeto.");
-
-  // Ajuste para o SEU schema real (não usar coluna status!)
+  // tabela: public.routes (deve existir)
+  // campos esperados: id(uuid default), user_id(uuid), name(text), created_at(default now), path(jsonb opcional)
   const payload = {
     user_id: user.id,
-    name: name || `Trilha ${new Date().toLocaleString("pt-BR")}`,
-    path: [],   // jsonb
-    traps: []   // jsonb (se você usa isso)
+    name: name || `Trilha ${new Date().toLocaleString("pt-BR")}`
   };
 
-  const { data, error } = await State.supabase
+  const { data, error } = await supabase
     .from("routes")
     .insert(payload)
     .select("id")
@@ -22,27 +20,16 @@ export async function createRouteIfNeeded(name){
 
   if (error) throw error;
 
-  State.activeRouteId = data.id;
   return data.id;
 }
 
-export async function appendPointToRoute(routeId, point){
-  // point: { t, lat, lng, acc }
-  const { data: route, error: e1 } = await State.supabase
+export async function updateRoutePath(routeId, points) {
+  if (!routeId) return;
+
+  const { error } = await supabase
     .from("routes")
-    .select("id,path")
-    .eq("id", routeId)
-    .single();
-
-  if (e1) throw e1;
-
-  const path = Array.isArray(route.path) ? route.path : [];
-  path.push(point);
-
-  const { error: e2 } = await State.supabase
-    .from("routes")
-    .update({ path })
+    .update({ path: points })
     .eq("id", routeId);
 
-  if (e2) throw e2;
+  if (error) throw error;
 }

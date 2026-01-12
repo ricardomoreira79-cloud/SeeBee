@@ -1,106 +1,77 @@
-import { $, showMsg, hideMsg, setLoggedUI, setGuestUI } from "./ui.js";
-import { State } from "./state.js";
+import { supabase } from "./supabaseClient.js";
+import { ui, showMsg, hideMsg, setLoggedInUI } from "./ui.js";
+import { resetSessionState } from "./state.js";
 
 export async function initAuth() {
-  const sb = State.supabase;
+  ui.btnLogin.addEventListener("click", loginWithEmail);
+  ui.btnSignup.addEventListener("click", signupWithEmail);
+  ui.btnGoogle.addEventListener("click", loginWithGoogle);
+  ui.btnLogout.addEventListener("click", logout);
 
-  // sessão inicial
-  const { data: { session } } = await sb.auth.getSession();
-  await applySession(session);
+  const { data } = await supabase.auth.getSession();
+  setLoggedInUI(data.session?.user || null);
 
-  // ouvir mudanças
-  sb.auth.onAuthStateChange(async (_event, session) => {
-    await applySession(session);
+  supabase.auth.onAuthStateChange((_event, session) => {
+    // troca de usuário / logout / login
+    resetSessionState();
+    setLoggedInUI(session?.user || null);
+
+    // limpa mensagens e formulário de foto para não “vazar” entre sessões
+    hideMsg(ui.authMsg);
+    hideMsg(ui.nestMsg);
+    ui.photo.value = "";
+    ui.photoName.textContent = "";
   });
-
-  // botões
-  $("btnLogin").addEventListener("click", loginWithPassword);
-  $("btnSignup").addEventListener("click", signupWithPassword);
-  $("btnGoogle").addEventListener("click", loginWithGoogle);
-  $("btnLogout").addEventListener("click", logout);
 }
 
-async function applySession(session){
-  State.session = session;
-  State.user = session?.user || null;
+async function loginWithEmail() {
+  hideMsg(ui.authMsg);
 
-  const msg = $("authMsg");
-  hideMsg(msg);
+  const email = ui.email.value.trim();
+  const password = ui.password.value;
 
-  if (State.user){
-    setLoggedUI({ userEmail: State.user.email });
-  } else {
-    setGuestUI();
-  }
-}
-
-async function loginWithPassword(){
-  const msg = $("authMsg");
-  hideMsg(msg);
-
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
-
-  if (!email || !password){
-    showMsg(msg, "Informe e-mail e senha.", true);
+  if (!email || !password) {
+    showMsg(ui.authMsg, "Informe e-mail e senha.");
     return;
   }
 
-  const { error } = await State.supabase.auth.signInWithPassword({ email, password });
-  if (error){
-    showMsg(msg, `Falha ao entrar: ${error.message}`, true);
-  }
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) showMsg(ui.authMsg, error.message);
 }
 
-async function signupWithPassword(){
-  const msg = $("authMsg");
-  hideMsg(msg);
+async function signupWithEmail() {
+  hideMsg(ui.authMsg);
 
-  const email = $("authEmail").value.trim();
-  const password = $("authPassword").value;
+  const email = ui.email.value.trim();
+  const password = ui.password.value;
 
-  if (!email || !password){
-    showMsg(msg, "Informe e-mail e senha para criar conta.", true);
+  if (!email || !password) {
+    showMsg(ui.authMsg, "Informe e-mail e senha.");
     return;
   }
 
-  const { data, error } = await State.supabase.auth.signUp({
-    email,
-    password
-  });
-
-  if (error){
-    showMsg(msg, `Falha ao criar conta: ${error.message}`, true);
+  const { error } = await supabase.auth.signUp({ email, password });
+  if (error) {
+    showMsg(ui.authMsg, error.message);
     return;
   }
 
-  // se exigir confirmação, não entra na hora
-  if (!data.session){
-    showMsg(msg, "Conta criada. Se a confirmação de e-mail estiver ativa, confirme no seu e-mail para entrar.");
-  }
+  showMsg(ui.authMsg, "Conta criada! Se o Supabase exigir confirmação, verifique seu e-mail.");
 }
 
-async function loginWithGoogle(){
-  const msg = $("authMsg");
-  hideMsg(msg);
+async function loginWithGoogle() {
+  hideMsg(ui.authMsg);
 
-  const redirectTo = window.location.origin;
-
-  const { error } = await State.supabase.auth.signInWithOAuth({
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo }
+    options: {
+      redirectTo: window.location.origin
+    }
   });
 
-  if (error){
-    showMsg(msg, `Falha no Google: ${error.message}`, true);
-  }
+  if (error) showMsg(ui.authMsg, error.message);
 }
 
-async function logout(){
-  const { error } = await State.supabase.auth.signOut();
-  if (error){
-    // se der erro, só mostra, mas o onAuthStateChange normalmente resolve
-    const msg = $("authMsg");
-    showMsg(msg, `Erro ao sair: ${error.message}`, true);
-  }
+async function logout() {
+  await supabase.auth.signOut();
 }

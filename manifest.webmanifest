@@ -1,9 +1,9 @@
 {
   "name": "SeeBee",
   "short_name": "SeeBee",
-  "start_url": "./",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#071326",
-  "theme_color": "#0b1220",
+  "background_color": "#06130f",
+  "theme_color": "#071a12",
   "icons": []
 }
