@@ -20,7 +20,8 @@
   </head>
 
   <body>
-    <header class="topbar">
+    <!-- TOPBAR (só aparece logado via JS) -->
+    <header id="topbar" class="topbar topbar--hidden">
       <div class="brand">
         <div class="brand__icon">🐝</div>
         <div class="brand__text">
@@ -30,19 +31,54 @@
       </div>
 
       <div class="topbar__right">
+        <!-- indicador online/offline (só logado) -->
         <div id="netBadge" class="net net--offline" title="Status de conexão">
           <span class="net__dot"></span>
           <span class="net__text">Offline</span>
         </div>
 
-        <div id="userEmail" class="userEmail"></div>
-        <button id="btnLogout" class="btn btn--ghost">Sair</button>
+        <!-- hamburger -->
+        <button id="btnMenu" class="iconBtn" aria-label="Menu">
+          ☰
+        </button>
       </div>
     </header>
 
+    <!-- DRAWER / MENU -->
+    <aside id="drawer" class="drawer drawer--hidden">
+      <div class="drawer__panel">
+        <div class="drawer__header">
+          <div class="drawer__title">Menu</div>
+          <button id="btnCloseMenu" class="iconBtn" aria-label="Fechar">✕</button>
+        </div>
+
+        <div class="drawer__user">
+          <div class="drawer__userLabel">Usuário</div>
+          <div id="userEmail" class="drawer__userEmail"></div>
+        </div>
+
+        <nav class="drawer__nav">
+          <button id="navHome" class="navItem navItem--active">Trajeto</button>
+          <button id="navInstalacoes" class="navItem">Minhas instalações</button>
+          <button id="navProfile" class="navItem">Meus dados</button>
+        </nav>
+
+        <div class="drawer__footer">
+          <button id="btnLogout" class="btn btn--secondary w100">Sair</button>
+        </div>
+      </div>
+      <div id="drawerBackdrop" class="drawer__backdrop"></div>
+    </aside>
+
     <main class="page">
-      <!-- AUTH CARD -->
+      <!-- AUTH -->
       <section id="authCard" class="card authCard">
+        <div class="authBrand">
+          <div class="authBrand__icon">🐝</div>
+          <div class="authBrand__title">SeeBee</div>
+          <div class="authBrand__subtitle">Meliponicultura</div>
+        </div>
+
         <h1 class="h1">Entrar</h1>
         <p class="muted">Use seu e-mail e senha (Supabase Auth) ou Google.</p>
 
@@ -63,91 +99,151 @@
 
         <div class="divider"></div>
 
-        <button id="btnGoogle" class="btn btn--google">
-          Entrar com Google
-        </button>
+        <button id="btnGoogle" class="btn btn--google w100">Entrar com Google</button>
 
         <div id="authMsg" class="msg msg--hidden"></div>
       </section>
 
-      <!-- APP -->
+      <!-- APP VIEWS -->
       <section id="app" class="app app--hidden">
-        <section class="grid">
-          <div class="col col--left">
-            <!-- TRAJETO -->
-            <section class="card">
-              <h2 class="h2">Trajeto</h2>
-              <p class="muted">Inicie o trajeto e depois marque ninhos com observação e foto.</p>
+        <!-- VIEW: HOME / TRAJETO -->
+        <section id="viewHome" class="view view--active">
+          <section class="grid">
+            <div class="col col--left">
+              <section class="card">
+                <h2 class="h2">Trajeto</h2>
+                <p class="muted">Inicie o trajeto e depois marque ninhos com observação e foto.</p>
 
-              <div class="row row--gap">
-                <button id="btnStartRoute" class="btn btn--primary">Iniciar trajeto</button>
-                <button id="btnFinishRoute" class="btn btn--secondary" disabled>Finalizar trajeto</button>
-              </div>
-
-              <div class="stats">
-                <div class="stat">
-                  <div class="stat__label">Distância</div>
-                  <div id="distance" class="stat__value">0 m</div>
+                <div class="row row--gap">
+                  <button id="btnStartRoute" class="btn btn--primary">Iniciar trajeto</button>
+                  <button id="btnFinishRoute" class="btn btn--secondary" disabled>Finalizar trajeto</button>
                 </div>
 
-                <div class="stat">
-                  <div class="stat__label">Ninhos</div>
-                  <div id="nestCount" class="stat__value">0</div>
+                <div class="stats">
+                  <div class="stat">
+                    <div class="stat__label">Distância</div>
+                    <div id="distance" class="stat__value">0 m</div>
+                  </div>
+
+                  <div class="stat">
+                    <div class="stat__label">Ninhos</div>
+                    <div id="nestCount" class="stat__value">0</div>
+                  </div>
                 </div>
-              </div>
 
-              <div id="routeHint" class="hint">
-                Inicie o trajeto. Caminhe e o mapa vai desenhar a linha em tempo real.
-              </div>
-            </section>
+                <div id="routeHint" class="hint">
+                  Ao iniciar, o mapa acompanha sua caminhada e desenha a linha em tempo real.
+                </div>
+              </section>
 
-            <!-- MARCAR NINHO -->
-            <section class="card">
-              <h2 class="h2">Marcar ninho</h2>
+              <section class="card">
+                <h2 class="h2">Marcar ninho</h2>
 
-              <div class="field">
-                <label for="note">Observação</label>
-                <input id="note" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
-              </div>
+                <div class="field">
+                  <label for="note">Observação</label>
+                  <input id="note" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
+                </div>
 
-              <div class="field">
-                <label for="status">Status</label>
-                <select id="status">
-                  <option value="CATALOGADO" selected>CATALOGADO</option>
-                  <option value="CAPTURADO">CAPTURADO</option>
-                </select>
-              </div>
+                <div class="field">
+                  <label for="status">Status</label>
+                  <select id="status">
+                    <option value="CATALOGADO" selected>CATALOGADO</option>
+                    <option value="CAPTURADO">CAPTURADO</option>
+                  </select>
+                </div>
 
-              <div class="field">
-                <label for="photo">Foto (opcional)</label>
-                <input id="photo" type="file" accept="image/*" />
-                <div id="photoName" class="muted small"></div>
-              </div>
+                <div class="field">
+                  <label for="species">Espécie (opcional)</label>
+                  <input id="species" type="text" placeholder="Ex.: Jataí, Uruçu, Mandaçaia… ou Não identifiquei" />
+                </div>
 
-              <button id="btnMarkNest" class="btn btn--primary">Marcar ninho</button>
+                <div class="field">
+                  <label for="photo">Foto (opcional)</label>
+                  <input id="photo" type="file" accept="image/*" />
+                  <div id="photoName" class="muted small"></div>
+                </div>
 
-              <div id="nestMsg" class="msg msg--hidden"></div>
-            </section>
+                <button id="btnMarkNest" class="btn btn--primary">Marcar ninho</button>
 
-            <!-- REGISTROS -->
-            <section class="card">
-              <h2 class="h2">Registros desta trilha</h2>
-              <p class="muted">As fotos/ninhos marcados aparecem aqui para conferir.</p>
+                <div id="nestMsg" class="msg msg--hidden"></div>
+              </section>
 
-              <div id="nestList" class="nestList"></div>
-            </section>
-          </div>
+              <section class="card">
+                <h2 class="h2">Registros desta trilha</h2>
+                <p class="muted">Os ninhos marcados aparecem aqui para conferência rápida.</p>
+                <div id="nestList" class="nestList"></div>
+              </section>
+            </div>
 
-          <div class="col col--right">
-            <section class="card mapCard">
-              <div id="map" class="map"></div>
-            </section>
-          </div>
+            <div class="col col--right">
+              <section class="card mapCard">
+                <div id="map" class="map"></div>
+              </section>
+            </div>
+          </section>
+        </section>
+
+        <!-- VIEW: INSTALAÇÕES -->
+        <section id="viewInstalacoes" class="view">
+          <section class="grid">
+            <div class="col col--left">
+              <section class="card">
+                <h2 class="h2">Minhas instalações</h2>
+                <p class="muted">
+                  Aqui ficam seus trajetos gravados. Clique para abrir, ver rota + ninhos e atualizar para “CAPTURADO”.
+                </p>
+
+                <div id="routesMsg" class="msg msg--hidden"></div>
+                <div id="routesList" class="list"></div>
+              </section>
+
+              <section class="card">
+                <h2 class="h2">Ninhos do trajeto selecionado</h2>
+                <p class="muted">Você pode alterar o status para CAPTURADO (sem perder a data do CATALOGADO).</p>
+
+                <div id="routeDetailTitle" class="muted"></div>
+                <div id="routeNestsMsg" class="msg msg--hidden"></div>
+                <div id="routeNestsList" class="list"></div>
+              </section>
+            </div>
+
+            <div class="col col--right">
+              <section class="card mapCard">
+                <div id="map2" class="map"></div>
+              </section>
+            </div>
+          </section>
+        </section>
+
+        <!-- VIEW: PERFIL -->
+        <section id="viewProfile" class="view">
+          <section class="card profileCard">
+            <h2 class="h2">Meus dados</h2>
+            <p class="muted">Vamos começar pelo essencial e evoluir depois (modo claro/escuro virá aqui também).</p>
+
+            <div class="field">
+              <label>E-mail</label>
+              <input id="profileEmail" type="text" disabled />
+            </div>
+
+            <div class="field">
+              <label for="userType">Você é:</label>
+              <select id="userType">
+                <option value="">Selecione…</option>
+                <option value="enthusiasta">Entusiasta</option>
+                <option value="meliponicultor">Meliponicultor</option>
+                <option value="pesquisador">Pesquisador</option>
+              </select>
+            </div>
+
+            <button id="btnSaveProfile" class="btn btn--primary">Salvar</button>
+            <div id="profileMsg" class="msg msg--hidden"></div>
+          </section>
         </section>
       </section>
     </main>
 
-    <!-- Supabase JS v2 -->
+    <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Leaflet -->

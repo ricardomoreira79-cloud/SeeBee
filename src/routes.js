@@ -5,8 +5,6 @@ export async function createRoute(name = null) {
   const user = state.user;
   if (!user) throw new Error("Usuário não autenticado.");
 
-  // tabela: public.routes (deve existir)
-  // campos esperados: id(uuid default), user_id(uuid), name(text), created_at(default now), path(jsonb opcional)
   const payload = {
     user_id: user.id,
     name: name || `Trilha ${new Date().toLocaleString("pt-BR")}`
@@ -15,12 +13,11 @@ export async function createRoute(name = null) {
   const { data, error } = await supabase
     .from("routes")
     .insert(payload)
-    .select("id")
+    .select("id,name,created_at")
     .single();
 
   if (error) throw error;
-
-  return data.id;
+  return data;
 }
 
 export async function updateRoutePath(routeId, points) {
@@ -32,4 +29,18 @@ export async function updateRoutePath(routeId, points) {
     .eq("id", routeId);
 
   if (error) throw error;
+}
+
+export async function listMyRoutes() {
+  const user = state.user;
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("routes")
+    .select("id,name,created_at,path")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
 }

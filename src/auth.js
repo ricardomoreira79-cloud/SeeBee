@@ -1,5 +1,5 @@
 import { supabase } from "./supabaseClient.js";
-import { ui, showMsg, hideMsg, setLoggedInUI } from "./ui.js";
+import { ui, showMsg, hideMsg, setLoggedInUI, closeDrawer, showView, setActiveNav } from "./ui.js";
 import { resetSessionState } from "./state.js";
 
 export async function initAuth() {
@@ -12,28 +12,25 @@ export async function initAuth() {
   setLoggedInUI(data.session?.user || null);
 
   supabase.auth.onAuthStateChange((_event, session) => {
-    // troca de usuário / logout / login
     resetSessionState();
     setLoggedInUI(session?.user || null);
 
-    // limpa mensagens e formulário de foto para não “vazar” entre sessões
     hideMsg(ui.authMsg);
     hideMsg(ui.nestMsg);
-    ui.photo.value = "";
-    ui.photoName.textContent = "";
+
+    // fecha menu e volta pro trajeto
+    closeDrawer();
+    showView("home");
+    setActiveNav("home");
   });
 }
 
 async function loginWithEmail() {
   hideMsg(ui.authMsg);
-
   const email = ui.email.value.trim();
   const password = ui.password.value;
 
-  if (!email || !password) {
-    showMsg(ui.authMsg, "Informe e-mail e senha.");
-    return;
-  }
+  if (!email || !password) return showMsg(ui.authMsg, "Informe e-mail e senha.");
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) showMsg(ui.authMsg, error.message);
@@ -41,20 +38,13 @@ async function loginWithEmail() {
 
 async function signupWithEmail() {
   hideMsg(ui.authMsg);
-
   const email = ui.email.value.trim();
   const password = ui.password.value;
 
-  if (!email || !password) {
-    showMsg(ui.authMsg, "Informe e-mail e senha.");
-    return;
-  }
+  if (!email || !password) return showMsg(ui.authMsg, "Informe e-mail e senha.");
 
   const { error } = await supabase.auth.signUp({ email, password });
-  if (error) {
-    showMsg(ui.authMsg, error.message);
-    return;
-  }
+  if (error) return showMsg(ui.authMsg, error.message);
 
   showMsg(ui.authMsg, "Conta criada! Se o Supabase exigir confirmação, verifique seu e-mail.");
 }
@@ -64,9 +54,7 @@ async function loginWithGoogle() {
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: {
-      redirectTo: window.location.origin
-    }
+    options: { redirectTo: window.location.origin }
   });
 
   if (error) showMsg(ui.authMsg, error.message);
