@@ -1,106 +1,98 @@
 export const ui = {
-  // auth
+  // ... seletores anteriores mantidos ...
   email: document.querySelector("#email"),
   password: document.querySelector("#password"),
   btnLogin: document.querySelector("#btnLogin"),
   btnSignup: document.querySelector("#btnSignup"),
   btnGoogle: document.querySelector("#btnGoogle"),
   authMsg: document.querySelector("#authMsg"),
+  
+  screenLogin: document.querySelector("#auth-screen"),
+  screenApp: document.querySelector("#app-screen"),
+  
+  views: {
+    meliponaries: document.querySelector("#view-meliponaries"),
+    traps: document.querySelector("#view-traps"),
+    natural: document.querySelector("#view-natural"),
+    profile: document.querySelector("#view-profile")
+  },
+  navItems: document.querySelectorAll(".nav-item"),
+  
+  // SUBMENUS (Novos)
+  subBtns: document.querySelectorAll(".segment-btn"),
+  subViews: {
+    "sub-deposit": document.querySelector("#sub-deposit"),
+    "sub-trails": document.querySelector("#sub-trails"),
+    "sub-captured": document.querySelector("#sub-captured")
+  },
 
-  // topo / drawer
-  btnMenu: document.querySelector("#btnMenu"),
-  btnCloseDrawer: document.querySelector("#btnCloseDrawer"),
-  backdrop: document.querySelector("#backdrop"),
-  drawer: document.querySelector("#drawer"),
-  btnLogout: document.querySelector("#btnLogout"),
-  onlinePill: document.querySelector("#onlinePill"),
-  onlineDot: document.querySelector("#onlineDot"),
-  onlineText: document.querySelector("#onlineText"),
-
-  // telas
-  screenLogin: document.querySelector("#screenLogin"),
-  screenHome: document.querySelector("#screenHome"),
-  screenTrails: document.querySelector("#screenTrails"),
-  screenNests: document.querySelector("#screenNests"),
-  screenProfile: document.querySelector("#screenProfile"),
-
-  // trilha
+  // Map Controls
   btnStartRoute: document.querySelector("#btnStartRoute"),
   btnFinishRoute: document.querySelector("#btnFinishRoute"),
+  btnMarkNest: document.querySelector("#btnMarkNest"),
   distanceText: document.querySelector("#distanceText"),
   nestsCountText: document.querySelector("#nestsCountText"),
   routeHint: document.querySelector("#routeHint"),
+  
+  // Listas
+  trailsList: document.querySelector("#trailsList"),
+  trailsEmpty: document.querySelector("#trailsEmpty"),
+  capturedList: document.querySelector("#capturedList"), // Novo
+  capturedEmpty: document.querySelector("#capturedEmpty"), // Novo
+  allNestsList: document.querySelector("#allNestsList"),
 
-  // ninho
+  // Modal
+  modalNest: document.querySelector("#nest-modal"),
   nestNote: document.querySelector("#nestNote"),
   nestStatus: document.querySelector("#nestStatus"),
   nestSpecies: document.querySelector("#nestSpecies"),
   nestPhoto: document.querySelector("#nestPhoto"),
-  btnMarkNest: document.querySelector("#btnMarkNest"),
-  nestMsg: document.querySelector("#nestMsg"),
+  btnConfirmNest: document.querySelector("#btnConfirmNest"),
+  nestCancel: document.querySelector("#nestCancel"),
 
-  // listas
-  trailsList: document.querySelector("#trailsList"),
-  trailsEmpty: document.querySelector("#trailsEmpty"),
-  allNestsList: document.querySelector("#allNestsList"),
-  nestsEmpty: document.querySelector("#nestsEmpty"),
-
-  // perfil (por enquanto mínimo, depois expandimos)
+  // Perfil
   p_email: document.querySelector("#p_email"),
+  btnLogout: document.querySelector("#btnLogout"),
+  
+  // Status Indicator
+  onlineDot: document.querySelector("#onlineDot"),
+  onlineText: document.querySelector("#onlineText")
 };
 
-export function toast(el, msg, type = "ok") {
-  if (!el) return;
+export function toast(el, msg, type="ok") {
+  if(!el) return;
   el.textContent = msg;
+  el.className = "hint-box"; 
+  el.classList.add(type === "error" ? "error" : "ok");
   el.classList.remove("hidden");
-  el.dataset.type = type;
-
-  // some rápido (aprox 2.5s)
-  clearTimeout(el._t);
-  el._t = setTimeout(() => {
-    el.classList.add("hidden");
-  }, 2500);
+  setTimeout(() => el.classList.add("hidden"), 3000);
 }
 
-export function showScreen(name) {
-  const all = ["login", "home", "trails", "nests", "profile"];
-  all.forEach(k => {
-    const el = ui[`screen${k.charAt(0).toUpperCase() + k.slice(1)}`];
-    if (el) el.classList.add("hidden");
-  });
-
-  const target = ui[`screen${name.charAt(0).toUpperCase() + name.slice(1)}`];
-  if (target) target.classList.remove("hidden");
+// Troca ABAS PRINCIPAIS (Rodapé)
+export function switchTab(targetId) {
+  ui.navItems.forEach(btn => btn.classList.toggle("active", btn.dataset.target === targetId));
+  Object.values(ui.views).forEach(el => el.classList.remove("active", "hidden"));
+  if(ui.views[targetId.replace("view-", "")]) ui.views[targetId.replace("view-", "")].classList.add("active");
 }
 
-export function openDrawer() {
-  ui.drawer.classList.add("open");
-  ui.backdrop.classList.remove("hidden");
+// Troca SUBMENUS (Topo da aba Iscas)
+export function switchSubTab(targetSubId) {
+  ui.subBtns.forEach(btn => btn.classList.toggle("active", btn.dataset.sub === targetSubId));
+  Object.values(ui.subViews).forEach(el => el.classList.add("hidden")); // esconde todos subs
+  if(ui.subViews[targetSubId]) ui.subViews[targetSubId].classList.remove("hidden"); // mostra alvo
 }
 
-export function closeDrawer() {
-  ui.drawer.classList.remove("open");
-  ui.backdrop.classList.add("hidden");
-}
-
-/**
- * Online só após login:
- * - hide=true => esconde o pill
- */
-export function setOnlineUI(isOnline, hide = false) {
-  if (!ui.onlinePill) return;
-  ui.onlinePill.classList.toggle("hidden", !!hide);
-
-  if (hide) return;
-
-  ui.onlineDot.classList.toggle("dotOnline", !!isOnline);
-  ui.onlineDot.classList.toggle("dotOffline", !isOnline);
+export function setOnlineUI(isOnline) {
+  if(!ui.onlineDot) return;
+  ui.onlineDot.style.backgroundColor = isOnline ? "#22c55e" : "#ef4444";
   ui.onlineText.textContent = isOnline ? "Online" : "Offline";
 }
 
-export function clearNestForm() {
-  ui.nestNote.value = "";
+export function openNestModal() { ui.modalNest.style.display = "flex"; }
+export function closeNestModal() { 
+  ui.modalNest.style.display = "none"; 
+  ui.nestNote.value = ""; 
   ui.nestSpecies.value = "";
-  ui.nestStatus.value = "CATALOGADO";
+  ui.nestStatus.value = "DEPOSITADO"; // Reset pro padrão
   ui.nestPhoto.value = "";
 }
