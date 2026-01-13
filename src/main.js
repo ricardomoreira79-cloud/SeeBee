@@ -6,21 +6,49 @@ import { bindAuth } from "./auth.js";
 import { initMap, setMapCenter, addRoutePoint, addNestMarker, resetMapOverlays } from "./map.js";
 import { createRoute, appendRoutePoint, finishRoute, loadMyTrails } from "./routes.js";
 import { createNest, loadMyNests } from "./nests.js"; 
-import { loadMeliponaries } from "./meliponario.js";
+import { loadMeliponaries } from "./meliponario.js"; // Arquivo no singular conforme ajustamos
 import { loadProfile } from "./profile.js";
 
 const supabase = getSupabase();
 
-// ... (Funções de GPS e Watcher mantidas iguais) ...
-function metersBetween(a, b) { /* ... código anterior ... */ return 0; } // simplificado pro exemplo
-function startWatchingGPS() { /* ... código anterior ... */ }
+// --- LÓGICA DE GPS (Haversine) ---
+function metersBetween(a, b) {
+  const R = 6371000; 
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLng = (b.lng - a.lng) * Math.PI / 180;
+  const s1 = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(s1), Math.sqrt(1-s1));
+}
 
-// --- RENDERIZADORES ---
+function startWatchingGPS() {
+  if (!navigator.geolocation) return toast(ui.routeHint, "Sem suporte a GPS", "error");
+  
+  state.watchId = navigator.geolocation.watchPosition(async (pos) => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    
+    addRoutePoint(lat, lng);
+    state.lastPos = { lat, lng, ts: new Date().toISOString() };
+    
+    if(state.routePoints.length > 0) {
+      state._dist = (state._dist || 0) + metersBetween(state.routePoints[state.routePoints.length-1], state.lastPos);
+      ui.distanceText.textContent = (state._dist < 1000) ? Math.round(state._dist)+" m" : (state._dist/1000).toFixed(2)+" km";
+    }
+    
+    // Salva ponto no banco
+    try { await appendRoutePoint(supabase, state.lastPos); } catch(e){ console.error(e); }
+    
+    // Centraliza mapa (apenas no começo para não atrapalhar navegação manual)
+    if (state.routePoints.length === 1) setMapCenter(lat, lng, 18);
 
-// 1. Renderiza a lista de "Capturados" com a lógica de 35 dias
+  }, err => console.error(err), CONFIG.GEO);
+}
+
+// --- RENDERIZADORES DE LISTAS ---
+
+// 1. Renderiza Capturados (Cálculo 35 dias)
 async function renderCaptured() {
   const nests = await loadMyNests(supabase);
-  // Filtra apenas os que têm status CAPTURADO
   const captured = nests.filter(n => n.status === "CAPTURADO");
 
   if (captured.length === 0) {
@@ -31,7 +59,6 @@ async function renderCaptured() {
   ui.capturedEmpty.classList.add("hidden");
 
   ui.capturedList.innerHTML = captured.map(n => {
-    // Cálculo dos dias
     const captureDate = new Date(n.captured_at || n.created_at);
     const today = new Date();
     const diffTime = Math.abs(today - captureDate);
@@ -60,38 +87,115 @@ async function renderCaptured() {
   }).join("");
 }
 
-// 2. Renderiza Meliponários (Aba 1)
+// 2. Renderiza Meliponários
 async function renderMeliponaries() {
   const list = await loadMeliponaries(supabase);
   const container = document.getElementById("colonies-list");
   if(!container) return;
+  
   container.innerHTML = list.length ? list.map(m => 
-    `<div class="card"><strong>${m.name}</strong></div>`
-  ).join("") : `<div class="card empty-state">Sem meliponários.</div>`;
+    `<div class="card">
+       <strong>${m.name}</strong>
+       <div class="subtle">Criado em ${new Date(m.created_at).toLocaleDateString()}</div>
+     </div>`
+  ).join("") : `<div class="card empty-state"><p>Nenhum meliponário encontrado.</p></div>`;
 }
 
-// 3. Renderiza Histórico de Trilhas (Submenu 2)
+// 3. Renderiza Histórico de Trilhas
 async function renderTrails() {
   const trails = await loadMyTrails(supabase);
   ui.trailsList.innerHTML = trails.map(t => 
-    `<div class="card"><strong>${t.name}</strong><br><span class="subtle">${new Date(t.created_at).toLocaleDateString()}</span></div>`
+    `<div class="card" style="padding:10px; font-size:0.85rem; border-left: 3px solid #16a34a;">
+       <strong>${t.name}</strong>
+       <div style="display:flex; justify-content:space-between; color:#9ca3af; margin-top:4px;">
+         <span>${new Date(t.created_at).toLocaleDateString()}</span>
+         <span>${t.path ? t.path.length : 0} pts</span>
+       </div>
+     </div>`
   ).join("");
   ui.trailsEmpty.classList.toggle("hidden", trails.length > 0);
+}
+
+// 4. Renderiza Ninhos da Mata (Aba 3)
+async function renderNaturalNests() {
+  const nests = await loadMyNests(supabase);
+  // Aqui poderia filtrar onde status != 'DEPOSITADO' ou criar lógica específica
+  // Por enquanto mostra todos para visualização
+  const container = document.getElementById("allNestsList");
+  if(!container) return;
+  
+  container.innerHTML = nests.length ? nests.map(n => `
+    <div class="card" style="padding:12px;">
+      <div style="display:flex; justify-content:space-between;">
+         <span class="badge">${n.status}</span>
+         <span class="subtle">${new Date(n.cataloged_at).toLocaleDateString()}</span>
+      </div>
+      <div style="margin-top:6px; font-weight:bold;">${n.species || "Espécie n/d"}</div>
+      ${n.photo_url ? `<div style="margin-top:8px; font-size:0.8rem; color:#4ade80;">📷 Foto anexa</div>` : ""}
+    </div>
+  `).join("") : "";
 }
 
 // --- EVENTOS DE INTERFACE ---
 
 // Clique nas Abas Principais (Rodapé)
 ui.navItems.forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     const target = btn.dataset.target;
     switchTab(target);
-    if(target === 'view-traps') {
+    
+    // Lazy Load das abas
+    if (target === 'view-traps') {
        setTimeout(() => state.map && state.map.invalidateSize(), 100);
-       // Abre por padrão o submenu "Depositar"
-       switchSubTab("sub-deposit");
+       switchSubTab("sub-deposit"); // Abre submenu padrão
     }
-    if(target === 'view-meliponaries') renderMeliponaries();
+    
+    if (target === 'view-meliponaries') {
+       await renderMeliponaries();
+    }
+    
+    if (target === 'view-natural') {
+       await renderNaturalNests();
+    }
+    
+    if (target === 'view-profile') {
+      // 1. Dados do Usuário
+      const user = state.user;
+      if (user) {
+        const emailDisplay = document.getElementById("p_email_display");
+        const initials = document.getElementById("p_initials");
+        const idShort = document.getElementById("p_id_short");
+        
+        if(emailDisplay) emailDisplay.textContent = user.email;
+        if(initials) initials.textContent = user.email.charAt(0).toUpperCase();
+        if(idShort) idShort.textContent = user.id.slice(0, 8) + "...";
+      }
+
+      // 2. Estatísticas (Carrega tudo para contar)
+      // Nota: Idealmente o Supabase daria um .count(), mas array length serve para protótipo
+      const meliponaries = await loadMeliponaries(supabase);
+      const trails = await loadMyTrails(supabase);
+      const nests = await loadMyNests(supabase);
+
+      const statMeliponaries = document.getElementById("stat_meliponaries");
+      const statTrails = document.getElementById("stat_trails");
+      const statNests = document.getElementById("stat_nests");
+
+      if(statMeliponaries) statMeliponaries.textContent = meliponaries.length;
+      if(statTrails) statTrails.textContent = trails.length;
+      if(statNests) statNests.textContent = nests.length;
+
+      // 3. Configura Botão Sair
+      const btnLogoutAction = document.getElementById("btnLogoutAction");
+      if(btnLogoutAction) {
+        btnLogoutAction.onclick = async () => {
+          if(confirm("Deseja realmente sair?")) {
+             await supabase.auth.signOut();
+             window.location.reload();
+          }
+        };
+      }
+    }
   });
 });
 
@@ -101,9 +205,7 @@ ui.subBtns.forEach(btn => {
     const sub = btn.dataset.sub;
     switchSubTab(sub);
     
-    if (sub === "sub-deposit") {
-      setTimeout(() => state.map && state.map.invalidateSize(), 100);
-    }
+    if (sub === "sub-deposit") setTimeout(() => state.map && state.map.invalidateSize(), 100);
     if (sub === "sub-trails") await renderTrails();
     if (sub === "sub-captured") await renderCaptured();
   });
@@ -113,23 +215,31 @@ ui.subBtns.forEach(btn => {
 ui.btnStartRoute.addEventListener("click", async () => {
   try {
     const route = await createRoute(supabase);
-    // ... (lógica de UI start)
+    toast(ui.routeHint, "Trilha iniciada!", "ok");
+    
     ui.btnStartRoute.classList.add("hidden");
     ui.btnFinishRoute.classList.remove("hidden");
     ui.btnMarkNest.disabled = false;
+    
     startWatchingGPS();
-  } catch(e) { alert(e.message); }
+  } catch(e) { 
+    toast(ui.routeHint, e.message, "error"); 
+  }
 });
 
 ui.btnFinishRoute.addEventListener("click", async () => {
-  // ... (lógica de UI stop)
+  navigator.geolocation.clearWatch(state.watchId);
+  await finishRoute(supabase);
+  
   ui.btnStartRoute.classList.remove("hidden");
   ui.btnFinishRoute.classList.add("hidden");
   ui.btnMarkNest.disabled = true;
-  await finishRoute(supabase);
+  
+  // Se estiver vendo a lista de trilhas, atualiza
+  await renderTrails();
 });
 
-// Salvar Ninho (Modal)
+// Modal Ninho (Salvar)
 ui.btnMarkNest.addEventListener("click", openNestModal);
 ui.nestCancel.addEventListener("click", closeNestModal);
 
@@ -139,18 +249,20 @@ ui.btnConfirmNest.addEventListener("click", async () => {
     const file = ui.nestPhoto.files[0];
     await createNest(supabase, {
       note: ui.nestNote.value,
-      status: ui.nestStatus.value, // Aqui pega DEPOSITADO, CAPTURADO, etc.
+      status: ui.nestStatus.value,
       species: ui.nestSpecies.value,
       lat: state.lastPos?.lat || 0,
       lng: state.lastPos?.lng || 0,
       route_id: state.currentRoute?.id,
       photoFile: file
     });
-    // Se marcou como capturado, já define a data de captura
-    // (A função createNest no nests.js já deve tratar captured_at se status==CAPTURADO)
     
     closeNestModal();
-    alert("Isca registrada!");
+    toast(ui.routeHint, "Isca/Ninho registrado!", "ok");
+    
+    // Atualiza contadores visuais
+    ui.nestsCountText.textContent = parseInt(ui.nestsCountText.textContent) + 1;
+    
   } catch(e) {
     alert("Erro: " + e.message);
   } finally {
@@ -158,11 +270,14 @@ ui.btnConfirmNest.addEventListener("click", async () => {
   }
 });
 
-// Boot
+// --- INICIALIZAÇÃO (BOOT) ---
 bindAuth(supabase, async () => {
   ui.screenLogin.classList.add("hidden");
   ui.screenApp.classList.remove("hidden");
+  
   initMap();
-  switchTab("view-traps"); // Abre direto em Iscas para testar
+  
+  // Abre direto na aba "Iscas" (View Traps) para facilitar o uso em campo
+  switchTab("view-traps"); 
   switchSubTab("sub-deposit");
 });

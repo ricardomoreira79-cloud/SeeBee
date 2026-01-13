@@ -536,3 +536,32 @@ header.app-header {
   .user-info { align-items: flex-start; }
   .route-card { grid-template-columns: 1fr; }
 }
+
+/* CSS DO PERFIL */
+.profile-header-card {
+  background: linear-gradient(135deg, #064e3b, #022c22);
+  border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+.profile-avatar {
+  width: 60px; height: 60px; background: #22c55e; color: #022c22;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: bold; border: 2px solid #bbf7d0;
+}
+.profile-info h3 { margin: 0; font-size: 1rem; color: #fff; word-break: break-all; }
+.badge-role { background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; color: #86efac; }
+.profile-id { font-size: 0.7rem; color: #6ee7b7; margin-top: 4px; opacity: 0.8; }
+
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.stat-box { background: #0f172a; padding: 12px; border-radius: 12px; border: 1px solid #1e293b; text-align: center; }
+.stat-num { display: block; font-size: 1.4rem; font-weight: bold; color: #22c55e; }
+.stat-label { font-size: 0.7rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.menu-list { display: flex; flex-direction: column; gap: 10px; }
+.menu-item {
+  background: #0f172a; border: 1px solid #1e293b; color: #e5e7eb;
+  padding: 16px; border-radius: 12px; text-align: left; font-size: 0.95rem; cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+}
+.menu-item:active { background: #1e293b; }
+.menu-item.danger { border-color: #7f1d1d; color: #fca5a5; background: #450a0a; }
