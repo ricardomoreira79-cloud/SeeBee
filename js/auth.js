@@ -1,63 +1,84 @@
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
-import { setAuthMessage, showAppScreen, showAuthScreen } from "./ui.js";
+// js/auth.js
+import { state, resetSessionState } from "./state.js";
+import { ui, showScreen, toast, setOnlineUI, clearNestForm } from "./ui.js";
+import { CONFIG } from "./config.js";
 
-export const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Inicializa o cliente Supabase usando o objeto CONFIG centralizado
+export const supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
-export async function signUp(email, password) {
-  setAuthMessage("Criando conta...");
-  if (!email || !password) return setAuthMessage("Preencha e-mail e senha.", true);
-
-  const { error } = await supabaseClient.auth.signUp({ email, password });
-  if (error) return setAuthMessage(error.message, true);
-
-  setAuthMessage("Conta criada! Agora clique em Entrar.", false);
+function niceAuthError(msg) {
+  const m = String(msg || "");
+  if (m.toLowerCase().includes("invalid login credentials")) return "E-mail ou senha inválidos.";
+  if (m.toLowerCase().includes("email not confirmed")) return "Verifique seu e-mail para confirmar a conta.";
+  if (m.toLowerCase().includes("user already registered")) return "E-mail já cadastrado.";
+  return m;
 }
 
-export async function signIn(email, password) {
-  setAuthMessage("Entrando...");
-  if (!email || !password) return setAuthMessage("Preencha e-mail e senha.", true);
+export function bindAuth(supabase, onLoggedIn) {
+  async function applySession(session) {
+    if (!session?.user) {
+      state.user = null;
+      resetSessionState();
+      clearNestForm();
+      setOnlineUI(false, true);
+      showScreen("login");
+      return;
+    }
 
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if (error) return setAuthMessage(error.message, true);
-
-  setAuthMessage("");
-  await checkSessionAndRoute();
-}
-
-export async function signInWithGoogle() {
-  setAuthMessage("");
-  try {
-    const redirectTo = window.location.origin + window.location.pathname;
-    await supabaseClient.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
-    });
-  } catch (e) {
-    console.error(e);
-    setAuthMessage("Não foi possível iniciar o login com Google.", true);
+    state.user = session.user;
+    setOnlineUI(navigator.onLine, false);
+    showScreen("home");
+    await onLoggedIn();
   }
-}
 
-export async function logout() {
-  await supabaseClient.auth.signOut();
-  await checkSessionAndRoute();
-}
+  // Escuta mudanças na autenticação (Login/Logout)
+  supabase.auth.onAuthStateChange((_event, session) => {
+    applySession(session);
+  });
 
-export async function checkSessionAndRoute() {
-  const { data } = await supabaseClient.auth.getSession();
-  const session = data.session;
+  // Botão de Entrar (E-mail/Senha)
+  ui.btnLogin.addEventListener("click", async () => {
+    const email = ui.email.value.trim();
+    const password = ui.password.value;
+    if (!email || !password) return toast(ui.authMsg, "Preencha e-mail e senha.", "error");
 
-  if (session) {
-    showAppScreen(session.user?.email || "");
-    return { logged: true, session };
-  } else {
-    showAuthScreen();
-    return { logged: false, session: null };
-  }
-}
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    } catch (e) {
+      toast(ui.authMsg, niceAuthError(e.message), "error");
+    }
+  });
 
-export function onAuthChange(handler) {
-  supabaseClient.auth.onAuthStateChange((event, session) => {
-    handler?.(event, session);
+  // Botão de Cadastro
+  ui.btnSignup.addEventListener("click", async () => {
+    const email = ui.email.value.trim();
+    const password = ui.password.value;
+    try {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      toast(ui.authMsg, "Conta criada! Verifique seu e-mail.", "ok");
+    } catch (e) {
+      toast(ui.authMsg, niceAuthError(e.message), "error");
+    }
+  });
+
+  // Login com Google
+  ui.btnGoogle.addEventListener("click", async () => {
+    try {
+      const redirectTo = `${window.location.origin}${window.location.pathname}`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo }
+      });
+      if (error) throw error;
+    } catch (e) {
+      toast(ui.authMsg, "Erro ao conectar com Google.", "error");
+    }
+  });
+
+  // Logout
+  ui.btnLogout.addEventListener("click", async () => {
+    await supabase.auth.signOut();
   });
 }
