@@ -1,165 +1,112 @@
-import { state } from "./state.js";
-
+// js/ui.js
 export const ui = {
-  authScreen: document.getElementById("auth-screen"),
-  appScreen: document.getElementById("app-screen"),
+  // auth
+  email: document.querySelector("#email"),
+  password: document.querySelector("#password"),
+  btnLogin: document.querySelector("#btnLogin"),
+  btnSignup: document.querySelector("#btnSignup"),
+  btnGoogle: document.querySelector("#btnGoogle"),
+  authMsg: document.querySelector("#authMsg"),
 
-  authEmail: document.getElementById("auth-email"),
-  authPassword: document.getElementById("auth-password"),
-  authMsg: document.getElementById("auth-msg"),
-  btnSignIn: document.getElementById("btn-signin"),
-  btnSignUp: document.getElementById("btn-signup"),
-  btnGoogle: document.getElementById("btn-google"),
-  btnLogout: document.getElementById("btn-logout"),
-  userEmailLabel: document.getElementById("user-email-label"),
+  // cabeçalho e status
+  onlinePill: document.querySelector("#onlinePill"),
+  onlineDot: document.querySelector("#onlineDot"),
+  onlineText: document.querySelector("#onlineText"),
 
-  statusPill: document.getElementById("status-pill"),
-  cloudStatus: document.getElementById("cloud-status"),
+  // telas principais (sections)
+  screenLogin: document.querySelector("#auth-screen"),
+  screenApp: document.querySelector("#app-screen"),
+  
+  // views containers para navegação
+  views: {
+    meliponaries: document.querySelector("#view-meliponaries"),
+    traps: document.querySelector("#view-traps"),
+    natural: document.querySelector("#view-natural"),
+    profile: document.querySelector("#view-profile")
+  },
+  
+  // itens da navegação inferior
+  navItems: document.querySelectorAll(".nav-item"),
+  
+  // submenus da aba de iscas
+  subBtns: document.querySelectorAll(".segment-btn"),
+  subViews: {
+    "sub-deposit": document.querySelector("#sub-deposit"),
+    "sub-trails": document.querySelector("#sub-trails"),
+    "sub-captured": document.querySelector("#sub-captured")
+  },
 
-  btnToggleRoute: document.getElementById("btn-toggle-route"),
-  btnToggleIcon: document.getElementById("btn-toggle-icon"),
-  btnToggleText: document.getElementById("btn-toggle-text"),
-  btnAddNest: document.getElementById("btn-add-nest"),
-  badgeStatus: document.getElementById("badge-status"),
+  // controles de trilha e mapa
+  btnStartRoute: document.querySelector("#btnStartRoute"),
+  btnFinishRoute: document.querySelector("#btnFinishRoute"),
+  btnMarkNest: document.querySelector("#btnMarkNest"),
+  distanceText: document.querySelector("#distanceText"),
+  nestsCountText: document.querySelector("#nestsCountText"),
+  routeHint: document.querySelector("#routeHint"),
 
-  infoRouteName: document.getElementById("info-route-name"),
-  infoDistance: document.getElementById("info-distance"),
-  infoNests: document.getElementById("info-nests"),
-  infoGps: document.getElementById("info-gps"),
+  // listas de dados
+  trailsList: document.querySelector("#trailsList"),
+  trailsEmpty: document.querySelector("#trailsEmpty"),
+  capturedList: document.querySelector("#capturedList"),
+  capturedEmpty: document.querySelector("#capturedEmpty"),
+  allNestsList: document.querySelector("#allNestsList"),
 
-  routesList: document.getElementById("routes-list"),
-  btnRefresh: document.getElementById("btn-refresh"),
+  // modal de marcação de ninho
+  modalNest: document.querySelector("#nest-modal"),
+  nestNote: document.querySelector("#nestNote"),
+  nestStatus: document.querySelector("#nestStatus"),
+  nestSpecies: document.querySelector("#nestSpecies"),
+  nestPhoto: document.querySelector("#nestPhoto"),
+  btnConfirmNest: document.querySelector("#btnConfirmNest"),
+  nestCancel: document.querySelector("#nestCancel"),
 
-  photoModal: document.getElementById("photo-modal"),
-  photoModalImg: document.getElementById("photo-modal-img"),
-  photoModalClose: document.getElementById("photo-modal-close"),
-
-  nestModal: document.getElementById("nest-modal"),
-  nestNotes: document.getElementById("nest-notes"),
-  nestFileInput: document.getElementById("nest-file-input"),
-  nestFileName: document.getElementById("nest-file-name"),
-  nestCancel: document.getElementById("nest-cancel"),
-  nestSave: document.getElementById("nest-save"),
+  // dados do perfil
+  p_email_display: document.querySelector("#p_email_display"),
+  p_initials: document.querySelector("#p_initials"),
+  p_id_short: document.querySelector("#p_id_short"),
+  btnLogoutAction: document.querySelector("#btnLogoutAction")
 };
 
-let pendingNestResolve = null;
-let selectedNestFile = null;
-
-export function setAuthMessage(text, isError = false) {
-  ui.authMsg.textContent = text || "";
-  ui.authMsg.classList.toggle("error", !!text && isError);
-  ui.authMsg.classList.toggle("ok", !!text && !isError);
+// Funções de utilidade da UI
+export function toast(el, msg, type = "ok") {
+  if (!el) return;
+  el.textContent = msg;
+  el.className = "hint-box " + (type === "error" ? "error" : "ok");
+  el.classList.remove("hidden");
+  setTimeout(() => el.classList.add("hidden"), 3000);
 }
 
-export function showAuthScreen() {
-  ui.authScreen.classList.remove("hidden");
-  ui.appScreen.classList.add("hidden");
-}
-
-export function showAppScreen(email) {
-  ui.authScreen.classList.add("hidden");
-  ui.appScreen.classList.remove("hidden");
-  ui.userEmailLabel.textContent = email || "";
-}
-
-export function updateOnlineStatusPill() {
-  state.isOnline = navigator.onLine;
-
-  if (state.isOnline) {
-    ui.statusPill.classList.remove("offline");
-    ui.cloudStatus.textContent = "Trabalhando online";
-  } else {
-    ui.statusPill.classList.add("offline");
-    ui.cloudStatus.textContent = "Trabalhando offline – dados só neste aparelho";
-  }
-}
-
-export function setRecordingUI(isRecording) {
-  if (isRecording) {
-    ui.btnAddNest.disabled = false;
-    ui.badgeStatus.textContent = "Gravando";
-    ui.badgeStatus.style.background = "#14532d";
-    ui.btnToggleText.textContent = "Finalizar trajeto";
-    ui.btnToggleIcon.textContent = "⏹";
-    ui.infoRouteName.textContent = "Trajeto: em gravação...";
-    ui.infoDistance.textContent = "Distância: 0 m";
-    ui.infoNests.textContent = "Ninhos: 0";
-  } else {
-    ui.btnAddNest.disabled = true;
-    ui.badgeStatus.textContent = "Parado";
-    ui.badgeStatus.style.background = "#022c22";
-    ui.btnToggleText.textContent = "Iniciar trajeto";
-    ui.btnToggleIcon.textContent = "▶";
-  }
-}
-
-/* ===== Modal Marcar Ninho ===== */
-
-export function openNestModal() {
-  selectedNestFile = null;
-  ui.nestNotes.value = "";
-  ui.nestFileInput.value = "";
-  ui.nestFileName.textContent = "";
-  ui.nestModal.style.display = "flex";
-
-  return new Promise((resolve) => {
-    pendingNestResolve = resolve;
+export function switchTab(targetId) {
+  ui.navItems.forEach(btn => btn.classList.toggle("active", btn.dataset.target === targetId));
+  Object.values(ui.views).forEach(el => {
+    if (el) el.classList.add("hidden");
   });
+  const targetEl = ui.views[targetId.replace("view-", "")];
+  if (targetEl) targetEl.classList.remove("hidden");
 }
 
-export function closeNestModal() {
-  ui.nestModal.style.display = "none";
-  if (pendingNestResolve) {
-    pendingNestResolve(null);
-    pendingNestResolve = null;
-  }
-}
-
-export function initNestModalHandlers() {
-  ui.nestCancel.addEventListener("click", () => closeNestModal());
-
-  ui.nestFileInput.addEventListener("change", (ev) => {
-    const file = ev.target.files[0];
-    selectedNestFile = file || null;
-    ui.nestFileName.textContent = file ? file.name : "";
+export function switchSubTab(targetSubId) {
+  ui.subBtns.forEach(btn => btn.classList.toggle("active", btn.dataset.sub === targetSubId));
+  Object.values(ui.subViews).forEach(el => {
+    if (el) el.classList.add("hidden");
   });
-
-  ui.nestSave.addEventListener("click", () => {
-    if (!pendingNestResolve) {
-      ui.nestModal.style.display = "none";
-      return;
-    }
-    const payload = {
-      description: ui.nestNotes.value.trim(),
-      file: selectedNestFile,
-    };
-    ui.nestModal.style.display = "none";
-    pendingNestResolve(payload);
-    pendingNestResolve = null;
-  });
+  if (ui.subViews[targetSubId]) ui.subViews[targetSubId].classList.remove("hidden");
 }
 
-/* ===== Modal Foto ===== */
-
-export function openPhotoModal(url) {
-  ui.photoModalImg.src = url;
-  ui.photoModal.style.display = "flex";
+export function setOnlineUI(isOnline) {
+  if (!ui.onlineDot) return;
+  ui.onlineDot.style.backgroundColor = isOnline ? "#22c55e" : "#ef4444";
+  ui.onlineText.textContent = isOnline ? "Online" : "Offline";
 }
 
-export function initPhotoModalHandlers() {
-  ui.photoModalClose.addEventListener("click", () => {
-    ui.photoModal.style.display = "none";
-    ui.photoModalImg.src = "";
-  });
+export function openNestModal() { ui.modalNest.style.display = "flex"; }
 
-  ui.photoModal.addEventListener("click", (e) => {
-    if (e.target === ui.photoModal) {
-      ui.photoModal.style.display = "none";
-      ui.photoModalImg.src = "";
-    }
-  });
+export function closeNestModal() { 
+  ui.modalNest.style.display = "none";
+  clearNestForm();
 }
 
+// Função para limpar o formulário de ninhos
 export function clearNestForm() {
   if (ui.nestNote) ui.nestNote.value = "";
   if (ui.nestSpecies) ui.nestSpecies.value = "";
