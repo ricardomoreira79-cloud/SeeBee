@@ -1,6 +1,6 @@
 // js/auth.js
 import { state, resetSessionState } from "./state.js";
-import { ui, showScreen, toast, setOnlineUI, clearNestForm } from "./ui.js";
+import { ui, toast, setOnlineUI, clearNestForm } from "./ui.js";
 import { CONFIG } from "./config.js";
 
 // Inicializa o cliente Supabase usando o objeto CONFIG centralizado
@@ -14,6 +14,17 @@ function niceAuthError(msg) {
   return m;
 }
 
+// Função auxiliar para mostrar telas (substituindo a antiga showScreen se necessário)
+function showAppScreen(show) {
+  if (show) {
+    ui.screenLogin?.classList.add("hidden");
+    ui.screenApp?.classList.remove("hidden");
+  } else {
+    ui.screenLogin?.classList.remove("hidden");
+    ui.screenApp?.classList.add("hidden");
+  }
+}
+
 export function bindAuth(supabase, onLoggedIn) {
   async function applySession(session) {
     if (!session?.user) {
@@ -21,13 +32,13 @@ export function bindAuth(supabase, onLoggedIn) {
       resetSessionState();
       clearNestForm();
       setOnlineUI(false, true);
-      showScreen("login");
+      showAppScreen(false);
       return;
     }
 
     state.user = session.user;
     setOnlineUI(navigator.onLine, false);
-    showScreen("home");
+    showAppScreen(true);
     await onLoggedIn();
   }
 
@@ -36,10 +47,10 @@ export function bindAuth(supabase, onLoggedIn) {
     applySession(session);
   });
 
-  // Botão de Entrar (E-mail/Senha)
-  ui.btnLogin.addEventListener("click", async () => {
-    const email = ui.email.value.trim();
-    const password = ui.password.value;
+  // Login por e-mail/senha
+  ui.btnLogin?.addEventListener("click", async () => {
+    const email = ui.email?.value.trim();
+    const password = ui.password?.value;
     if (!email || !password) return toast(ui.authMsg, "Preencha e-mail e senha.", "error");
 
     try {
@@ -50,12 +61,12 @@ export function bindAuth(supabase, onLoggedIn) {
     }
   });
 
-  // Botão de Cadastro
-  ui.btnSignup.addEventListener("click", async () => {
-    const email = ui.email.value.trim();
-    const password = ui.password.value;
+  // Criar conta
+  ui.btnSignup?.addEventListener("click", async () => {
+    const email = ui.email?.value.trim();
+    const password = ui.password?.value;
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
       toast(ui.authMsg, "Conta criada! Verifique seu e-mail.", "ok");
     } catch (e) {
@@ -64,7 +75,7 @@ export function bindAuth(supabase, onLoggedIn) {
   });
 
   // Login com Google
-  ui.btnGoogle.addEventListener("click", async () => {
+  ui.btnGoogle?.addEventListener("click", async () => {
     try {
       const redirectTo = `${window.location.origin}${window.location.pathname}`;
       const { error } = await supabase.auth.signInWithOAuth({
@@ -75,10 +86,5 @@ export function bindAuth(supabase, onLoggedIn) {
     } catch (e) {
       toast(ui.authMsg, "Erro ao conectar com Google.", "error");
     }
-  });
-
-  // Logout
-  ui.btnLogout.addEventListener("click", async () => {
-    await supabase.auth.signOut();
   });
 }

@@ -96,3 +96,10 @@ export function closeNestModal() {
   ui.nestStatus.value = "DEPOSITADO"; // Reset pro padrão
   ui.nestPhoto.value = "";
 }
+
+export function clearNestForm() {
+  if (ui.nestNote) ui.nestNote.value = "";
+  if (ui.nestSpecies) ui.nestSpecies.value = "";
+  if (ui.nestStatus) ui.nestStatus.value = "DEPOSITADO";
+  if (ui.nestPhoto) ui.nestPhoto.value = "";
+}
