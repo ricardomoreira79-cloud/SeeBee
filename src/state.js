@@ -1,31 +1,33 @@
 export const state = {
   user: null,
 
-  online: navigator.onLine,
+  online: true,
 
-  map: null,
-  mapReady: false,
-
-  currentRoute: null,      // { id, name, started_at }
-  routePoints: [],         // array de {lat,lng,ts}
+  // trilha ativa
+  currentRoute: null,
+  routePoints: [],
+  nestsThisRoute: [],
   lastPos: null,
+  watchId: null,
+  _dist: 0,
 
-  nestsThisRoute: [],      // lista rápida na tela
+  // seleção local
+  selectedFile: null,
+
+  // listas gerais
   allTrails: [],
   allNests: [],
-
-  watchId: null,
-  polyline: null,
-
-  selectedFile: null
 };
 
 export function resetSessionState() {
   state.currentRoute = null;
   state.routePoints = [];
-  state.lastPos = null;
   state.nestsThisRoute = [];
+  state.lastPos = null;
+  state._dist = 0;
   state.watchId = null;
-  state.polyline = null;
   state.selectedFile = null;
+
+  state.allTrails = [];
+  state.allNests = [];
 }

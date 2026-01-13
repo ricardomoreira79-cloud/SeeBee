@@ -1,140 +1,106 @@
-import { state } from "./state.js";
-
 export const ui = {
-  // screens
-  topbar: document.getElementById("topbar"),
-  authScreen: document.getElementById("authScreen"),
-  appScreen: document.getElementById("appScreen"),
-
-  screenHome: document.getElementById("screenHome"),
-  screenTrails: document.getElementById("screenTrails"),
-  screenNests: document.getElementById("screenNests"),
-  screenProfile: document.getElementById("screenProfile"),
-
   // auth
-  authEmail: document.getElementById("authEmail"),
-  authPass: document.getElementById("authPass"),
-  btnLogin: document.getElementById("btnLogin"),
-  btnSignup: document.getElementById("btnSignup"),
-  btnGoogle: document.getElementById("btnGoogle"),
-  authMsg: document.getElementById("authMsg"),
+  email: document.querySelector("#email"),
+  password: document.querySelector("#password"),
+  btnLogin: document.querySelector("#btnLogin"),
+  btnSignup: document.querySelector("#btnSignup"),
+  btnGoogle: document.querySelector("#btnGoogle"),
+  authMsg: document.querySelector("#authMsg"),
 
-  // drawer
-  drawer: document.getElementById("drawer"),
-  backdrop: document.getElementById("backdrop"),
-  btnMenu: document.getElementById("btnMenu"),
-  btnCloseDrawer: document.getElementById("btnCloseDrawer"),
-  btnLogout: document.getElementById("btnLogout"),
-  drawerEmail: document.getElementById("drawerEmail"),
+  // topo / drawer
+  btnMenu: document.querySelector("#btnMenu"),
+  btnCloseDrawer: document.querySelector("#btnCloseDrawer"),
+  backdrop: document.querySelector("#backdrop"),
+  drawer: document.querySelector("#drawer"),
+  btnLogout: document.querySelector("#btnLogout"),
+  onlinePill: document.querySelector("#onlinePill"),
+  onlineDot: document.querySelector("#onlineDot"),
+  onlineText: document.querySelector("#onlineText"),
 
-  // online pill
-  onlinePill: document.getElementById("onlinePill"),
-  onlineDot: document.getElementById("onlineDot"),
-  onlineText: document.getElementById("onlineText"),
+  // telas
+  screenLogin: document.querySelector("#screenLogin"),
+  screenHome: document.querySelector("#screenHome"),
+  screenTrails: document.querySelector("#screenTrails"),
+  screenNests: document.querySelector("#screenNests"),
+  screenProfile: document.querySelector("#screenProfile"),
 
-  // route
-  btnStartRoute: document.getElementById("btnStartRoute"),
-  btnFinishRoute: document.getElementById("btnFinishRoute"),
-  distanceText: document.getElementById("distanceText"),
-  nestsCountText: document.getElementById("nestsCountText"),
-  routeHint: document.getElementById("routeHint"),
+  // trilha
+  btnStartRoute: document.querySelector("#btnStartRoute"),
+  btnFinishRoute: document.querySelector("#btnFinishRoute"),
+  distanceText: document.querySelector("#distanceText"),
+  nestsCountText: document.querySelector("#nestsCountText"),
+  routeHint: document.querySelector("#routeHint"),
 
-  // nests
-  nestNote: document.getElementById("nestNote"),
-  nestStatus: document.getElementById("nestStatus"),
-  nestSpecies: document.getElementById("nestSpecies"),
-  nestPhoto: document.getElementById("nestPhoto"),
-  btnMarkNest: document.getElementById("btnMarkNest"),
-  nestMsg: document.getElementById("nestMsg"),
-  nestList: document.getElementById("nestList"),
+  // ninho
+  nestNote: document.querySelector("#nestNote"),
+  nestStatus: document.querySelector("#nestStatus"),
+  nestSpecies: document.querySelector("#nestSpecies"),
+  nestPhoto: document.querySelector("#nestPhoto"),
+  btnMarkNest: document.querySelector("#btnMarkNest"),
+  nestMsg: document.querySelector("#nestMsg"),
 
-  // trails list
-  trailsEmpty: document.getElementById("trailsEmpty"),
-  trailsList: document.getElementById("trailsList"),
+  // listas
+  trailsList: document.querySelector("#trailsList"),
+  trailsEmpty: document.querySelector("#trailsEmpty"),
+  allNestsList: document.querySelector("#allNestsList"),
+  nestsEmpty: document.querySelector("#nestsEmpty"),
 
-  // all nests list
-  nestsEmpty: document.getElementById("nestsEmpty"),
-  allNestsList: document.getElementById("allNestsList"),
-
-  // profile
-  p_full_name: document.getElementById("p_full_name"),
-  p_email: document.getElementById("p_email"),
-  p_whatsapp: document.getElementById("p_whatsapp"),
-  p_role_type: document.getElementById("p_role_type"),
-  p_doc_type: document.getElementById("p_doc_type"),
-  p_doc_value: document.getElementById("p_doc_value"),
-  p_address_street: document.getElementById("p_address_street"),
-  p_address_city: document.getElementById("p_address_city"),
-  p_address_state: document.getElementById("p_address_state"),
-  p_address_zip: document.getElementById("p_address_zip"),
-  p_meliponary_name: document.getElementById("p_meliponary_name"),
-  p_meliponary_has_own_address: document.getElementById("p_meliponary_has_own_address"),
-  p_meliponary_address_street: document.getElementById("p_meliponary_address_street"),
-  p_meliponary_address_city: document.getElementById("p_meliponary_address_city"),
-  p_meliponary_address_state: document.getElementById("p_meliponary_address_state"),
-  p_meliponary_address_zip: document.getElementById("p_meliponary_address_zip"),
-  btnSaveProfile: document.getElementById("btnSaveProfile"),
-  profileMsg: document.getElementById("profileMsg")
+  // perfil (por enquanto mínimo, depois expandimos)
+  p_email: document.querySelector("#p_email"),
 };
 
-export function showAuth() {
-  ui.topbar.classList.add("hidden");
-  ui.appScreen.classList.add("hidden");
-  ui.authScreen.classList.remove("hidden");
-}
+export function toast(el, msg, type = "ok") {
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove("hidden");
+  el.dataset.type = type;
 
-export function showApp() {
-  ui.authScreen.classList.add("hidden");
-  ui.topbar.classList.remove("hidden");
-  ui.appScreen.classList.remove("hidden");
+  // some rápido (aprox 2.5s)
+  clearTimeout(el._t);
+  el._t = setTimeout(() => {
+    el.classList.add("hidden");
+  }, 2500);
 }
 
 export function showScreen(name) {
-  const screens = [ui.screenHome, ui.screenTrails, ui.screenNests, ui.screenProfile];
-  screens.forEach(s => s.classList.add("hidden"));
+  const all = ["login", "home", "trails", "nests", "profile"];
+  all.forEach(k => {
+    const el = ui[`screen${k.charAt(0).toUpperCase() + k.slice(1)}`];
+    if (el) el.classList.add("hidden");
+  });
 
-  if (name === "home") ui.screenHome.classList.remove("hidden");
-  if (name === "trails") ui.screenTrails.classList.remove("hidden");
-  if (name === "nests") ui.screenNests.classList.remove("hidden");
-  if (name === "profile") ui.screenProfile.classList.remove("hidden");
-
-  closeDrawer();
+  const target = ui[`screen${name.charAt(0).toUpperCase() + name.slice(1)}`];
+  if (target) target.classList.remove("hidden");
 }
 
 export function openDrawer() {
-  ui.drawer.classList.remove("hidden");
+  ui.drawer.classList.add("open");
   ui.backdrop.classList.remove("hidden");
-  ui.drawer.setAttribute("aria-hidden", "false");
 }
 
 export function closeDrawer() {
-  ui.drawer.classList.add("hidden");
+  ui.drawer.classList.remove("open");
   ui.backdrop.classList.add("hidden");
-  ui.drawer.setAttribute("aria-hidden", "true");
 }
 
-export function toast(el, text, type = "") {
-  el.textContent = text;
-  el.classList.remove("hidden", "error", "ok");
-  if (type) el.classList.add(type);
-  setTimeout(() => el.classList.add("hidden"), 2800);
-}
+/**
+ * Online só após login:
+ * - hide=true => esconde o pill
+ */
+export function setOnlineUI(isOnline, hide = false) {
+  if (!ui.onlinePill) return;
+  ui.onlinePill.classList.toggle("hidden", !!hide);
 
-export function setOnlineUI(isOnline) {
-  ui.onlinePill.classList.remove("hidden");
-  ui.onlineDot.classList.remove("online", "offline");
-  ui.onlineDot.classList.add(isOnline ? "online" : "offline");
+  if (hide) return;
+
+  ui.onlineDot.classList.toggle("dotOnline", !!isOnline);
+  ui.onlineDot.classList.toggle("dotOffline", !isOnline);
   ui.onlineText.textContent = isOnline ? "Online" : "Offline";
-}
-
-export function setHeaderUser(email) {
-  ui.drawerEmail.textContent = email || "—";
 }
 
 export function clearNestForm() {
   ui.nestNote.value = "";
   ui.nestSpecies.value = "";
   ui.nestStatus.value = "CATALOGADO";
-  ui.nestPhoto.value = "";       // crucial: limpa o file input ao trocar usuário
-  state.selectedFile = null;
+  ui.nestPhoto.value = "";
 }

@@ -7,13 +7,12 @@ export const CONFIG = {
 
   GEO: {
     enableHighAccuracy: true,
-    maximumAge: 1500,
+    maximumAge: 0,
     timeout: 20000
   },
 
   // para o mapa começar mais próximo
   MAP: {
-    defaultZoom: 17,
-    followZoom: 18
+      followZoom: 17
   }
 };

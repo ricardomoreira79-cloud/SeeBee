@@ -1,59 +1,84 @@
-import { ui, toast, showApp, showAuth, setHeaderUser, closeDrawer } from "./ui.js";
 import { state, resetSessionState } from "./state.js";
+import { ui, showScreen, toast, setOnlineUI, clearNestForm } from "./ui.js";
 
 export function bindAuth(supabase, onLoggedIn) {
-  ui.btnLogin.addEventListener("click", async () => {
-    const email = ui.authEmail.value.trim();
-    const password = ui.authPass.value.trim();
-    if (!email || !password) return toast(ui.authMsg, "Informe e-mail e senha.", "error");
+  async function applySession(session) {
+    if (!session?.user) {
+      state.user = null;
+      resetSessionState();
+      clearNestForm();
+      setOnlineUI(false, true); // escondido
+      showScreen("login");
+      return;
+    }
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return toast(ui.authMsg, error.message, "error");
-
-    state.user = data.user;
-    setHeaderUser(state.user?.email);
-    showApp();
-    closeDrawer();
+    state.user = session.user;
+    setOnlineUI(navigator.onLine, false); // visível
+    showScreen("home");
     await onLoggedIn();
+  }
+
+  // estado inicial
+  supabase.auth.getSession().then(({ data }) => applySession(data.session));
+
+  // mudanças de auth
+  supabase.auth.onAuthStateChange((_event, session) => applySession(session));
+
+  // login email/senha
+  ui.btnLogin.addEventListener("click", async () => {
+    try {
+      ui.authMsg.textContent = "";
+      const email = ui.email.value.trim();
+      const password = ui.password.value;
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+
+      ui.email.value = "";
+      ui.password.value = "";
+    } catch (e) {
+      ui.authMsg.textContent = e.message || String(e);
+    }
   });
 
+  // signup
   ui.btnSignup.addEventListener("click", async () => {
-    const email = ui.authEmail.value.trim();
-    const password = ui.authPass.value.trim();
-    if (!email || !password) return toast(ui.authMsg, "Informe e-mail e senha.", "error");
+    try {
+      ui.authMsg.textContent = "";
+      const email = ui.email.value.trim();
+      const password = ui.password.value;
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) return toast(ui.authMsg, error.message, "error");
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
 
-    toast(ui.authMsg, "Conta criada. Se o Supabase pedir confirmação por e-mail, confirme e depois entre.", "ok");
+      toast(ui.authMsg, "Conta criada! Verifique seu e-mail (se exigir confirmação).", "ok");
+    } catch (e) {
+      ui.authMsg.textContent = e.message || String(e);
+    }
   });
 
+  // login google
   ui.btnGoogle.addEventListener("click", async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin
-      }
-    });
-    if (error) return toast(ui.authMsg, error.message, "error");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+    } catch (e) {
+      ui.authMsg.textContent = e.message || String(e);
+    }
   });
 
+  // logoff (menu)
   ui.btnLogout.addEventListener("click", async () => {
-    await supabase.auth.signOut();
-    state.user = null;
-    resetSessionState();
-    showAuth();
-    closeDrawer();
-  });
-
-  supabase.auth.onAuthStateChange(async (_event, session) => {
-    state.user = session?.user || null;
-    if (state.user) {
-      setHeaderUser(state.user.email);
-      showApp();
-      await onLoggedIn();
-    } else {
-      showAuth();
+    try {
+      await supabase.auth.signOut();
+      // o onAuthStateChange cuida do resto
+    } catch (e) {
+      toast(ui.authMsg, e.message || String(e), "error");
     }
   });
 }

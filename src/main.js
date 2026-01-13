@@ -3,7 +3,7 @@ import { state, resetSessionState } from "./state.js";
 import { ui, toast, showScreen, openDrawer, closeDrawer, setOnlineUI, clearNestForm } from "./ui.js";
 import { CONFIG } from "./config.js";
 
-import { initMap, setMapCenter, addRoutePoint, addNestMarker } from "./map.js";
+import { initMap, setMapCenter, addRoutePoint, addNestMarker, resetMapOverlays } from "./map.js";
 import { bindAuth } from "./auth.js";
 import { createRoute, appendRoutePoint, finishRoute, loadMyTrails } from "./routes.js";
 import { createNest, loadMyNests } from "./nests.js";
@@ -36,6 +36,7 @@ async function refreshLists() {
   const trails = await loadMyTrails(supabase);
   ui.trailsList.innerHTML = "";
   ui.trailsEmpty.classList.toggle("hidden", trails.length !== 0);
+
   trails.forEach(t => {
     const div = document.createElement("div");
     div.className = "listItem";
@@ -50,11 +51,13 @@ async function refreshLists() {
   const nests = await loadMyNests(supabase);
   ui.allNestsList.innerHTML = "";
   ui.nestsEmpty.classList.toggle("hidden", nests.length !== 0);
+
   nests.forEach(n => {
     const div = document.createElement("div");
     div.className = "listItem";
     const cat = n.cataloged_at ? new Date(n.cataloged_at).toLocaleDateString("pt-BR") : "—";
     const cap = n.captured_at ? new Date(n.captured_at).toLocaleDateString("pt-BR") : null;
+
     div.innerHTML = `
       <div style="display:flex; justify-content:space-between; gap:10px">
         <div style="font-weight:900">${n.status}</div>
@@ -73,15 +76,17 @@ function bindDrawerNav() {
       const nav = btn.getAttribute("data-nav");
       showScreen(nav);
 
-      // mensagens rápidas (3s) quando vazio
       if (nav === "trails") {
         await refreshLists();
-        if (state.allTrails.length === 0) toast(ui.trailsEmpty, "Nenhuma trilha salva.", "ok");
+        if ((state.allTrails || []).length === 0) toast(ui.trailsEmpty, "Nenhuma trilha salva.", "ok");
       }
+
       if (nav === "nests") {
         await refreshLists();
-        if (state.allNests.length === 0) toast(ui.nestsEmpty, "Nenhum ninho catalogado.", "ok");
+        if ((state.allNests || []).length === 0) toast(ui.nestsEmpty, "Nenhum ninho catalogado.", "ok");
       }
+
+      closeDrawer();
     });
   });
 }
@@ -89,18 +94,38 @@ function bindDrawerNav() {
 function watchOnline() {
   const update = () => {
     state.online = navigator.onLine;
-    setOnlineUI(state.online);
+    setOnlineUI(state.online, false);
   };
   window.addEventListener("online", update);
   window.addEventListener("offline", update);
   update();
 }
 
+/**
+ * iOS costuma se comportar melhor quando:
+ * - primeiro fazemos getCurrentPosition (pede permissão e "aquece" o GPS)
+ * - depois iniciamos watchPosition
+ */
+async function warmupGPS() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(false);
+    navigator.geolocation.getCurrentPosition(
+      () => resolve(true),
+      () => resolve(false),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+}
+
 function startWatchingGPS() {
   if (!navigator.geolocation) throw new Error("Geolocalização não suportada.");
 
-  // mantemos o watchPosition rodando durante a trilha (tela apagada reduz, mas volta)
-  // para manter mais, no iOS o limite é do navegador – mas aqui é o melhor padrão.
+  // limpa watch anterior (evita AbortError por conflitos)
+  if (state.watchId != null) {
+    navigator.geolocation.clearWatch(state.watchId);
+    state.watchId = null;
+  }
+
   state.watchId = navigator.geolocation.watchPosition(
     async (pos) => {
       const lat = pos.coords.latitude;
@@ -110,29 +135,35 @@ function startWatchingGPS() {
       const point = { lat, lng, ts };
       state.lastPos = point;
 
-      // mapa segue e desenha
       addRoutePoint(lat, lng);
 
-      // distância
+      // distância incremental
       if (state.routePoints.length > 0) {
         const prev = state.routePoints[state.routePoints.length - 1];
         const d = metersBetween(prev, point);
         state._dist = (state._dist || 0) + d;
-        ui.distanceText.textContent = formatDist(state._dist);
       } else {
-        ui.distanceText.textContent = "0 m";
+        state._dist = 0;
+      }
+      ui.distanceText.textContent = formatDist(state._dist);
+
+      // salva ponto no banco
+      try {
+        await appendRoutePoint(supabase, point);
+      } catch (e) {
+        // não trava a caminhada por falha momentânea
+        toast(ui.routeHint, `Falha ao salvar ponto: ${e.message || e}`, "error");
       }
 
-      // guarda pontos e atualiza no banco de 5 em 5
-      await appendRoutePoint(supabase, point);
-
-      // zoom/foco inicial forte na sua região (apenas no início)
+      // centraliza só no 1º ponto (zoom mais próximo)
       if (state.routePoints.length === 1) {
         setMapCenter(lat, lng, CONFIG.MAP.followZoom);
       }
     },
     (err) => {
-      toast(ui.routeHint, `GPS: ${err.message}`, "error");
+      // AbortError aparece em alguns cenários no iOS (principalmente alternando permissões)
+      const msg = err?.message || String(err);
+      toast(ui.routeHint, `GPS: ${msg}`, "error");
     },
     CONFIG.GEO
   );
@@ -147,18 +178,17 @@ function stopWatchingGPS() {
 
 async function onLoggedIn() {
   initMap();
+  resetMapOverlays();
+
   watchOnline();
   bindDrawerNav();
   showScreen("home");
 
-  // limpa estado e formulário ao trocar usuário
+  // troca de usuário: limpa estado para não “vazar” foto/lista
   resetSessionState();
   clearNestForm();
 
-  // preencher email no perfil (campo desabilitado)
-  ui.p_email.value = state.user?.email || "";
-
-  // tentar centralizar mapa já na posição atual
+  // zoom na sua região ao entrar
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => setMapCenter(pos.coords.latitude, pos.coords.longitude, CONFIG.MAP.followZoom),
@@ -167,6 +197,11 @@ async function onLoggedIn() {
   }
 
   await refreshLists();
+
+  // garante botões
+  setRouteUI(false);
+  ui.distanceText.textContent = "0 m";
+  ui.nestsCountText.textContent = "0";
 }
 
 ui.btnMenu.addEventListener("click", openDrawer);
@@ -179,14 +214,16 @@ ui.nestPhoto.addEventListener("change", (e) => {
 
 ui.btnStartRoute.addEventListener("click", async () => {
   try {
-    initMap();
+    ui.routeHint.classList.add("hidden");
     state._dist = 0;
     ui.distanceText.textContent = "0 m";
     ui.nestsCountText.textContent = "0";
-    ui.routeHint.classList.add("hidden");
+    resetMapOverlays();
 
-    // cria trilha no banco (NUNCA com path null)
+    await warmupGPS();
+
     const route = await createRoute(supabase);
+
     toast(ui.routeHint, `Trilha iniciada: ${route.name}`, "ok");
     ui.routeHint.classList.remove("hidden");
     setRouteUI(true);
@@ -203,8 +240,10 @@ ui.btnFinishRoute.addEventListener("click", async () => {
     stopWatchingGPS();
     await finishRoute(supabase);
     setRouteUI(false);
+
     toast(ui.routeHint, "Trilha finalizada e salva.", "ok");
     ui.routeHint.classList.remove("hidden");
+
     await refreshLists();
   } catch (e) {
     toast(ui.routeHint, e.message || String(e), "error");
@@ -214,12 +253,8 @@ ui.btnFinishRoute.addEventListener("click", async () => {
 
 ui.btnMarkNest.addEventListener("click", async () => {
   try {
-    if (!state.currentRoute) {
-      return toast(ui.nestMsg, "Inicie uma trilha antes de marcar um ninho.", "error");
-    }
-    if (!state.lastPos) {
-      return toast(ui.nestMsg, "Aguardando GPS… caminhe alguns segundos.", "error");
-    }
+    if (!state.currentRoute) return toast(ui.nestMsg, "Inicie uma trilha antes de marcar um ninho.", "error");
+    if (!state.lastPos) return toast(ui.nestMsg, "Aguardando GPS… caminhe alguns segundos.", "error");
 
     const note = ui.nestNote.value.trim();
     const status = ui.nestStatus.value;
@@ -235,37 +270,15 @@ ui.btnMarkNest.addEventListener("click", async () => {
       photoFile: state.selectedFile
     });
 
-    // marcador no mapa no ponto do ninho
     addNestMarker(created.lat, created.lng);
 
-    // lista rápida
-    renderNestList();
     ui.nestsCountText.textContent = String(state.nestsThisRoute.length);
-
     toast(ui.nestMsg, "Ninho registrado com sucesso.", "ok");
-    clearNestForm(); // evita “foto vazando” para outro usuário
+
+    clearNestForm(); // evita foto “vazar”
   } catch (e) {
     toast(ui.nestMsg, e.message || String(e), "error");
   }
 });
-
-function renderNestList() {
-  ui.nestList.innerHTML = "";
-  state.nestsThisRoute.forEach(n => {
-    const item = document.createElement("div");
-    item.className = "nestItem";
-    const cat = n.cataloged_at ? new Date(n.cataloged_at).toLocaleDateString("pt-BR") : "—";
-    const cap = n.captured_at ? new Date(n.captured_at).toLocaleDateString("pt-BR") : null;
-    item.innerHTML = `
-      <div>
-        <div style="font-weight:900">${n.status}</div>
-        <div class="muted small">${n.note || ""}</div>
-        <div class="muted small">${cap ? `Capturado em ${cap}` : `Catalogado em ${cat}`}</div>
-      </div>
-      <div class="badge">${n.photo_url ? "📷 Foto" : "Sem foto"}</div>
-    `;
-    ui.nestList.appendChild(item);
-  });
-}
 
 bindAuth(supabase, onLoggedIn);

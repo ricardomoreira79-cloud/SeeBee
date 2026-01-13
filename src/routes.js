@@ -1,17 +1,22 @@
 import { state } from "./state.js";
 
+/**
+ * Cria uma trilha (route) com path SEMPRE iniciado em []
+ * e status = 'recording'
+ */
 export async function createRoute(supabase) {
-  if (!state.user) throw new Error("Sem usuário.");
+  const user = state.user;
+  if (!user) throw new Error("Usuário não autenticado.");
 
   const name = `Trilha ${new Date().toLocaleString("pt-BR")}`;
 
-  // IMPORTANTE: path e traps NUNCA podem ser null
+  // À prova de falhas: path sempre [] aqui
   const payload = {
-    user_id: state.user.id,
+    user_id: user.id,
     name,
-    created_at: new Date().toISOString(),
-    path: [],     // <-- resolve o erro do print
-    traps: []     // <-- segurança extra
+    status: "recording",
+    path: [],     // <- NUNCA null
+    traps: []     // se sua tabela tiver traps, ok; se não tiver, remova
   };
 
   const { data, error } = await supabase
@@ -20,7 +25,7 @@ export async function createRoute(supabase) {
     .select("*")
     .single();
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   state.currentRoute = data;
   state.routePoints = [];
@@ -28,50 +33,61 @@ export async function createRoute(supabase) {
   return data;
 }
 
+/**
+ * Faz append de ponto:
+ * - mantém state.routePoints
+ * - atualiza routes.path no banco (evita null)
+ */
 export async function appendRoutePoint(supabase, point) {
   if (!state.currentRoute) return;
 
   state.routePoints.push(point);
 
-  // atualiza periodicamente a rota no banco
-  if (state.routePoints.length % 5 !== 0) return;
+  // Atualiza local também
+  state.currentRoute.path = [...(state.currentRoute.path || []), point];
 
+  // Sincroniza no banco (a cada ponto, simples e robusto)
   const { error } = await supabase
     .from("routes")
-    .update({ path: state.routePoints })
-    .eq("id", state.currentRoute.id);
+    .update({ path: state.currentRoute.path })
+    .eq("id", state.currentRoute.id)
+    .eq("user_id", state.user.id);
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 }
 
+/**
+ * Finaliza trilha: status + ended_at
+ */
 export async function finishRoute(supabase) {
   if (!state.currentRoute) return;
 
   const { error } = await supabase
     .from("routes")
     .update({
-      path: state.routePoints,
-      finished_at: new Date().toISOString()
+      status: "finished",
+      ended_at: new Date().toISOString(),
+      path: state.currentRoute.path || []
     })
-    .eq("id", state.currentRoute.id);
+    .eq("id", state.currentRoute.id)
+    .eq("user_id", state.user.id);
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
-  const done = state.currentRoute;
   state.currentRoute = null;
-  return done;
 }
 
+/**
+ * Lista trilhas do usuário
+ */
 export async function loadMyTrails(supabase) {
-  if (!state.user) return [];
-
   const { data, error } = await supabase
     .from("routes")
-    .select("id,name,created_at,finished_at,path")
+    .select("id,name,created_at,status,path,ended_at")
     .eq("user_id", state.user.id)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   state.allTrails = data || [];
   return state.allTrails;

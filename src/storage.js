@@ -1,20 +1,25 @@
 import { CONFIG } from "./config.js";
-import { state } from "./state.js";
 
-export async function uploadNestPhoto(supabase, file) {
+export async function uploadPublic(supabase, file, userId) {
   if (!file) return null;
-  if (!state.user) throw new Error("Sem usuário.");
 
-  const ext = file.name.split(".").pop() || "jpg";
-  const fileName = `${crypto.randomUUID()}.${ext}`;
-  const path = `${state.user.id}/${fileName}`;
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const safeExt = ext.replace(/[^a-z0-9]/g, "") || "jpg";
+  const name = `${Date.now()}-${Math.random().toString(16).slice(2)}.${safeExt}`;
+
+  // pasta por usuário (evita 100% "foto vazando")
+  const path = `${userId}/${name}`;
 
   const { error } = await supabase.storage
     .from(CONFIG.STORAGE_BUCKET)
-    .upload(path, file, { upsert: false, contentType: file.type });
+    .upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type || "image/jpeg"
+    });
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   const { data } = supabase.storage.from(CONFIG.STORAGE_BUCKET).getPublicUrl(path);
-  return { path, publicUrl: data.publicUrl };
+  return data.publicUrl;
 }
