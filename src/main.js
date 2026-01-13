@@ -5,7 +5,7 @@ import { CONFIG } from "./config.js";
 import { bindAuth } from "./auth.js";
 import { initMap, setMapCenter, addRoutePoint, addNestMarker, resetMapOverlays } from "./map.js";
 import { createRoute, appendRoutePoint, finishRoute, loadMyTrails } from "./routes.js";
-import { createNest, loadMyNests } from "./nests.js"; 
+import { createNest, loadMyNests } from "../js/nests.js"; 
 // REMOVIDO O IMPORT QUE ESTAVA DANDO ERRO:
 // import { loadMeliponaries } from "./meliponario.js"; 
 import { loadProfile } from "./profile.js";

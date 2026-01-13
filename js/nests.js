@@ -1,5 +1,5 @@
-import { state } from "./state.js";
-import { uploadPublic } from "./storage.js";
+import { state } from "../src/state.js";
+import { uploadPublic } from "../src/storage.js";
 
 export async function createNest(supabase, payload) {
   if (!state.user) throw new Error("Usuário não autenticado.");
