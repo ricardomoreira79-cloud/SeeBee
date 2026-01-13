@@ -1,33 +1,10 @@
-export const state = {
-  user: null,
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { CONFIG } from "./config.js";
 
-  online: true,
-
-  // trilha ativa
-  currentRoute: null,
-  routePoints: [],
-  nestsThisRoute: [],
-  lastPos: null,
-  watchId: null,
-  _dist: 0,
-
-  // seleção local
-  selectedFile: null,
-
-  // listas gerais
-  allTrails: [],
-  allNests: [],
-};
-
-export function resetSessionState() {
-  state.currentRoute = null;
-  state.routePoints = [];
-  state.nestsThisRoute = [];
-  state.lastPos = null;
-  state._dist = 0;
-  state.watchId = null;
-  state.selectedFile = null;
-
-  state.allTrails = [];
-  state.allNests = [];
-}
+export const supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});

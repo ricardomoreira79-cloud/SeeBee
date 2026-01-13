@@ -1,94 +1,27 @@
-import { state } from "./state.js";
+import { CONFIG } from "./config.js";
 
-/**
- * Cria uma trilha (route) com path SEMPRE iniciado em []
- * e status = 'recording'
- */
-export async function createRoute(supabase) {
-  const user = state.user;
-  if (!user) throw new Error("Usuário não autenticado.");
+export async function uploadPhoto(supabase, file, userId) {
+  if (!file) return { path: null };
 
-  const name = `Trilha ${new Date().toLocaleString("pt-BR")}`;
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const safeExt = ["jpg","jpeg","png","webp","heic"].includes(ext) ? ext : "jpg";
 
-  // À prova de falhas: path sempre [] aqui
-  const payload = {
-    user_id: user.id,
-    name,
-    status: "recording",
-    path: [],     // <- NUNCA null
-    traps: []     // se sua tabela tiver traps, ok; se não tiver, remova
-  };
+  // Cada usuário tem sua pasta: userId/...
+  const filename = `${Date.now()}_${Math.random().toString(16).slice(2)}.${safeExt}`;
+  const path = `${userId}/${filename}`;
 
-  const { data, error } = await supabase
-    .from("routes")
-    .insert(payload)
-    .select("*")
-    .single();
+  const { error } = await supabase.storage.from(CONFIG.STORAGE_BUCKET).upload(path, file, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: file.type || "image/jpeg",
+  });
 
-  if (error) throw new Error(error.message);
-
-  state.currentRoute = data;
-  state.routePoints = [];
-  state.nestsThisRoute = [];
-  return data;
+  if (error) throw error;
+  return { path };
 }
 
-/**
- * Faz append de ponto:
- * - mantém state.routePoints
- * - atualiza routes.path no banco (evita null)
- */
-export async function appendRoutePoint(supabase, point) {
-  if (!state.currentRoute) return;
-
-  state.routePoints.push(point);
-
-  // Atualiza local também
-  state.currentRoute.path = [...(state.currentRoute.path || []), point];
-
-  // Sincroniza no banco (a cada ponto, simples e robusto)
-  const { error } = await supabase
-    .from("routes")
-    .update({ path: state.currentRoute.path })
-    .eq("id", state.currentRoute.id)
-    .eq("user_id", state.user.id);
-
-  if (error) throw new Error(error.message);
-}
-
-/**
- * Finaliza trilha: status + ended_at
- */
-export async function finishRoute(supabase) {
-  if (!state.currentRoute) return;
-
-  const { error } = await supabase
-    .from("routes")
-    .update({
-      status: "finished",
-      ended_at: new Date().toISOString(),
-      path: state.currentRoute.path || []
-    })
-    .eq("id", state.currentRoute.id)
-    .eq("user_id", state.user.id);
-
-  if (error) throw new Error(error.message);
-
-  state.currentRoute = null;
-}
-
-/**
- * Lista trilhas do usuário
- */
-export async function loadMyTrails(supabase) {
-  const { data, error } = await supabase
-    .from("routes")
-    .select("id,name,created_at,status,path,ended_at")
-    .eq("user_id", state.user.id)
-    .order("created_at", { ascending: false });
-
-  if (error) throw new Error(error.message);
-
-  state.allTrails = data || [];
-  return state.allTrails;
+export function getPublicUrl(supabase, path) {
+  if (!path) return null;
+  const { data } = supabase.storage.from(CONFIG.STORAGE_BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
 }
