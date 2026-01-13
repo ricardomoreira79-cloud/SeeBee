@@ -1,284 +1,205 @@
 import { getSupabase } from "./supabaseClient.js";
 import { state, resetSessionState } from "./state.js";
-import { ui, toast, showScreen, openDrawer, closeDrawer, setOnlineUI, clearNestForm } from "./ui.js";
+import { ui, toast, switchTab, setOnlineUI, openNestModal, closeNestModal } from "./ui.js";
 import { CONFIG } from "./config.js";
-
-import { initMap, setMapCenter, addRoutePoint, addNestMarker, resetMapOverlays } from "./map.js";
 import { bindAuth } from "./auth.js";
+import { initMap, setMapCenter, addRoutePoint, addNestMarker, resetMapOverlays } from "./map.js";
 import { createRoute, appendRoutePoint, finishRoute, loadMyTrails } from "./routes.js";
-import { createNest, loadMyNests } from "./nests.js";
+import { createNest, loadMyNests } from "./nests.js"; 
+import { loadProfile } from "./profile.js";         // <--- Novo
+import { loadMeliponaries } from "./meliponario.js";; // <--- Novo
 
 const supabase = getSupabase();
 
+// --- Lógica GPS (Haversine) ---
 function metersBetween(a, b) {
-  const R = 6371000;
-  const toRad = (x) => (x * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const s1 = Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * (Math.sin(dLng / 2) ** 2);
-  const c = 2 * Math.atan2(Math.sqrt(s1), Math.sqrt(1 - s1));
-  return R * c;
+  const R = 6371000; 
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLng = (b.lng - a.lng) * Math.PI / 180;
+  const s1 = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(s1), Math.sqrt(1-s1));
 }
 
-function formatDist(m) {
-  if (!m) return "0 m";
-  if (m < 1000) return `${Math.round(m)} m`;
-  return `${(m / 1000).toFixed(2)} km`;
-}
-
-function setRouteUI(isActive) {
-  ui.btnStartRoute.disabled = isActive;
-  ui.btnFinishRoute.disabled = !isActive;
-}
-
-async function refreshLists() {
-  const trails = await loadMyTrails(supabase);
-  ui.trailsList.innerHTML = "";
-  ui.trailsEmpty.classList.toggle("hidden", trails.length !== 0);
-
-  trails.forEach(t => {
-    const div = document.createElement("div");
-    div.className = "listItem";
-    div.innerHTML = `
-      <div style="font-weight:900">${t.name}</div>
-      <div class="muted small">${new Date(t.created_at).toLocaleString("pt-BR")}</div>
-      <div class="muted small">Pontos: ${(t.path?.length || 0)}</div>
-    `;
-    ui.trailsList.appendChild(div);
-  });
-
-  const nests = await loadMyNests(supabase);
-  ui.allNestsList.innerHTML = "";
-  ui.nestsEmpty.classList.toggle("hidden", nests.length !== 0);
-
-  nests.forEach(n => {
-    const div = document.createElement("div");
-    div.className = "listItem";
-    const cat = n.cataloged_at ? new Date(n.cataloged_at).toLocaleDateString("pt-BR") : "—";
-    const cap = n.captured_at ? new Date(n.captured_at).toLocaleDateString("pt-BR") : null;
-
-    div.innerHTML = `
-      <div style="display:flex; justify-content:space-between; gap:10px">
-        <div style="font-weight:900">${n.status}</div>
-        <div class="badge">${cap ? `Capturado em ${cap}` : `Catalogado em ${cat}`}</div>
-      </div>
-      <div class="muted small">${n.note || ""}</div>
-      ${n.photo_url ? `<div class="muted small">📷 Foto salva</div>` : `<div class="muted small">Sem foto</div>`}
-    `;
-    ui.allNestsList.appendChild(div);
-  });
-}
-
-function bindDrawerNav() {
-  document.querySelectorAll(".drawerItem").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const nav = btn.getAttribute("data-nav");
-      showScreen(nav);
-
-      if (nav === "trails") {
-        await refreshLists();
-        if ((state.allTrails || []).length === 0) toast(ui.trailsEmpty, "Nenhuma trilha salva.", "ok");
-      }
-
-      if (nav === "nests") {
-        await refreshLists();
-        if ((state.allNests || []).length === 0) toast(ui.nestsEmpty, "Nenhum ninho catalogado.", "ok");
-      }
-
-      closeDrawer();
-    });
-  });
-}
-
-function watchOnline() {
-  const update = () => {
-    state.online = navigator.onLine;
-    setOnlineUI(state.online, false);
-  };
-  window.addEventListener("online", update);
-  window.addEventListener("offline", update);
-  update();
-}
-
-/**
- * iOS costuma se comportar melhor quando:
- * - primeiro fazemos getCurrentPosition (pede permissão e "aquece" o GPS)
- * - depois iniciamos watchPosition
- */
-async function warmupGPS() {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) return resolve(false);
-    navigator.geolocation.getCurrentPosition(
-      () => resolve(true),
-      () => resolve(false),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  });
-}
-
+// --- GPS Watcher ---
 function startWatchingGPS() {
-  if (!navigator.geolocation) throw new Error("Geolocalização não suportada.");
+  if (!navigator.geolocation) return toast(ui.routeHint, "Sem suporte a GPS", "error");
+  
+  state.watchId = navigator.geolocation.watchPosition(async (pos) => {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    
+    addRoutePoint(lat, lng);
+    state.lastPos = { lat, lng, ts: new Date().toISOString() };
+    
+    if(state.routePoints.length > 0) {
+      state._dist = (state._dist || 0) + metersBetween(state.routePoints[state.routePoints.length-1], state.lastPos);
+      ui.distanceText.textContent = (state._dist < 1000) ? Math.round(state._dist)+" m" : (state._dist/1000).toFixed(2)+" km";
+    }
+    
+    // Salva ponto
+    try { await appendRoutePoint(supabase, state.lastPos); } catch(e){ console.error(e); }
+    
+    if (state.routePoints.length === 1) setMapCenter(lat, lng, 18);
 
-  // limpa watch anterior (evita AbortError por conflitos)
-  if (state.watchId != null) {
-    navigator.geolocation.clearWatch(state.watchId);
-    state.watchId = null;
-  }
-
-  state.watchId = navigator.geolocation.watchPosition(
-    async (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      const ts = new Date().toISOString();
-
-      const point = { lat, lng, ts };
-      state.lastPos = point;
-
-      addRoutePoint(lat, lng);
-
-      // distância incremental
-      if (state.routePoints.length > 0) {
-        const prev = state.routePoints[state.routePoints.length - 1];
-        const d = metersBetween(prev, point);
-        state._dist = (state._dist || 0) + d;
-      } else {
-        state._dist = 0;
-      }
-      ui.distanceText.textContent = formatDist(state._dist);
-
-      // salva ponto no banco
-      try {
-        await appendRoutePoint(supabase, point);
-      } catch (e) {
-        // não trava a caminhada por falha momentânea
-        toast(ui.routeHint, `Falha ao salvar ponto: ${e.message || e}`, "error");
-      }
-
-      // centraliza só no 1º ponto (zoom mais próximo)
-      if (state.routePoints.length === 1) {
-        setMapCenter(lat, lng, CONFIG.MAP.followZoom);
-      }
-    },
-    (err) => {
-      // AbortError aparece em alguns cenários no iOS (principalmente alternando permissões)
-      const msg = err?.message || String(err);
-      toast(ui.routeHint, `GPS: ${msg}`, "error");
-    },
-    CONFIG.GEO
-  );
+  }, err => console.error(err), CONFIG.GEO);
 }
 
-function stopWatchingGPS() {
-  if (state.watchId != null) {
-    navigator.geolocation.clearWatch(state.watchId);
-    state.watchId = null;
-  }
-}
+// --- Renderização de Listas ---
 
-async function onLoggedIn() {
-  initMap();
-  resetMapOverlays();
-
-  watchOnline();
-  bindDrawerNav();
-  showScreen("home");
-
-  // troca de usuário: limpa estado para não “vazar” foto/lista
-  resetSessionState();
-  clearNestForm();
-
-  // zoom na sua região ao entrar
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setMapCenter(pos.coords.latitude, pos.coords.longitude, CONFIG.MAP.followZoom),
-      () => {}
-    );
+async function renderMeliponaries() {
+  const list = await loadMeliponaries(supabase);
+  const container = document.getElementById("colonies-list"); // Certifique que esse ID existe no HTML (View 1)
+  if(!container) return;
+  
+  if (list.length === 0) {
+    container.innerHTML = `<div class="card empty-state"><p>Nenhum meliponário encontrado.</p></div>`;
+    return;
   }
 
-  await refreshLists();
-
-  // garante botões
-  setRouteUI(false);
-  ui.distanceText.textContent = "0 m";
-  ui.nestsCountText.textContent = "0";
+  container.innerHTML = list.map(m => `
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <strong style="font-size:1rem">${m.name}</strong>
+        <div class="subtle" style="font-size:0.8rem">Criado em ${new Date(m.created_at).toLocaleDateString()}</div>
+      </div>
+      <button class="btn-xs">Ver</button>
+    </div>
+  `).join("");
 }
 
-ui.btnMenu.addEventListener("click", openDrawer);
-ui.btnCloseDrawer.addEventListener("click", closeDrawer);
-ui.backdrop.addEventListener("click", closeDrawer);
+async function renderTrails() {
+  const trails = await loadMyTrails(supabase);
+  ui.trailsList.innerHTML = trails.length ? trails.map(t => 
+    `<div class="card" style="padding:10px; font-size:0.85rem; border-left: 3px solid #16a34a;">
+       <strong>${t.name}</strong>
+       <div style="display:flex; justify-content:space-between; color:#9ca3af; margin-top:4px;">
+         <span>${new Date(t.created_at).toLocaleDateString()}</span>
+         <span>${t.path ? t.path.length : 0} pts</span>
+       </div>
+     </div>`
+  ).join("") : "";
+  ui.trailsEmpty.classList.toggle("hidden", trails.length > 0);
+}
 
-ui.nestPhoto.addEventListener("change", (e) => {
-  state.selectedFile = e.target.files?.[0] || null;
+async function renderNests() {
+  const nests = await loadMyNests(supabase);
+  // Filtra ou mostra todos na aba "Mata"
+  ui.allNestsList.innerHTML = nests.length ? nests.map(n => `
+    <div class="card" style="padding:12px;">
+      <div style="display:flex; justify-content:space-between;">
+         <span class="badge">${n.status}</span>
+         <span class="subtle">${new Date(n.cataloged_at).toLocaleDateString()}</span>
+      </div>
+      <div style="margin-top:6px; font-weight:bold;">${n.species || "Espécie n/d"}</div>
+      <div class="subtle">${n.note || "Sem obs."}</div>
+      ${n.photo_url ? `<div style="margin-top:8px; font-size:0.8rem; color:#4ade80;">📷 Foto anexa</div>` : ""}
+    </div>
+  `).join("") : "";
+  ui.nestsEmpty.classList.toggle("hidden", nests.length > 0);
+}
+
+// --- Event Listeners ---
+
+// Abas
+ui.navItems.forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const target = btn.dataset.target;
+    switchTab(target);
+    
+    // Lazy Load das abas
+    if (target === 'view-traps') {
+      setTimeout(() => state.map && state.map.invalidateSize(), 100);
+      await renderTrails();
+    }
+    if (target === 'view-meliponaries') {
+      await renderMeliponaries();
+    }
+    if (target === 'view-natural') {
+      await renderNests();
+    }
+    if (target === 'view-profile') {
+      // Carrega dados do perfil
+      const profile = await loadProfile();
+      if(profile && profile.user_type) {
+        document.querySelector("#p_email").innerHTML += `<br><small>${profile.user_type}</small>`;
+      }
+    }
+  });
 });
 
+// Botões Trilha
 ui.btnStartRoute.addEventListener("click", async () => {
   try {
-    ui.routeHint.classList.add("hidden");
-    state._dist = 0;
-    ui.distanceText.textContent = "0 m";
-    ui.nestsCountText.textContent = "0";
-    resetMapOverlays();
-
-    await warmupGPS();
-
     const route = await createRoute(supabase);
-
-    toast(ui.routeHint, `Trilha iniciada: ${route.name}`, "ok");
-    ui.routeHint.classList.remove("hidden");
-    setRouteUI(true);
-
+    toast(ui.routeHint, "Trilha iniciada!", "ok");
+    ui.btnStartRoute.classList.add("hidden");
+    ui.btnFinishRoute.classList.remove("hidden");
+    ui.btnMarkNest.disabled = false;
+    resetMapOverlays();
+    state._dist = 0;
     startWatchingGPS();
-  } catch (e) {
-    toast(ui.routeHint, e.message || String(e), "error");
-    ui.routeHint.classList.remove("hidden");
-  }
+  } catch(e) { toast(ui.routeHint, e.message, "error"); }
 });
 
 ui.btnFinishRoute.addEventListener("click", async () => {
-  try {
-    stopWatchingGPS();
-    await finishRoute(supabase);
-    setRouteUI(false);
-
-    toast(ui.routeHint, "Trilha finalizada e salva.", "ok");
-    ui.routeHint.classList.remove("hidden");
-
-    await refreshLists();
-  } catch (e) {
-    toast(ui.routeHint, e.message || String(e), "error");
-    ui.routeHint.classList.remove("hidden");
-  }
+  navigator.geolocation.clearWatch(state.watchId);
+  await finishRoute(supabase);
+  ui.btnStartRoute.classList.remove("hidden");
+  ui.btnFinishRoute.classList.add("hidden");
+  ui.btnMarkNest.disabled = true;
+  await renderTrails();
 });
 
-ui.btnMarkNest.addEventListener("click", async () => {
+// Modal Ninho
+ui.btnMarkNest.addEventListener("click", () => {
+  if (!state.currentRoute) return toast(ui.routeHint, "Inicie uma trilha primeiro.", "error");
+  openNestModal();
+});
+ui.nestCancel.addEventListener("click", closeNestModal);
+ui.photoModalClose?.addEventListener("click", () => document.getElementById("photo-modal").classList.add("hidden"));
+
+ui.btnConfirmNest.addEventListener("click", async () => {
   try {
-    if (!state.currentRoute) return toast(ui.nestMsg, "Inicie uma trilha antes de marcar um ninho.", "error");
-    if (!state.lastPos) return toast(ui.nestMsg, "Aguardando GPS… caminhe alguns segundos.", "error");
-
-    const note = ui.nestNote.value.trim();
-    const status = ui.nestStatus.value;
-    const species = ui.nestSpecies.value.trim() || null;
-
-    const created = await createNest(supabase, {
-      note,
-      status,
-      species,
+    ui.btnConfirmNest.textContent = "Salvando...";
+    const file = ui.nestPhoto.files[0];
+    await createNest(supabase, {
+      note: ui.nestNote.value,
+      status: ui.nestStatus.value,
+      species: ui.nestSpecies.value,
       lat: state.lastPos.lat,
       lng: state.lastPos.lng,
       route_id: state.currentRoute.id,
-      photoFile: state.selectedFile
+      photoFile: file
     });
-
-    addNestMarker(created.lat, created.lng);
-
-    ui.nestsCountText.textContent = String(state.nestsThisRoute.length);
-    toast(ui.nestMsg, "Ninho registrado com sucesso.", "ok");
-
-    clearNestForm(); // evita foto “vazar”
-  } catch (e) {
-    toast(ui.nestMsg, e.message || String(e), "error");
+    addNestMarker(state.lastPos.lat, state.lastPos.lng);
+    ui.nestsCountText.textContent = parseInt(ui.nestsCountText.textContent) + 1;
+    closeNestModal();
+    toast(ui.routeHint, "Ninho salvo!", "ok");
+  } catch(e) {
+    alert("Erro: " + e.message);
+  } finally {
+    ui.btnConfirmNest.textContent = "Salvar";
   }
 });
 
-bindAuth(supabase, onLoggedIn);
+// Logout
+ui.btnLogout.addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  window.location.reload();
+});
+
+// --- Boot ---
+bindAuth(supabase, async () => {
+  ui.screenLogin.classList.add("hidden");
+  ui.screenApp.classList.remove("hidden");
+  
+  if(state.user) {
+    ui.p_email.textContent = state.user.email;
+  }
+  
+  initMap(); 
+  
+  // Inicia na aba Meliponários (Dashboard)
+  switchTab("view-meliponaries"); 
+  await renderMeliponaries();
+});
