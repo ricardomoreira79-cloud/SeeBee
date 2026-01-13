@@ -6,10 +6,57 @@ import { bindAuth } from "./auth.js";
 import { initMap, setMapCenter, addRoutePoint, addNestMarker, resetMapOverlays } from "./map.js";
 import { createRoute, appendRoutePoint, finishRoute, loadMyTrails } from "./routes.js";
 import { createNest, loadMyNests } from "./nests.js"; 
-import { loadMeliponaries } from "./meliponario.js"; // Arquivo no singular conforme ajustamos
+// REMOVIDO O IMPORT QUE ESTAVA DANDO ERRO:
+// import { loadMeliponaries } from "./meliponario.js"; 
 import { loadProfile } from "./profile.js";
 
 const supabase = getSupabase();
+
+// ======================================================
+// CÓDIGO DO MELIPONARIO (INCORPORADO PARA CORRIGIR ERRO 404)
+// ======================================================
+
+/**
+ * Carrega a lista de meliponários do usuário
+ */
+async function loadMeliponaries(supabaseClient) {
+  if (!state.user) return [];
+
+  const { data, error } = await supabaseClient
+    .from("meliponaries") 
+    .select("*")
+    .eq("user_id", state.user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao carregar meliponários:", error.message);
+    return [];
+  }
+  return data;
+}
+
+/**
+ * Cria um novo meliponário
+ */
+async function createMeliponary(supabaseClient, name) {
+  if (!state.user) throw new Error("Você precisa estar logado.");
+  
+  const { data, error } = await supabaseClient
+    .from("meliponaries")
+    .insert({
+      user_id: state.user.id,
+      name: name
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+// ======================================================
+// FIM DO CÓDIGO INCORPORADO
+// ======================================================
 
 // --- LÓGICA DE GPS (Haversine) ---
 function metersBetween(a, b) {
@@ -89,7 +136,7 @@ async function renderCaptured() {
 
 // 2. Renderiza Meliponários
 async function renderMeliponaries() {
-  const list = await loadMeliponaries(supabase);
+  const list = await loadMeliponaries(supabase); // Agora chama a função interna
   const container = document.getElementById("colonies-list");
   if(!container) return;
   
