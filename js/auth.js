@@ -1,14 +1,16 @@
 // js/auth.js
 import { state, resetSessionState } from "./state.js";
-import { ui, switchTab } from "./ui.js";
+import { ui } from "./ui.js";
 
 export function bindAuth(supabase, onLoggedIn) {
-  // Observa mudanças de login (Entrar/Sair)
+  // Escuta mudanças de sessão
   supabase.auth.onAuthStateChange(async (event, session) => {
     if (session) {
       state.user = session.user;
       ui.screenLogin.classList.add("hidden");
       ui.screenApp.classList.remove("hidden");
+      ui.menuEmailDisplay.textContent = session.user.email;
+      ui.menuAvatarChar.textContent = session.user.email[0].toUpperCase();
       await onLoggedIn();
     } else {
       state.user = null;
@@ -18,27 +20,33 @@ export function bindAuth(supabase, onLoggedIn) {
     }
   });
 
-  // Botão Entrar
-  ui.btnLogin.addEventListener("click", async () => {
+  // Entrar com E-mail
+  ui.btnLogin.onclick = async () => {
+    ui.authMsg.textContent = "Verificando...";
     const { error } = await supabase.auth.signInWithPassword({
       email: ui.email.value,
       password: ui.password.value
     });
-    if (error) alert("Erro: " + error.message);
-  });
+    if (error) ui.authMsg.textContent = "Erro: " + error.message;
+  };
 
-  // Botão Criar Conta
-  ui.btnSignup.addEventListener("click", async () => {
+  // Criar Conta
+  ui.btnSignup.onclick = async () => {
+    ui.authMsg.textContent = "Criando conta...";
     const { error } = await supabase.auth.signUp({
       email: ui.email.value,
       password: ui.password.value
     });
-    if (error) alert("Erro: " + error.message);
-    else alert("Verifique seu e-mail para confirmar a conta!");
-  });
+    if (error) ui.authMsg.textContent = "Erro: " + error.message;
+    else ui.authMsg.textContent = "Verifique seu e-mail!";
+  };
 
-  // Botão Google
-  ui.btnGoogle.addEventListener("click", async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'google' });
-  });
+  // Entrar com Google (Funcionalidade principal corrigida)
+  ui.btnGoogle.onclick = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin }
+    });
+    if (error) alert(error.message);
+  };
 }
