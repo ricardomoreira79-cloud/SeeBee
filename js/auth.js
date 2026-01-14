@@ -1,6 +1,6 @@
 // js/auth.js
 import { state, resetSessionState } from "./state.js";
-import { ui } from "./ui.js";
+import { ui, setOnlineUI } from "./ui.js";
 
 export function bindAuth(supabase, onLoggedIn) {
   supabase.auth.onAuthStateChange(async (event, session) => {
@@ -8,8 +8,8 @@ export function bindAuth(supabase, onLoggedIn) {
       state.user = session.user;
       ui.screenLogin.classList.add("hidden");
       ui.screenApp.classList.remove("hidden");
-      document.getElementById("menu-email-display").textContent = session.user.email;
-      document.getElementById("menu-avatar-char").textContent = session.user.email[0].toUpperCase();
+      const emailDisplay = document.getElementById("menu-email-display") || document.getElementById("p_email_display");
+      if(emailDisplay) emailDisplay.textContent = session.user.email;
       await onLoggedIn();
     } else {
       state.user = null;
@@ -23,15 +23,15 @@ export function bindAuth(supabase, onLoggedIn) {
     const { error } = await supabase.auth.signInWithPassword({
       email: ui.email.value, password: ui.password.value
     });
-    if (error) alert("Erro de Login: " + error.message);
+    if (error) alert("Erro: " + error.message);
   };
 
   ui.btnSignup.onclick = async () => {
     const { error } = await supabase.auth.signUp({
       email: ui.email.value, password: ui.password.value
     });
-    if (error) alert("Erro: " + error.message);
-    else alert("Verifique seu e-mail para confirmar a conta!");
+    if (error) alert(error.message);
+    else alert("Verifique seu e-mail!");
   };
 
   ui.btnGoogle.onclick = async () => {
@@ -39,6 +39,6 @@ export function bindAuth(supabase, onLoggedIn) {
       provider: 'google',
       options: { redirectTo: window.location.origin }
     });
-    if (error) alert("Erro Google: " + error.message);
+    if (error) alert(error.message);
   };
 }
