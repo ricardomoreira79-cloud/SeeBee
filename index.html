@@ -1,237 +1,290 @@
 <!doctype html>
-<html lang="pt-br">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>SeeBee – Meliponicultura</title>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>SeeBee – Meliponicultura</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
 
-    <link rel="manifest" href="./manifest.webmanifest" />
-    <meta name="theme-color" content="#0b1220" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="stylesheet" href="./css/style.css" />
 
-    <link rel="stylesheet" href="./css/style.css" />
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Leaflet -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-      crossorigin=""
-    />
-  </head>
+  <!-- Supabase JS (CDN) -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
 
-  <body>
-    <!-- TOAST (mensagem rápida) -->
-    <div id="toast" class="toast" hidden></div>
+<body>
+  <!-- TOPBAR (aparece só logado) -->
+  <header id="topbar" class="topbar hidden">
+    <div class="brand">
+      <div class="brandIcon">🐝</div>
+      <div class="brandText">
+        <div class="brandTitle">SeeBee</div>
+        <div class="brandSub">Meliponicultura</div>
+      </div>
+    </div>
 
-    <!-- AUTH (tela inicial) -->
-    <section id="auth" class="screen screen-auth">
-      <div class="auth_card">
-        <div class="brand_center">
-          <div class="brand_logo">🐝</div>
-          <div class="brand_title">SeeBee</div>
-          <div class="brand_subtitle">Meliponicultura</div>
+    <div class="topbarRight">
+      <div id="onlinePill" class="pill hidden" title="Status de conexão">
+        <span id="onlineDot" class="dot"></span>
+        <span id="onlineText">Online</span>
+      </div>
+
+      <button id="btnMenu" class="iconBtn" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <!-- DRAWER MENU -->
+  <aside id="drawer" class="drawer hidden" aria-hidden="true">
+    <div class="drawerHeader">
+      <div class="drawerUser">
+        <div class="avatar" id="drawerAvatar">👤</div>
+        <div class="drawerUserText">
+          <div id="drawerEmail" class="drawerEmail">—</div>
+          <div class="drawerSmall">Conta ativa</div>
+        </div>
+      </div>
+      <button id="btnCloseDrawer" class="iconBtn" aria-label="Fechar">✕</button>
+    </div>
+
+    <nav class="drawerNav">
+      <button class="drawerItem" data-nav="home">🏕️ Registrar</button>
+      <button class="drawerItem" data-nav="trails">🧭 Minhas Trilhas</button>
+      <button class="drawerItem" data-nav="nests">📍 Meus ninhos</button>
+      <button class="drawerItem" data-nav="profile">👤 Meus dados</button>
+    </nav>
+
+    <div class="drawerFooter">
+      <button id="btnLogout" class="btn danger">Sair</button>
+    </div>
+  </aside>
+
+  <div id="backdrop" class="backdrop hidden"></div>
+
+  <!-- AUTH SCREEN -->
+  <main id="authScreen" class="authScreen">
+    <section class="card authCard">
+      <div class="authBrand">
+        <div class="authBee">🐝</div>
+        <div class="authTitle">SeeBee</div>
+        <div class="authSub">Meliponicultura</div>
+      </div>
+
+      <h2 class="h2">Entrar</h2>
+      <p class="muted">Use seu e-mail e senha (Supabase Auth) ou Google.</p>
+
+      <div class="form">
+        <label>E-mail</label>
+        <input id="authEmail" type="email" placeholder="seuemail@..." autocomplete="email" />
+
+        <label>Senha</label>
+        <input id="authPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+
+        <div class="row">
+          <button id="btnLogin" class="btn primary">Entrar</button>
+          <button id="btnSignup" class="btn">Criar conta</button>
         </div>
 
-        <h1 class="auth_title">Entrar</h1>
-        <p class="auth_subtitle">Use seu e-mail e senha (Supabase Auth) ou Google.</p>
+        <div class="divider"></div>
 
-        <div class="field">
-          <label for="authEmail">E-mail</label>
-          <input id="authEmail" type="email" placeholder="seuemail@..." autocomplete="email" />
-        </div>
+        <button id="btnGoogle" class="btn google">Entrar com Google</button>
 
-        <div class="field">
-          <label for="authPass">Senha</label>
-          <input id="authPass" type="password" placeholder="••••••••" autocomplete="current-password" />
-        </div>
-
-        <div class="row row_actions">
-          <button id="btnLogin" class="btn btn_primary">Entrar</button>
-          <button id="btnSignup" class="btn btn_ghost">Criar conta</button>
-        </div>
-
-        <div id="authMsg" class="msg"></div>
-
-        <button id="btnGoogle" class="btn btn_google">Entrar com Google</button>
+        <div id="authMsg" class="msg hidden"></div>
       </div>
     </section>
+  </main>
 
-    <!-- APP (após logar) -->
-    <section id="app" class="screen screen-app" hidden>
-      <!-- Topbar -->
-      <header class="topbar">
-        <div class="topbar_left">
-          <div class="brand_inline">
-            <div class="brand_inline_logo">🐝</div>
-            <div class="brand_inline_text">
-              <div class="brand_inline_title">SeeBee</div>
-              <div class="brand_inline_subtitle">Meliponicultura</div>
+  <!-- APP SCREEN -->
+  <main id="appScreen" class="appScreen hidden">
+    <!-- HOME: Registrar -->
+    <section id="screenHome" class="screen">
+      <div class="grid">
+        <section class="card">
+          <h2 class="h2">Trilha</h2>
+          <p class="muted">Inicie a trilha e depois marque ninhos com observação e foto.</p>
+
+          <div class="row">
+            <button id="btnStartRoute" class="btn primary">Iniciar trilha</button>
+            <button id="btnFinishRoute" class="btn" disabled>Finalizar trilha</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="statLabel">Distância</div>
+              <div id="distanceText" class="statValue">0 m</div>
+            </div>
+            <div class="stat">
+              <div class="statLabel">Ninhos nesta trilha</div>
+              <div id="nestsCountText" class="statValue">0</div>
             </div>
           </div>
-        </div>
 
-        <div class="topbar_right">
-          <div id="netBadge" class="netBadge net_on" title="Status de conexão">
-            <span class="dot"></span><span id="netText">Online</span>
-          </div>
-
-          <button id="btnMenu" class="iconBtn" aria-label="Menu">≡</button>
-        </div>
-      </header>
-
-      <!-- Drawer -->
-      <aside id="drawer" class="drawer" aria-hidden="true">
-        <div class="drawer_head">
-          <div class="drawer_user">
-            <div class="drawer_user_label">Usuário</div>
-            <div id="drawerEmail" class="drawer_user_value">—</div>
-          </div>
-          <button id="btnCloseDrawer" class="iconBtn" aria-label="Fechar">✕</button>
-        </div>
-
-        <nav class="drawer_nav">
-          <button class="drawer_item" data-route="home">Trilha (Gravar)</button>
-          <button class="drawer_item" data-route="trails">Minhas Trilhas</button>
-          <button class="drawer_item" data-route="nests">Meus Ninhos</button>
-          <button class="drawer_item" data-route="profile">Meus Dados</button>
-        </nav>
-
-        <div class="drawer_footer">
-          <button id="btnLogout" class="btn btn_danger">Sair</button>
-        </div>
-      </aside>
-
-      <!-- Conteúdo -->
-      <main class="container">
-        <!-- HOME: gravar trilha -->
-        <section id="page-home" class="page">
-          <div class="grid">
-            <div class="col">
-              <div class="card">
-                <h2>Trilha</h2>
-                <p class="muted">Inicie a trilha e depois marque ninhos com observação e foto.</p>
-
-                <div class="row">
-                  <button id="btnStartRoute" class="btn btn_primary">Iniciar trilha</button>
-                  <button id="btnFinishRoute" class="btn btn_ghost" disabled>Finalizar trilha</button>
-                </div>
-
-                <div class="stats">
-                  <div class="stat">
-                    <div class="stat_label">Distância</div>
-                    <div id="routeDistance" class="stat_value">0 m</div>
-                  </div>
-                  <div class="stat">
-                    <div class="stat_label">Ninhos nesta trilha</div>
-                    <div id="routeNestCount" class="stat_value">0</div>
-                  </div>
-                </div>
-
-                <div id="routeMsg" class="msg"></div>
-              </div>
-
-              <div class="card">
-                <h2>Marcar ninho</h2>
-
-                <div class="field">
-                  <label for="nestNote">Observação</label>
-                  <input id="nestNote" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
-                </div>
-
-                <div class="field">
-                  <label for="nestStatus">Status</label>
-                  <select id="nestStatus">
-                    <option value="CATALOGADO">CATALOGADO</option>
-                    <option value="CAPTURADO">CAPTURADO</option>
-                  </select>
-                </div>
-
-                <div class="field">
-                  <label for="nestSpecies">Espécie (opcional)</label>
-                  <input id="nestSpecies" type="text" placeholder="Ex.: Jataí, Uruçu, Mandaçaia... ou Não identifiquei" />
-                </div>
-
-                <div class="field">
-                  <label for="nestPhoto">Foto (opcional)</label>
-                  <input id="nestPhoto" type="file" accept="image/*" />
-                </div>
-
-                <button id="btnAddNest" class="btn btn_primary">Marcar ninho</button>
-
-                <div id="nestMsg" class="msg"></div>
-              </div>
-
-              <div class="card">
-                <h2>Registros desta trilha</h2>
-                <p class="muted">Os ninhos marcados aparecem aqui para conferência rápida.</p>
-                <div id="nestList" class="list"></div>
-              </div>
-            </div>
-
-            <div class="col">
-              <div class="card card_map">
-                <div id="map" class="map"></div>
-              </div>
-            </div>
-          </div>
+          <div id="routeHint" class="hint hidden"></div>
         </section>
 
-        <!-- MINHAS TRILHAS -->
-        <section id="page-trails" class="page" hidden>
-          <div class="card">
-            <h2>Minhas Trilhas</h2>
-            <div id="trailsEmpty" class="empty">Nenhuma trilha salva.</div>
-            <div id="trailsList" class="list"></div>
-          </div>
+        <section class="card">
+          <h2 class="h2">Marcar ninho</h2>
+
+          <label>Observação</label>
+          <input id="nestNote" type="text" placeholder="Ex.: entrada ativa, árvore X, sombra, sinais..." />
+
+          <label>Status</label>
+          <select id="nestStatus">
+            <option value="CATALOGADO">CATALOGADO</option>
+            <option value="CAPTURADO">CAPTURADO</option>
+          </select>
+
+          <label>Espécie (opcional)</label>
+          <input id="nestSpecies" type="text" placeholder="Ex.: Jataí, Uruçu, Mandaçaia... ou Não identifiquei" />
+
+          <label>Foto (opcional)</label>
+          <input id="nestPhoto" type="file" accept="image/*" />
+
+          <button id="btnMarkNest" class="btn primary">Marcar ninho</button>
+
+          <div id="nestMsg" class="msg hidden"></div>
         </section>
+      </div>
 
-        <!-- MEUS NINHOS -->
-        <section id="page-nests" class="page" hidden>
-          <div class="card">
-            <h2>Meus Ninhos</h2>
-            <div id="nestsEmpty" class="empty">Nenhum ninho catalogado.</div>
-            <div id="allNestsList" class="list"></div>
-          </div>
-        </section>
+      <section class="card">
+        <h2 class="h2">Registros desta trilha</h2>
+        <p class="muted">Os ninhos marcados aparecem aqui para conferência rápida.</p>
+        <div id="nestList" class="nestList"></div>
+      </section>
 
-        <!-- MEUS DADOS -->
-        <section id="page-profile" class="page" hidden>
-          <div class="card">
-            <h2>Meus Dados</h2>
-            <p class="muted">
-              Esta tela já está preparada para evoluir (foto, nome completo, endereço, WhatsApp, CPF, perfil no app etc.).
-            </p>
-
-            <div class="field">
-              <label>E-mail</label>
-              <input id="profileEmail" type="text" disabled />
-            </div>
-
-            <div class="field">
-              <label>Tipo de usuário</label>
-              <select id="profileRole">
-                <option value="ENTUSIASTA">Entusiasta</option>
-                <option value="ESTUDANTE">Estudante</option>
-                <option value="MELIPONICULTOR">Meliponicultor</option>
-                <option value="PESQUISADOR">Pesquisador</option>
-              </select>
-            </div>
-
-            <div class="row">
-              <button id="btnSaveProfile" class="btn btn_primary">Salvar</button>
-            </div>
-
-            <div id="profileMsg" class="msg"></div>
-          </div>
-        </section>
-      </main>
+      <section class="card mapCard">
+        <div id="map" class="map"></div>
+        <div class="muted small">O trajeto e os ninhos serão desenhados no mapa em tempo real.</div>
+      </section>
     </section>
 
-    <script type="module" src="./src/main.js"></script>
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-      crossorigin=""
-    ></script>
-  </body>
+    <!-- Trails -->
+    <section id="screenTrails" class="screen hidden">
+      <section class="card">
+        <h2 class="h2">Minhas Trilhas</h2>
+        <div id="trailsEmpty" class="empty hidden">Nenhuma trilha salva.</div>
+        <div id="trailsList" class="list"></div>
+      </section>
+    </section>
+
+    <!-- Nests -->
+    <section id="screenNests" class="screen hidden">
+      <section class="card">
+        <h2 class="h2">Meus ninhos</h2>
+        <div id="nestsEmpty" class="empty hidden">Nenhum ninho catalogado.</div>
+        <div id="allNestsList" class="list"></div>
+      </section>
+    </section>
+
+    <!-- Profile -->
+    <section id="screenProfile" class="screen hidden">
+      <section class="card">
+        <h2 class="h2">Meus dados</h2>
+
+        <div class="grid2">
+          <div>
+            <label>Nome completo</label>
+            <input id="p_full_name" type="text" placeholder="Seu nome" />
+          </div>
+          <div>
+            <label>E-mail</label>
+            <input id="p_email" type="email" placeholder="email@..." disabled />
+          </div>
+
+          <div>
+            <label>WhatsApp</label>
+            <input id="p_whatsapp" type="text" placeholder="(xx) xxxxx-xxxx" />
+          </div>
+
+          <div>
+            <label>Você é</label>
+            <select id="p_role_type">
+              <option value="">Selecione...</option>
+              <option value="entusiasta">Entusiasta</option>
+              <option value="estudante">Estudante</option>
+              <option value="meliponicultor">Meliponicultor</option>
+              <option value="pesquisador">Pesquisador</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Documento</label>
+            <select id="p_doc_type">
+              <option value="CPF">CPF</option>
+              <option value="CNPJ">CNPJ</option>
+            </select>
+          </div>
+          <div>
+            <label>Nº do documento</label>
+            <input id="p_doc_value" type="text" placeholder="CPF/CNPJ" />
+          </div>
+
+          <div class="colspan2">
+            <h3 class="h3">Endereço</h3>
+          </div>
+
+          <div>
+            <label>Rua</label>
+            <input id="p_address_street" type="text" />
+          </div>
+          <div>
+            <label>Cidade</label>
+            <input id="p_address_city" type="text" />
+          </div>
+          <div>
+            <label>Estado</label>
+            <input id="p_address_state" type="text" />
+          </div>
+          <div>
+            <label>CEP</label>
+            <input id="p_address_zip" type="text" />
+          </div>
+
+          <div class="colspan2">
+            <h3 class="h3">Meliponário (se aplicável)</h3>
+            <p class="muted">Se você for meliponicultor e usar CNPJ, pode cadastrar aqui.</p>
+          </div>
+
+          <div>
+            <label>Nome do meliponário</label>
+            <input id="p_meliponary_name" type="text" placeholder="Ex.: Meliponário do João" />
+          </div>
+
+          <div class="row alignCenter">
+            <input id="p_meliponary_has_own_address" type="checkbox" />
+            <span class="muted">Meliponário tem endereço diferente do usuário</span>
+          </div>
+
+          <div>
+            <label>Rua (meliponário)</label>
+            <input id="p_meliponary_address_street" type="text" />
+          </div>
+          <div>
+            <label>Cidade (meliponário)</label>
+            <input id="p_meliponary_address_city" type="text" />
+          </div>
+          <div>
+            <label>Estado (meliponário)</label>
+            <input id="p_meliponary_address_state" type="text" />
+          </div>
+          <div>
+            <label>CEP (meliponário)</label>
+            <input id="p_meliponary_address_zip" type="text" />
+          </div>
+
+          <div class="colspan2">
+            <button id="btnSaveProfile" class="btn primary">Salvar meus dados</button>
+            <div id="profileMsg" class="msg hidden"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
 </html>
