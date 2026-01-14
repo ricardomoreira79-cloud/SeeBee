@@ -9,9 +9,7 @@ export async function createNest(supabase, payload) {
   if (payload.photoFile) {
     try {
       photo_url = await uploadPublic(supabase, payload.photoFile, state.user.id);
-    } catch (e) { 
-      console.warn("Upload falhou, salvando sem foto:", e); 
-    }
+    } catch (e) { console.warn("Erro no upload da foto:", e); }
   }
 
   const { data, error } = await supabase
@@ -23,7 +21,7 @@ export async function createNest(supabase, payload) {
       lng: payload.lng,
       note: payload.note || "",
       status: "CATALOGADO",
-      photo_url: photo_url 
+      photo_url: photo_url // Confirme se no banco é photo_url ou photoUrl
     })
     .select().single();
 
