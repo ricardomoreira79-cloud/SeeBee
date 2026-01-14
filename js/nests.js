@@ -1,34 +1,32 @@
 // js/nests.js
-import { state } from "./state.js";
-import { uploadPublic } from "./storage.js";
+import { state } from "./state.js"; // IMPORT CORRIGIDO
+import { uploadPublic } from "./storage.js"; // IMPORT CORRIGIDO
 
 export async function createNest(supabase, payload) {
-  if (!state.user) throw new Error("Não autenticado");
+  if (!state.user) throw new Error("Usuário não autenticado.");
   
   let photo_url = null;
   if (payload.photoFile) {
-    photo_url = await uploadPublic(supabase, payload.photoFile, state.user.id);
+    // Tenta fazer upload, se falhar o ninho ainda é criado sem foto
+    try {
+      photo_url = await uploadPublic(supabase, payload.photoFile, state.user.id);
+    } catch (e) { console.error("Erro upload:", e); }
   }
 
   const { data, error } = await supabase
     .from("nests")
     .insert({
       user_id: state.user.id,
-      route_id: payload.route_id || null,
+      route_id: payload.route_id,
       lat: payload.lat,
       lng: payload.lng,
       note: payload.note,
-      status: payload.status || "DEPOSITADO",
-      species: payload.species,
-      photo_url,
-      cataloged_at: new Date().toISOString(),
-      // Se já marcar como capturado, define a data de captura agora
-      captured_at: payload.status === "CAPTURADO" ? new Date().toISOString() : null
+      status: "CATALOGADO",
+      photo_url: photo_url // Verifique se a coluna no banco é exatamente photo_url
     })
     .select().single();
 
   if (error) throw error;
-  state.allNests.unshift(data);
   return data;
 }
 
@@ -41,19 +39,5 @@ export async function loadMyNests(supabase) {
 
   if (error) throw error;
   state.allNests = data || [];
-  return state.allNests;
-}
-
-export async function markAsCaptured(supabase, nestId) {
-  const { data, error } = await supabase
-    .from("nests")
-    .update({ 
-      status: "CAPTURADO", 
-      captured_at: new Date().toISOString() 
-    })
-    .eq("id", nestId)
-    .select().single();
-
-  if (error) throw error;
   return data;
 }

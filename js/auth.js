@@ -8,8 +8,7 @@ export function bindAuth(supabase, onLoggedIn) {
       state.user = session.user;
       ui.screenLogin.classList.add("hidden");
       ui.screenApp.classList.remove("hidden");
-      ui.menuEmailDisplay.textContent = session.user.email;
-      ui.menuAvatarChar.textContent = session.user.email[0].toUpperCase();
+      document.getElementById("menu-email-display").textContent = session.user.email;
       await onLoggedIn();
     } else {
       state.user = null;
@@ -31,10 +30,9 @@ export function bindAuth(supabase, onLoggedIn) {
       email: ui.email.value, password: ui.password.value
     });
     if (error) alert(error.message);
-    else alert("Verifique seu e-mail para confirmar a conta!");
+    else alert("Verifique seu e-mail!");
   };
 
-  // REDIRECT GOOGLE: Importante para Vercel
   ui.btnGoogle.onclick = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

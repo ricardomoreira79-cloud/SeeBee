@@ -1,87 +1,59 @@
 /* css/main.css */
 :root {
-  --green-primary: #22c55e;
-  --bg-dark: #020617;
-  --card-dark: #0f172a;
-  --text-main: #f8fafc;
-  --text-soft: #94a3b8;
-  --border-dark: #1e293b;
-  --danger: #ef4444;
+  --primary: #22c55e;
+  --stop: #ef4444;
+  --bg: #020617;
+  --card: #0f172a;
+  --border: #1e293b;
+  --text: #f8fafc;
 }
 
 body.light-theme {
-  --bg-dark: #f8fafc;
-  --card-dark: #ffffff;
-  --text-main: #020617;
-  --text-soft: #475569;
-  --border-dark: #e2e8f0;
+  --bg: #f8fafc; --card: #ffffff; --text: #020617; --border: #e2e8f0;
 }
 
-* { box-sizing: border-box; }
 body {
-  margin: 0; font-family: system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at top, #064e3b 0%, var(--bg-dark) 60%);
-  color: var(--text-main); transition: 0.3s; min-height: 100vh;
+  margin: 0; font-family: sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg) 60%);
+  color: var(--text); min-height: 100vh;
 }
 
 .hidden { display: none !important; }
 
-/* AUTH SCREEN (image_ab22c3.jpg) */
-#auth-screen {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 100vh; padding: 20px;
-}
-.brand-hero { text-align: center; margin-bottom: 30px; }
-.brand-logo { font-size: 80px; margin-bottom: 10px; }
-.brand-name { font-size: 36px; font-weight: 900; letter-spacing: 2px; }
-
-#auth-card {
-  width: 100%; max-width: 420px; background: var(--card-dark);
-  padding: 30px; border-radius: 24px; border: 1px solid var(--border-dark);
-  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-}
-
-.auth-field { margin-bottom: 15px; }
-.auth-field label { display: block; font-size: 13px; margin-bottom: 5px; color: var(--text-soft); }
-.auth-field input, .auth-field select, textarea {
-  width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--border-dark);
-  background: rgba(0,0,0,0.2); color: white; outline: none;
-}
-body.light-theme .auth-field input { background: #fff; color: #000; }
-
-.btn-primary { 
-  width: 100%; background: var(--green-primary); color: #052e16; 
-  border: none; padding: 15px; border-radius: 14px; font-weight: 800; cursor: pointer;
-}
-.btn-google {
-  width: 100%; background: transparent; border: 1px solid var(--border-dark);
-  color: white; padding: 12px; border-radius: 14px; margin-top: 15px;
-  display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
-}
-
-/* SIDE MENU */
+/* FIX: Z-INDEX MENU ACIMA DO MAPA */
 .side-drawer {
-  position: fixed; top: 0; left: -300px; width: 300px; height: 100%;
-  background: var(--card-dark); z-index: 1000; transition: 0.4s ease;
-  border-right: 1px solid var(--border-dark); padding: 20px;
+  position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
+  background: var(--card); z-index: 2500; transition: 0.3s;
+  border-right: 1px solid var(--border); box-shadow: 10px 0 30px rgba(0,0,0,0.5);
 }
 .side-drawer.open { left: 0; }
-.menu-item { 
-  display: block; width: 100%; background: none; border: none; color: var(--text-main);
-  padding: 15px; text-align: left; border-radius: 12px; cursor: pointer; font-size: 16px;
-}
-.menu-item:hover, .menu-item.active { background: rgba(34, 197, 94, 0.1); color: var(--green-primary); }
 
-/* APP LAYOUT */
-header.app-header {
-  padding: 15px; display: flex; justify-content: space-between; align-items: center;
-  background: rgba(2, 6, 23, 0.7); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 900;
-}
-#map { height: 400px; width: 100%; border-radius: 20px; margin: 15px 0; border: 1px solid var(--border-dark); }
-.fab-btn {
-  position: fixed; bottom: 30px; right: 20px; width: 65px; height: 65px; border-radius: 50%;
-  background: var(--green-primary); color: #052e16; font-size: 30px; border: none;
-  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4); z-index: 800; cursor: pointer;
+/* BOTÕES PADRONIZADOS */
+.btn-primary { 
+  width: 100%; background: var(--primary); color: #052e16; border: none; 
+  padding: 15px; border-radius: 14px; font-weight: 800; cursor: pointer;
 }
 
-.card { background: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 20px; padding: 20px; margin-bottom: 15px; }
+.btn-primary-sm {
+  background: var(--primary); color: #052e16; border: none; padding: 10px 20px;
+  border-radius: 10px; font-weight: 700; cursor: pointer;
+}
+
+.btn-stop-sm {
+  background: var(--stop); color: #fff; border: none; padding: 10px 20px;
+  border-radius: 10px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-outline-sm {
+  background: transparent; border: 1px solid var(--border); color: var(--text);
+  padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;
+}
+
+.btn-outline-photo {
+  display: block; text-align: center; padding: 15px; border: 1px dashed var(--border);
+  border-radius: 12px; margin: 15px 0; cursor: pointer;
+}
+
+#map { height: 400px; width: 100%; border-radius: 20px; margin: 15px 0; z-index: 1; }
+.card-summary { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+#distanceText { font-size: 22px; font-weight: 900; }
