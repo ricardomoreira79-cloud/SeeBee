@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SeeBee – Meliponicultura Profissional</title>
+  <title>SeeBee – Meliponicultura</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="./css/main.css">
@@ -17,8 +17,8 @@
       <div class="brand-name">SeeBee</div>
     </div>
     <div id="auth-card">
-      <h2 style="margin:0 0 10px">Entrar</h2>
-      <p style="color:var(--text-soft); font-size:14px; margin-bottom:20px">Gerencie seus meliponários e trilhas.</p>
+      <h2 style="margin:0 0 5px">Entrar</h2>
+      <p style="color:var(--text-soft); font-size:14px; margin-bottom:25px">Gerencie seus meliponários e trilhas.</p>
       <div class="auth-field">
         <label>E-mail</label>
         <input id="email" type="email" placeholder="seu@email.com">
@@ -32,34 +32,34 @@
       <button id="btnGoogle" class="btn-google">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Entrar com Google
       </button>
-      <div id="authMsg" class="auth-msg" style="margin-top:15px; text-align:center; font-size:14px"></div>
+      <div id="authMsg" style="margin-top:15px; text-align:center; color:var(--green-primary)"></div>
     </div>
   </div>
 
   <div id="app-screen" class="hidden">
     <div id="side-menu" class="side-drawer">
-      <div class="drawer-header">
-        <div class="profile-mini" style="display:flex; align-items:center; gap:12px">
-          <div class="avatar-circle" id="menu-avatar-char">U</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px">
+        <div style="display:flex; align-items:center; gap:12px">
+          <div style="width:45px; height:45px; background:var(--green-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:#052e16" id="menu-avatar-char">U</div>
           <span id="menu-email-display" style="font-size:14px; font-weight:600">...</span>
         </div>
-        <button id="close-menu" style="background:none; border:none; color:var(--text-soft); font-size:24px">✕</button>
+        <button id="close-menu" style="background:none; border:none; color:var(--text-soft); font-size:28px">✕</button>
       </div>
       <nav class="drawer-nav">
-        <button class="menu-item active" data-target="view-traps">🗺️ Iniciar Trilha / Iscas</button>
+        <button class="menu-item active" data-target="view-traps">🗺️ Trilhas e Iscas</button>
         <button class="menu-item" data-target="view-profile">👤 Meus Dados</button>
         <button class="menu-item" data-target="view-meliponaries">🏠 Minhas Colônias</button>
         <button class="menu-item" data-target="view-captures">🍯 Minhas Capturas</button>
         <button class="menu-item" data-target="view-wild">🌳 Vi na Mata</button>
         <button class="menu-item" data-target="view-shop">🛒 Compre</button>
-        <hr style="border:0; border-top:1px solid var(--border-dark); margin:10px 0">
-        <button id="btnToggleTheme" class="menu-item">🌓 Alternar Tema (Light/Dark)</button>
-        <button id="btnLogout" class="menu-item danger">🚪 Sair</button>
+        <hr style="border:0; border-top:1px solid var(--border-dark); margin:15px 0">
+        <button id="btnToggleTheme" class="menu-item">🌓 Modo Claro/Escuro</button>
+        <button id="btnLogout" class="menu-item danger" style="color:var(--danger)">🚪 Sair da Conta</button>
       </nav>
     </div>
 
     <header class="app-header">
-      <button id="open-menu" style="background:none; border:none; color:white; font-size:24px">☰</button>
+      <button id="open-menu" style="background:none; border:none; color:white; font-size:26px">☰</button>
       <div class="brand-mini" style="font-weight:900; letter-spacing:1px">SEEBEE</div>
       <div class="status-pill" id="statusPill">
         <span id="onlineDot" class="status-dot"></span> <span id="onlineText">Online</span>
@@ -68,33 +68,33 @@
 
     <main style="padding:16px">
       <section id="view-traps" class="view-section active">
-        <div class="card-maturacao" style="display:flex; justify-content:space-between; align-items:center">
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center">
           <div>
-            <div id="distanceText" style="font-size:20px; font-weight:800">0 m</div>
-            <div id="nestsCountText" style="color:var(--text-soft); font-size:13px">0 ninhos marcados</div>
+            <div id="distanceText" style="font-size:24px; font-weight:900">0 m</div>
+            <div id="nestsCountText" style="color:var(--text-soft); font-size:13px">0 ninhos na trilha</div>
           </div>
-          <button id="btnStartRoute" class="btn-primary" style="width:auto; padding:10px 20px">▶ Iniciar</button>
-          <button id="btnFinishRoute" class="btn-outline hidden" style="width:auto; margin:0; border-color:var(--danger); color:var(--danger)">■ Parar</button>
+          <button id="btnStartRoute" class="btn-primary" style="width:auto; padding:10px 25px">▶ Iniciar</button>
+          <button id="btnFinishRoute" class="btn-outline hidden" style="width:auto; margin:0; border-color:var(--danger); color:var(--danger)">■ Finalizar</button>
         </div>
         <div id="map"></div>
         <button id="btnMarkNest" class="fab-btn" disabled>+</button>
-        <div id="routeHint" class="hidden" style="margin-top:10px; text-align:center; padding:10px; border-radius:10px; background:rgba(34, 197, 94, 0.1)"></div>
+        <div id="routeHint" class="hidden"></div>
       </section>
 
       <section id="view-profile" class="view-section hidden">
-        <h2 style="margin-bottom:20px">👤 Meus Dados</h2>
-        <div class="card-maturacao">
+        <h2>Meus Dados</h2>
+        <div class="card">
           <div class="auth-field">
-            <label>Tipo de Perfil</label>
+            <label>Perfil</label>
             <select id="userRole">
               <option value="entusiasta">Entusiasta</option>
-              <option value="meliponicultor" selected>Meliponicultor</option>
+              <option value="meliponicultor">Meliponicultor</option>
             </select>
           </div>
           <div id="meliponicultor-fields">
             <div class="auth-field">
               <label>Nome do Meliponário</label>
-              <input id="meliponaryName" type="text" placeholder="Ex: Meliponário das Águas">
+              <input id="meliponaryName" type="text" placeholder="Nome da sua criação">
             </div>
             <div class="auth-field">
               <label>Registro</label>
@@ -108,26 +108,27 @@
               <input id="userCNPJ" type="text" placeholder="00.000.000/0000-00">
             </div>
           </div>
-          <button id="btnSaveProfile" class="btn-primary">Atualizar Dados</button>
+          <button id="btnSaveProfile" class="btn-primary">Atualizar Perfil</button>
         </div>
       </section>
 
       <section id="view-captures" class="view-section hidden">
-        <h2>🍯 Minhas Capturas</h2>
+        <h2>🍯 Minhas Capturas (35 dias)</h2>
         <div id="capturedList"></div>
       </section>
     </main>
 
     <div id="nest-modal" class="modal-backdrop" style="display:none">
       <div class="modal-card">
-        <h4 style="margin:0 0 10px">Marcar Isca / Ninho</h4>
+        <h3>Marcar Isca</h3>
+        <p style="color:var(--text-soft); font-size:13px">Status padrão: CATALOGADO</p>
         <div class="auth-field">
-          <label>Observação (Localização, árvore, etc.)</label>
-          <textarea id="nestNote" rows="3" placeholder="Ex: No galho da mangueira a 2m..."></textarea>
+          <label>Observação</label>
+          <textarea id="nestNote" rows="3"></textarea>
         </div>
         <div class="auth-field">
           <label class="btn-outline" style="display:block; text-align:center; padding:15px; border-style:dashed">
-            📷 Capturar Foto
+            📷 Foto do Local
             <input id="nestPhoto" type="file" accept="image/*" capture="environment" style="display:none">
           </label>
         </div>
