@@ -1,5 +1,6 @@
 // js/nests.js
-import { state } from "./state.js"; 
+// CORREÇÃO: Caminho arrumado para ./ (pasta local)
+import { state } from "./state.js";
 import { uploadPublic } from "./storage.js";
 
 export async function createNest(supabase, payload) {
@@ -9,9 +10,7 @@ export async function createNest(supabase, payload) {
   if (payload.photoFile) {
     try {
       photo_url = await uploadPublic(supabase, payload.photoFile, state.user.id);
-    } catch (e) { 
-      console.warn("Upload falhou, salvando sem foto:", e); 
-    }
+    } catch(e) { console.error("Upload falhou", e); }
   }
 
   const { data, error } = await supabase
@@ -23,11 +22,14 @@ export async function createNest(supabase, payload) {
       lng: payload.lng,
       note: payload.note || "",
       status: payload.status || "CATALOGADO",
-      photo_url: photo_url 
+      species: payload.species || null,
+      photo_url,
+      cataloged_at: new Date().toISOString()
     })
     .select().single();
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
+
   state.allNests.unshift(data);
   return data;
 }
@@ -39,7 +41,8 @@ export async function loadMyNests(supabase) {
     .eq("user_id", state.user.id)
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
+
   state.allNests = data || [];
-  return data;
+  return state.allNests;
 }
