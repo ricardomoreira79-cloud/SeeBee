@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SeeBee – Meliponicultura</title>
+  <title>SeeBee – Meliponicultura Profissional</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="./css/main.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body>
+<body class="dark-theme">
 
   <div id="auth-screen">
     <div class="brand-hero">
@@ -38,47 +38,84 @@
   </div>
 
   <div id="app-screen" class="hidden">
+    <div id="side-menu" class="side-drawer">
+      <div class="drawer-header">
+        <div class="profile-mini">
+          <div class="avatar-circle" id="menu-avatar-char">U</div>
+          <span id="menu-email-display">usuario@email.com</span>
+        </div>
+        <button id="close-menu">✕</button>
+      </div>
+      <nav class="drawer-nav">
+        <button class="menu-item active" data-target="view-traps">🗺️ Iniciar Trilha / Iscas</button>
+        <button class="menu-item" data-target="view-profile">👤 Meus Dados</button>
+        <button class="menu-item" data-target="view-meliponaries">🏠 Minhas Colônias</button>
+        <button class="menu-item" data-target="view-captures">🍯 Minhas Capturas</button>
+        <button class="menu-item" data-target="view-wild">🌳 Vi na Mata</button>
+        <button class="menu-item" data-target="view-shop">🛒 Compre</button>
+        <hr>
+        <button id="btnToggleTheme" class="menu-item">🌓 Alternar Tema (Light/Dark)</button>
+        <button id="btnLogout" class="menu-item danger">🚪 Sair da Conta</button>
+      </nav>
+    </div>
+
     <header class="app-header">
-      <div class="brand-mini"><div class="brand-mini-logo">🐝</div> SeeBee</div>
-      <div class="status-pill"><span id="onlineDot" class="status-dot"></span> <span id="onlineText">Online</span></div>
+      <button id="open-menu" class="btn-icon">☰</button>
+      <div class="brand-mini">SeeBee</div>
+      <div class="status-pill" id="statusPill">
+        <span id="onlineDot" class="status-dot"></span>
+        <span id="onlineText">Online</span>
+      </div>
     </header>
 
     <section id="view-traps" class="view-section active">
       <div class="card map-controls">
-        <div class="controls-header">
-          <div class="stats-row"><span id="distanceText">0 m</span> • <span id="nestsCountText">0</span> iscas</div>
+        <div class="stats-row">
+          <span id="distanceText">0 m</span> • <span id="nestsCountText">0</span> ninhos marcados
+        </div>
+        <div class="controls-buttons">
           <button id="btnStartRoute" class="btn-start">▶ Iniciar Trilha</button>
-          <button id="btnFinishRoute" class="btn-stop hidden">■ Parar</button>
+          <button id="btnFinishRoute" class="btn-stop hidden">■ Finalizar e Salvar</button>
         </div>
       </div>
-      <div id="map" style="height: 350px; border-radius: 12px; margin-top:10px;"></div>
-      <button id="btnMarkNest" class="btn-primary" style="width:100%; margin-top:10px;" disabled>+ 🐝 Marcar Ninho</button>
-      <div id="routeHint" class="hidden"></div>
+      <div id="map"></div>
+      <button id="btnMarkNest" class="fab-btn" disabled>+ 🐝</button>
       
-      <div id="trailsList" style="margin-top:20px;"></div>
-      <div id="trailsEmpty" class="hidden subtle">Nenhuma trilha recente.</div>
+      <h3>Histórico Recente</h3>
+      <div id="trailsSummary"></div>
     </section>
 
-    <div id="nest-modal" class="modal-backdrop" style="display:none;">
-      <div class="modal-card">
-        <h4>Novo Ninho</h4>
-        <input id="nestSpecies" type="text" placeholder="Espécie (ex: Jataí)">
-        <select id="nestStatus">
-          <option value="CATALOGADO">Catalogado</option>
-          <option value="CAPTURADO">Capturado (35 dias)</option>
-        </select>
-        <textarea id="nestNote" placeholder="Observações..."></textarea>
-        <label class="btn-outline" style="display:block; text-align:center; padding:10px;">
-          📷 Foto <input id="nestPhoto" type="file" accept="image/*" style="display:none;">
-        </label>
-        <div class="modal-actions">
-          <button id="nestCancel" class="btn-outline">Cancelar</button>
-          <button id="btnConfirmNest" class="btn-primary">Salvar</button>
+    <section id="view-profile" class="view-section hidden">
+      <h2>👤 Meus Dados</h2>
+      <div class="card">
+        <div class="auth-field">
+          <label>Tipo de Perfil</label>
+          <select id="userRole">
+            <option value="entusiasta">Entusiasta</option>
+            <option value="meliponicultor">Meliponicultor</option>
+          </select>
         </div>
+        <div id="meliponicultor-fields" class="hidden">
+          <div class="auth-field">
+            <label>Nome do Meliponário</label>
+            <input id="meliponaryName" type="text" placeholder="Ex: Meliponário Abelha de Ouro">
+          </div>
+          <div class="auth-field">
+            <label>Tipo Jurídico</label>
+            <select id="personType">
+              <option value="PF">Pessoa Física (CPF)</option>
+              <option value="PJ">Pessoa Jurídica (CNPJ)</option>
+            </select>
+          </div>
+          <div id="cnpj-field" class="auth-field hidden">
+            <label>CNPJ</label>
+            <input id="userCNPJ" type="text" placeholder="00.000.000/0000-00">
+          </div>
+        </div>
+        <button id="btnSaveProfile" class="btn-primary">Salvar Perfil</button>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <script type="module" src="./js/main.js"></script>
-</body>
-</html>
+    <section id="view-captures" class="view-section hidden">
+      <h2>🍯 Minhas Capturas</h2>
+      <p class="subtle">Acompanhe o prazo de 35 dias para
