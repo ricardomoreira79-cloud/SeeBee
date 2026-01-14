@@ -2,33 +2,23 @@
 export const state = {
   user: null,
   online: true,
-
-  // trilha ativa
-  currentRoute: null,
-  routePoints: [],
-  nestsThisRoute: [],
-  lastPos: null,
+  map: null,
+  mapReady: false,
+  polyline: null,
   watchId: null,
+  lastPos: null,
   _dist: 0,
-
-  // seleção local
-  selectedFile: null,
-
-  // listas gerais
+  currentRoute: null,
   allTrails: [],
-  allNests: [],
+  allNests: []
 };
 
-// Função para limpar o estado ao deslogar
 export function resetSessionState() {
   state.currentRoute = null;
-  state.routePoints = [];
-  state.nestsThisRoute = [];
   state.lastPos = null;
   state._dist = 0;
+  if (state.watchId) navigator.geolocation.clearWatch(state.watchId);
   state.watchId = null;
-  state.selectedFile = null;
-
   state.allTrails = [];
   state.allNests = [];
 }

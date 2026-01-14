@@ -1,20 +1,19 @@
-import { STORAGE_KEY_ROUTES } from "./config.js";
+// js/storage.js
+import { CONFIG } from "./config.js";
 
-export function loadLocalRoutes() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_ROUTES);
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch (e) {
-    console.error("Erro ao ler localStorage", e);
-    return [];
-  }
-}
+export async function uploadPublic(supabase, file, userId) {
+  if (!file) return null;
 
-export function persistLocalRoutes(routes) {
-  try {
-    localStorage.setItem(STORAGE_KEY_ROUTES, JSON.stringify(routes));
-  } catch (e) {
-    console.error("Erro ao gravar no localStorage", e);
-  }
+  const ext = file.name.split(".").pop();
+  const fileName = `${Date.now()}-${Math.random().toString(16).slice(2)}.${ext}`;
+  const path = `${userId}/${fileName}`; // Pasta isolada por usuário
+
+  const { error } = await supabase.storage
+    .from(CONFIG.STORAGE_BUCKET)
+    .upload(path, file);
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from(CONFIG.STORAGE_BUCKET).getPublicUrl(path);
+  return data.publicUrl;
 }
