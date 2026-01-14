@@ -2,16 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SeeBee – Meliponicultura Profissional</title>
+  <title>SeeBee – Meliponicultura</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="./css/main.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body class="dark-theme">
-
-  <div id="auth-screen">
+<body class="dark-theme"> <div id="auth-screen">
     <div class="brand-hero">
       <div class="brand-logo">🐝</div>
       <div class="brand-name">SeeBee</div>
@@ -42,7 +40,10 @@
       <div class="drawer-header">
         <div class="profile-mini">
           <div class="avatar-circle" id="menu-avatar-char">U</div>
-          <span id="menu-email-display">usuario@email.com</span>
+          <div class="profile-text">
+             <span id="menu-email-display">usuario@email.com</span>
+             <small id="user-role-badge" class="badge">Entusiasta</small>
+          </div>
         </div>
         <button id="close-menu">✕</button>
       </div>
@@ -51,10 +52,10 @@
         <button class="menu-item" data-target="view-profile">👤 Meus Dados</button>
         <button class="menu-item" data-target="view-meliponaries">🏠 Minhas Colônias</button>
         <button class="menu-item" data-target="view-captures">🍯 Minhas Capturas</button>
-        <button class="menu-item" data-target="view-wild">🌳 Vi na Mata</button>
+        <button class="menu-item" data-target="view-wild">🌳 Vi na Mata <span class="badge-new">0</span></button>
         <button class="menu-item" data-target="view-shop">🛒 Compre</button>
         <hr>
-        <button id="btnToggleTheme" class="menu-item">🌓 Alternar Tema (Light/Dark)</button>
+        <button id="btnToggleTheme" class="menu-item">🌓 Alternar Tema (Claro/Escuro)</button>
         <button id="btnLogout" class="menu-item danger">🚪 Sair da Conta</button>
       </nav>
     </div>
@@ -68,54 +69,92 @@
       </div>
     </header>
 
-    <section id="view-traps" class="view-section active">
-      <div class="card map-controls">
-        <div class="stats-row">
-          <span id="distanceText">0 m</span> • <span id="nestsCountText">0</span> ninhos marcados
-        </div>
-        <div class="controls-buttons">
-          <button id="btnStartRoute" class="btn-start">▶ Iniciar Trilha</button>
-          <button id="btnFinishRoute" class="btn-stop hidden">■ Finalizar e Salvar</button>
-        </div>
-      </div>
-      <div id="map"></div>
-      <button id="btnMarkNest" class="fab-btn" disabled>+ 🐝</button>
-      
-      <h3>Histórico Recente</h3>
-      <div id="trailsSummary"></div>
-    </section>
-
-    <section id="view-profile" class="view-section hidden">
-      <h2>👤 Meus Dados</h2>
-      <div class="card">
-        <div class="auth-field">
-          <label>Tipo de Perfil</label>
-          <select id="userRole">
-            <option value="entusiasta">Entusiasta</option>
-            <option value="meliponicultor">Meliponicultor</option>
-          </select>
-        </div>
-        <div id="meliponicultor-fields" class="hidden">
-          <div class="auth-field">
-            <label>Nome do Meliponário</label>
-            <input id="meliponaryName" type="text" placeholder="Ex: Meliponário Abelha de Ouro">
+    <main class="content">
+      <section id="view-traps" class="view-section active">
+        <div class="card map-controls">
+          <div class="stats-row">
+            <span id="distanceText">0 m</span> • <span id="nestsCountText">0</span> ninhos marcados
           </div>
+          <div class="controls-buttons">
+            <button id="btnStartRoute" class="btn-start">▶ Iniciar Trilha</button>
+            <button id="btnFinishRoute" class="btn-stop hidden">■ Finalizar e Salvar</button>
+          </div>
+        </div>
+        <div id="map"></div>
+        <button id="btnMarkNest" class="fab-btn" disabled>+ 🐝</button>
+        
+        <div class="section-header">
+          <h3>Últimas Trilhas</h3>
+          <button class="btn-link" onclick="ui.sideMenu.querySelector('[data-target=view-traps]').click()">Ver mais ></button>
+        </div>
+        <div id="trailsSummary"></div>
+      </section>
+
+      <section id="view-profile" class="view-section hidden">
+        <h2>👤 Meus Dados</h2>
+        <div class="card">
           <div class="auth-field">
-            <label>Tipo Jurídico</label>
-            <select id="personType">
-              <option value="PF">Pessoa Física (CPF)</option>
-              <option value="PJ">Pessoa Jurídica (CNPJ)</option>
+            <label>Tipo de Perfil</label>
+            <select id="userRole">
+              <option value="entusiasta">Entusiasta</option>
+              <option value="meliponicultor">Meliponicultor</option>
             </select>
           </div>
-          <div id="cnpj-field" class="auth-field hidden">
-            <label>CNPJ</label>
-            <input id="userCNPJ" type="text" placeholder="00.000.000/0000-00">
+          <div id="meliponicultor-fields" class="hidden">
+            <div class="auth-field">
+              <label>Nome do Meliponário</label>
+              <input id="meliponaryName" type="text" placeholder="Nome da sua criação">
+            </div>
+            <div class="auth-field">
+              <label>Tipo de Registro</label>
+              <select id="personType">
+                <option value="PF">Pessoa Física (CPF)</option>
+                <option value="PJ">Pessoa Jurídica (CNPJ)</option>
+              </select>
+            </div>
+            <div id="cnpj-field" class="auth-field hidden">
+              <label>CNPJ</label>
+              <input id="userCNPJ" type="text" placeholder="00.000.000/0000-00">
+            </div>
           </div>
+          <button id="btnSaveProfile" class="btn-primary">Salvar Perfil</button>
         </div>
-        <button id="btnSaveProfile" class="btn-primary">Salvar Perfil</button>
-      </div>
-    </section>
+      </section>
 
-    <section id="view-captures" class="view-section hidden">
-      <h2>🍯 Minhas Capturas</h2>
-      <p class="subtle">Acompanhe o prazo de 35 dias para
+      <section id="view-captures" class="view-section hidden">
+        <h2>🍯 Minhas Capturas</h2>
+        <p class="subtle">Monitoramento do prazo de 35 dias.</p>
+        <div id="capturedList" class="list-vertical"></div>
+      </section>
+      
+      <section id="view-meliponaries" class="view-section hidden">
+        <div class="section-title">
+            <h2>🏠 Minhas Colônias</h2>
+            <button class="btn-xs" id="btnAddColony">+ Nova</button>
+        </div>
+        <div id="colonies-list" class="list-vertical"></div>
+      </section>
+    </main>
+
+    <div id="nest-modal" class="modal-backdrop" style="display:none;">
+      <div class="modal-card">
+        <h4>Registrar Nova Isca</h4>
+        <div class="modal-body">
+            <p class="subtle">Status: <strong>CATALOGADO</strong></p>
+            <textarea id="nestNote" placeholder="Dica do local (ex: altura, árvore, ponto de referência)"></textarea>
+            <label class="file-label">
+              📷 Foto do Local
+              <input id="nestPhoto" type="file" accept="image/*" capture="environment">
+            </label>
+        </div>
+        <div class="modal-actions">
+          <button id="nestCancel" class="btn-outline">Cancelar</button>
+          <button id="btnConfirmNest" class="btn-primary">Salvar Registro</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
