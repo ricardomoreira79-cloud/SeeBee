@@ -17,12 +17,11 @@ export function addRoutePoint(lat, lng) {
   if (state.polyline) state.polyline.addLatLng([lat, lng]);
 }
 
-// CORREÇÃO: Função exportada corretamente para main.js
-export function addMarker(lat, lng, color = "orange", label = "") {
+export function addMarker(lat, lng, color = "#fbbf24", label = "") {
   const icon = L.divIcon({
     className: 'custom-pin',
-    html: `<div style="background-color:${color}; width:14px; height:14px; border-radius:50%; border:2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [14, 14]
+    html: `<div style="background-color:${color}; width:16px; height:16px; border-radius:50%; border:3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.4);"></div>`,
+    iconSize: [16, 16]
   });
   L.marker([lat, lng], { icon }).addTo(state.map).bindPopup(label);
 }

@@ -1,16 +1,17 @@
 // js/nests.js
-import { state } from "./state.js"; // IMPORT CORRIGIDO
-import { uploadPublic } from "./storage.js"; // IMPORT CORRIGIDO
+import { state } from "./state.js"; 
+import { uploadPublic } from "./storage.js";
 
 export async function createNest(supabase, payload) {
   if (!state.user) throw new Error("Usuário não autenticado.");
   
   let photo_url = null;
   if (payload.photoFile) {
-    // Tenta fazer upload, se falhar o ninho ainda é criado sem foto
     try {
       photo_url = await uploadPublic(supabase, payload.photoFile, state.user.id);
-    } catch (e) { console.error("Erro upload:", e); }
+    } catch (e) { 
+      console.warn("Upload falhou, salvando sem foto:", e); 
+    }
   }
 
   const { data, error } = await supabase
@@ -20,13 +21,14 @@ export async function createNest(supabase, payload) {
       route_id: payload.route_id,
       lat: payload.lat,
       lng: payload.lng,
-      note: payload.note,
+      note: payload.note || "",
       status: "CATALOGADO",
-      photo_url: photo_url // Verifique se a coluna no banco é exatamente photo_url
+      photo_url: photo_url 
     })
     .select().single();
 
   if (error) throw error;
+  state.allNests.unshift(data);
   return data;
 }
 

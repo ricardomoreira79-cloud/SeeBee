@@ -6,6 +6,7 @@
   --card: #0f172a;
   --border: #1e293b;
   --text: #f8fafc;
+  --text-soft: #94a3b8;
 }
 
 body.light-theme {
@@ -14,46 +15,41 @@ body.light-theme {
 
 body {
   margin: 0; font-family: sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg) 60%);
-  color: var(--text); min-height: 100vh;
+  color: var(--text); min-height: 100vh; overflow-x: hidden;
 }
 
 .hidden { display: none !important; }
 
-/* FIX: Z-INDEX MENU ACIMA DO MAPA */
+/* MENU LATERAL - Z-INDEX CORRIGIDO */
 .side-drawer {
   position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
-  background: var(--card); z-index: 2500; transition: 0.3s;
+  background: var(--card); z-index: 5000; transition: 0.3s ease;
   border-right: 1px solid var(--border); box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+  padding: 20px;
 }
 .side-drawer.open { left: 0; }
 
-/* BOTÕES PADRONIZADOS */
-.btn-primary { 
-  width: 100%; background: var(--primary); color: #052e16; border: none; 
-  padding: 15px; border-radius: 14px; font-weight: 800; cursor: pointer;
-}
-
-.btn-primary-sm {
-  background: var(--primary); color: #052e16; border: none; padding: 10px 20px;
-  border-radius: 10px; font-weight: 700; cursor: pointer;
+/* BOTÕES PADRONIZADOS (PROFISSIONAIS) */
+.btn-primary, .btn-primary-sm { 
+  background: var(--primary); color: #052e16; border: none; padding: 12px 20px;
+  border-radius: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 
 .btn-stop-sm {
   background: var(--stop); color: #fff; border: none; padding: 10px 20px;
-  border-radius: 10px; font-weight: 700; cursor: pointer;
+  border-radius: 12px; font-weight: 800; cursor: pointer;
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 .btn-outline-sm {
   background: transparent; border: 1px solid var(--border); color: var(--text);
-  padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;
+  padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer;
 }
 
-.btn-outline-photo {
-  display: block; text-align: center; padding: 15px; border: 1px dashed var(--border);
-  border-radius: 12px; margin: 15px 0; cursor: pointer;
-}
+#map { height: 400px; width: 100%; border-radius: 20px; margin: 15px 0; z-index: 1; border: 1px solid var(--border); }
 
-#map { height: 400px; width: 100%; border-radius: 20px; margin: 15px 0; z-index: 1; }
-.card-summary { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-#distanceText { font-size: 22px; font-weight: 900; }
+.card-summary { 
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px; 
+  padding: 20px; display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}

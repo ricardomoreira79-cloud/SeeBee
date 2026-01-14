@@ -9,30 +9,25 @@ import { createNest, loadMyNests } from "./nests.js";
 
 const supabase = getSupabase();
 
-function setupUIListeners() {
+function setupListeners() {
   ui.openMenu.onclick = () => ui.sideMenu.classList.add("open");
   ui.closeMenu.onclick = () => ui.sideMenu.classList.remove("open");
-  
+
   document.querySelectorAll(".menu-item").forEach(item => {
     item.onclick = () => {
       const target = item.dataset.target;
       if(target) {
         switchTab(target);
         ui.sideMenu.classList.remove("open");
-        if(target === "view-captures") renderCaptures();
+        if(target === "view-captures") renderMaturation();
       }
     };
   });
 
-  document.getElementById("btnToggleTheme").onclick = () => document.body.classList.toggle("light-theme");
-  
-  ui.btnLogout.onclick = async () => {
+  ui.btnLogoutAction.onclick = async () => {
     await supabase.auth.signOut();
     window.location.reload();
   };
-
-  ui.userRole.onchange = (e) => ui.meliponicultorFields.classList.toggle("hidden", e.target.value !== "meliponicultor");
-  ui.personType.onchange = (e) => ui.cnpjField.classList.toggle("hidden", e.target.value !== "PJ");
 }
 
 ui.btnStartRoute.onclick = async () => {
@@ -48,7 +43,7 @@ ui.btnStartRoute.onclick = async () => {
       const p = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: new Date().toISOString() };
       state.lastPos = p;
       if (state.routePoints.length === 0) {
-        addMarker(p.lat, p.lng, "green", "Início");
+        addMarker(p.lat, p.lng, "#22c55e", "Início");
         setMapCenter(p.lat, p.lng, 18);
       }
       state.routePoints.push(p);
@@ -59,16 +54,14 @@ ui.btnStartRoute.onclick = async () => {
 };
 
 ui.btnFinishRoute.onclick = async () => {
-  const name = prompt("Nome da Trilha:", state.currentRoute.name);
+  const name = prompt("Salvar trilha como:", `Trilha ${new Date().toLocaleDateString()}`);
   navigator.geolocation.clearWatch(state.watchId);
-  if(state.lastPos) addMarker(state.lastPos.lat, state.lastPos.lng, "red", "Fim");
+  if(state.lastPos) addMarker(state.lastPos.lat, state.lastPos.lng, "#ef4444", "Fim");
   await finishRoute(supabase, name);
   ui.btnStartRoute.classList.remove("hidden");
   ui.btnFinishRoute.classList.add("hidden");
   ui.btnMarkNest.disabled = true;
 };
-
-ui.btnMarkNest.onclick = () => ui.modalNest.style.display = "flex";
 
 ui.btnConfirmNest.onclick = async () => {
   ui.btnConfirmNest.disabled = true;
@@ -82,34 +75,14 @@ ui.btnConfirmNest.onclick = async () => {
     });
     state.nestsInRoute++;
     ui.nestsCountText.textContent = `${state.nestsInRoute} ninhos marcados`;
-    addMarker(state.lastPos.lat, state.lastPos.lng, "orange", `Isca ${state.nestsInRoute}`);
+    addMarker(state.lastPos.lat, state.lastPos.lng, "#fbbf24", `Isca ${state.nestsInRoute}`);
     closeNestModal();
-    toast(ui.routeHint, "Isca registrada!");
+    toast(ui.routeHint, "Isca salva!", "ok");
   } catch (e) { alert(e.message); }
   finally { ui.btnConfirmNest.disabled = false; }
 };
 
-async function renderCaptures() {
-  const nests = await loadMyNests(supabase);
-  const container = document.getElementById("capturedList");
-  const captured = nests.filter(n => n.status === "CAPTURADO");
-
-  container.innerHTML = captured.map(n => {
-    const dCap = new Date(n.captured_at);
-    const dias = Math.floor((new Date() - dCap) / (1000 * 60 * 60 * 24));
-    const faltam = 35 - dias;
-    return `
-      <div class="card" style="border-left: 4px solid ${faltam <= 0 ? '#ef4444' : '#22c55e'}">
-        <strong>${n.species || 'Espécie Pendente'}</strong>
-        <div style="font-size: 13px; margin-top: 5px;">
-          ${faltam <= 0 ? "<span style='color:#ef4444'>⚠️ PRONTO PARA RETIRAR</span>" : "⏳ Faltam " + faltam + " dias para maturação"}
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
 bindAuth(supabase, async () => {
-  setupUIListeners();
+  setupListeners();
   initMap();
 });
