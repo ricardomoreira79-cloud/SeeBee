@@ -3,7 +3,6 @@ import { state, resetSessionState } from "./state.js";
 import { ui } from "./ui.js";
 
 export function bindAuth(supabase, onLoggedIn) {
-  // Escuta mudanças de sessão
   supabase.auth.onAuthStateChange(async (event, session) => {
     if (session) {
       state.user = session.user;
@@ -20,28 +19,22 @@ export function bindAuth(supabase, onLoggedIn) {
     }
   });
 
-  // Entrar com E-mail
   ui.btnLogin.onclick = async () => {
-    ui.authMsg.textContent = "Verificando...";
     const { error } = await supabase.auth.signInWithPassword({
-      email: ui.email.value,
-      password: ui.password.value
+      email: ui.email.value, password: ui.password.value
     });
-    if (error) ui.authMsg.textContent = "Erro: " + error.message;
+    if (error) alert("Erro: " + error.message);
   };
 
-  // Criar Conta
   ui.btnSignup.onclick = async () => {
-    ui.authMsg.textContent = "Criando conta...";
     const { error } = await supabase.auth.signUp({
-      email: ui.email.value,
-      password: ui.password.value
+      email: ui.email.value, password: ui.password.value
     });
-    if (error) ui.authMsg.textContent = "Erro: " + error.message;
-    else ui.authMsg.textContent = "Verifique seu e-mail!";
+    if (error) alert(error.message);
+    else alert("Verifique seu e-mail para confirmar a conta!");
   };
 
-  // Entrar com Google (Funcionalidade principal corrigida)
+  // REDIRECT GOOGLE: Importante para Vercel
   ui.btnGoogle.onclick = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

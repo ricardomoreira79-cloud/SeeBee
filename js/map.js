@@ -17,12 +17,12 @@ export function addRoutePoint(lat, lng) {
   if (state.polyline) state.polyline.addLatLng([lat, lng]);
 }
 
-// ESTA É A FUNÇÃO QUE ESTAVA FALTANDO E TRAVANDO O APP
+// CORREÇÃO: Função exportada corretamente para main.js
 export function addMarker(lat, lng, color = "orange", label = "") {
   const icon = L.divIcon({
-    className: 'custom-icon',
-    html: `<div style="background-color:${color}; width:12px; height:12px; border-radius:50%; border:2px solid white;"></div>`,
-    iconSize: [12, 12]
+    className: 'custom-pin',
+    html: `<div style="background-color:${color}; width:14px; height:14px; border-radius:50%; border:2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+    iconSize: [14, 14]
   });
   L.marker([lat, lng], { icon }).addTo(state.map).bindPopup(label);
 }
