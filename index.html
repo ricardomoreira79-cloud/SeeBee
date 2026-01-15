@@ -26,7 +26,18 @@
 
   <div id="app-screen" class="hidden">
     <div id="side-menu" class="side-drawer">
-      <div class="drawer-header"><div class="profile-mini"><div class="avatar-circle" id="menu-avatar-char">U</div><span id="menu-email-display">...</span></div><button id="close-menu">✕</button></div>
+      <div class="drawer-header">
+        <div class="profile-mini">
+          <div class="avatar-circle" id="menu-avatar-char">U</div>
+          <img id="menu-avatar-img" src="" class="hidden" style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">
+          
+          <div style="margin-left:10px;">
+             <span id="menu-name-display" style="display:block; font-weight:bold; font-size:16px;">Usuário</span>
+             <span id="menu-user-role" style="display:block; font-size:12px; color:var(--primary); text-transform:uppercase; margin-top:2px;">Carregando...</span>
+          </div>
+        </div>
+        <button id="close-menu">✕</button>
+      </div>
       <nav class="drawer-nav">
         <button class="menu-item" data-target="view-home">🏠 Início</button>
         <button class="menu-item" data-target="view-traps">🗺️ Instalar Ninhos</button>
@@ -36,7 +47,12 @@
         <hr><button id="btnLogout" class="menu-item danger">Sair</button>
       </nav>
     </div>
-    <header class="app-header"><button id="open-menu" class="btn-icon">☰</button><div class="brand-mini">SEEBEE</div><div style="width:24px;"></div></header>
+
+    <header class="app-header">
+      <button id="open-menu" class="btn-icon">☰</button>
+      <div class="brand-mini">SEEBEE</div>
+      <div style="width:24px;"></div>
+    </header>
 
     <main class="content-area">
       <section id="view-home" class="view-section active">
@@ -76,7 +92,38 @@
         <div id="capturesList"></div>
       </section>
 
-      <section id="view-profile" class="view-section hidden"><h2>Perfil</h2></section>
+      <section id="view-profile" class="view-section hidden">
+        <h2 style="margin-bottom:20px;">Meu Perfil</h2>
+        
+        <div style="text-align:center; margin-bottom:30px;">
+          <label style="position:relative; display:inline-block; cursor:pointer;">
+            <img id="profileImageDisplay" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--primary); background:#1f2937;">
+            <div style="position:absolute; bottom:0; right:0; background:var(--primary); color:#022c22; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid #020617;">📷</div>
+            <input type="file" id="profileAvatarInput" accept="image/*" style="display:none">
+          </label>
+          <p id="profileEmailDisplay" style="color:#9ca3af; margin-top:15px; font-size:14px;">carregando...</p>
+        </div>
+
+        <div class="card-profile-settings" style="background:#111827; padding:20px; border-radius:16px; border:1px solid #374151;">
+          <label class="field-label">Nome Completo</label>
+          <input type="text" id="profileFullName" class="input-dark" placeholder="Seu nome">
+
+          <label class="field-label">CPF</label>
+          <input type="text" id="profileCPF" class="input-dark" placeholder="000.000.000-00">
+
+          <label class="field-label">Telefone</label>
+          <input type="text" id="profilePhone" class="input-dark" placeholder="(00) 00000-0000">
+
+          <label class="field-label" style="color:var(--primary);">Meu Perfil (Cargo)</label>
+          <select id="profileType" class="input-dark" style="border-color:var(--primary);">
+            <option value="ADM">Administrador</option>
+            <option value="MELIPONICULTOR">Meliponicultor</option>
+            <option value="ENTUSIASTA">Entusiasta</option>
+          </select>
+          
+          <button id="btnSaveProfile" class="btn-primary" style="width:100%;">Salvar Alterações</button>
+        </div>
+      </section>
     </main>
 
     <div id="nest-modal" class="modal-backdrop" style="display:none">
@@ -90,8 +137,7 @@
 
     <div id="nest-edit-modal" class="modal-backdrop" style="display:none; z-index:8000;">
       <div class="modal-card">
-        <h3>Editar Ninho</h3>
-        <input type="hidden" id="editNestId">
+        <h3>Editar Ninho</h3><input type="hidden" id="editNestId">
         <label class="field-label">Status Atual</label>
         <select id="editNestStatus" class="input-dark"><option value="CATALOGADO">Catalogado</option><option value="CAPTURADO">Capturado</option><option value="REMOVIDO">Removido</option></select>
         <div id="editCaptureContainer" class="hidden" style="background:#111827; padding:15px; border-radius:12px; border:1px solid #374151; margin-bottom:15px;">

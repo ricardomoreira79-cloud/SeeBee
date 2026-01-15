@@ -1,4 +1,4 @@
-/* css/main.css - ARQUIVO COMPLETO v5 */
+/* css/main.css - ARQUIVO COMPLETO v8 */
 
 :root {
   --primary: #10b981;
@@ -43,7 +43,8 @@ body {
 .side-drawer { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--card-bg); z-index: 5000; transition: 0.3s; border-right: 1px solid var(--border); padding: 20px; box-shadow: 10px 0 50px rgba(0,0,0,0.7); }
 .side-drawer.open { left: 0; }
 .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-.avatar-circle { width: 45px; height: 45px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #022c22; font-weight: bold; }
+.profile-mini { display: flex; align-items: center; } /* Flex para foto lado a lado com nome */
+.avatar-circle { width: 45px; height: 45px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #022c22; font-weight: bold; flex-shrink: 0; }
 #close-menu { background: none; border: none; color: var(--text-muted); font-size: 28px; cursor: pointer; }
 .menu-item { display: flex; align-items: center; width: 100%; background: none; border: none; color: var(--text); padding: 15px; text-align: left; font-size: 16px; cursor: pointer; border-radius: 10px; margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.05); justify-content: space-between; }
 .menu-item:hover { background: rgba(16, 185, 129, 0.1); color: var(--primary); }
@@ -81,7 +82,7 @@ body {
 .mini-history-section { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 20px; }
 .btn-see-all { width: 100%; background: #1f2937; color: var(--primary); border: 1px solid var(--border); padding: 12px; border-radius: 12px; margin-top: 10px; cursor: pointer; font-weight: 600; font-size: 14px; }
 
-/* GESTÃO */
+/* GESTÃO & LISTAS */
 .segment-control { display: flex; background: #111827; padding: 5px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); }
 .segment-btn { flex: 1; background: transparent; border: none; color: #9ca3af; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
 .segment-btn.active { background: var(--primary); color: #022c22; }
@@ -92,12 +93,11 @@ body {
 .route-card { background: #111827; padding: 18px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); cursor: pointer; }
 .route-card:active { border-color: var(--primary); background: #1f2937; }
 
-/* CARD DE CAPTURA (Estilo Especial) */
+/* CAPTURA */
 .capture-card { background: #111827; border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px; position: relative; }
 .capture-img { width: 80px; height: 80px; border-radius: 12px; object-fit: cover; border: 1px solid #374151; }
 .capture-info { flex: 1; }
 .capture-title { font-weight: bold; color: white; font-size: 15px; margin-bottom: 5px; display: block; cursor: pointer; }
-.capture-title:hover { color: var(--primary); text-decoration: underline; }
 .capture-meta { font-size: 11px; color: #9ca3af; margin-bottom: 3px; display: block; }
 .capture-actions { position: absolute; bottom: 15px; right: 15px; display: flex; gap: 8px; }
 
@@ -110,14 +110,8 @@ body {
 .btn-ghost { flex: 1; background: transparent; border: 1px solid #374151; color: white; padding: 12px; border-radius: 12px; cursor: pointer; }
 textarea { width: 100%; background: #020617; border: 1px solid #374151; color: white; padding: 15px; border-radius: 12px; font-family: inherit; font-size: 14px; resize: none; }
 
-/* DETALHES COMPACTOS */
-.compact-metadata { font-size: 13px; color: var(--text-muted); margin-bottom: 5px; }
-.compact-metadata-counts { font-size: 14px; font-weight: bold; margin-bottom: 15px; }
-.nest-item-row { display: flex; gap: 10px; padding: 10px; border-bottom: 1px solid #374151; align-items: center; justify-content: space-between; }
-.nest-info-block { display: flex; gap: 10px; align-items: center; flex: 1; }
-.nest-actions { display: flex; gap: 5px; }
-.btn-icon-sm { background: #1f2937; border: 1px solid #374151; color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-.btn-icon-sm.danger { color: var(--danger); border-color: rgba(239,68,68,0.3); }
+/* MARCADORES PERSONALIZADOS */
+.custom-pin { display: flex; align-items: center; justify-content: center; }
 
 /* NAV */
 .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 2000; backdrop-filter: blur(10px); }

@@ -1,4 +1,4 @@
-// js/main.js - ARQUIVO COMPLETO v7
+// js/main.js - ARQUIVO COMPLETO v9 (Com Contagem Regressiva)
 import { getSupabase } from "./supabaseClient.js";
 import { state } from "./state.js";
 import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js";
@@ -15,18 +15,30 @@ const GENERIC_BEE = "https://cdn-icons-png.flaticon.com/512/3069/3069186.png";
 function initDetailMap() { if (detailMap) return; detailMap = L.map("mapDetail").setView([0,0], 15); L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 20 }).addTo(detailMap); }
 function calcDist(p1, p2) { const R = 6371e3; const φ1 = p1.lat * Math.PI/180, φ2 = p2.lat * Math.PI/180; const a = Math.sin(((p2.lat-p1.lat)*Math.PI/180)/2)**2 + Math.cos(φ1)*Math.cos(φ2) * Math.sin(((p2.lng-p1.lng)*Math.PI/180)/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 function refreshMap() { setTimeout(() => { if(state.map) { state.map.invalidateSize(); if(state.lastPos) setMapCenter(state.lastPos.lat, state.lastPos.lng, 18); else state.map.locate({ setView: true, maxZoom: 18 }); } }, 100); }
-async function uploadPhoto(file) { if (!file) return null; const fileExt = file.name.split('.').pop(); const fileName = `${state.user.id}/${Date.now()}.${fileExt}`; const { error } = await supabase.storage.from('ninhos-fotos').upload(fileName, file); if (error) throw new Error("Erro foto: " + error.message); const { data } = supabase.storage.from('ninhos-fotos').getPublicUrl(fileName); return data.publicUrl; }
+
+// Upload Geral (Ninhos e Avatares)
+async function uploadFile(file, bucket) {
+    if (!file) return null;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${state.user.id}/${Date.now()}.${fileExt}`;
+    const { error } = await supabase.storage.from(bucket).upload(fileName, file);
+    if (error) throw new Error("Erro upload: " + error.message);
+    const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    return data.publicUrl;
+}
 
 // --- LISTENERS ---
 function setupListeners() {
   ui.openMenu.onclick = () => ui.sideMenu.classList.add("open");
   ui.closeMenu.onclick = () => ui.sideMenu.classList.remove("open");
   if(ui.nestCancel) ui.nestCancel.onclick = closeNestModal;
+  
   const navigate = (target) => { 
       switchTab(target); ui.sideMenu.classList.remove("open"); 
       if(target==="view-traps"){refreshMap();loadRecentTrails();} 
       if(target==="view-meliponaries")loadColoniesData(); 
       if(target==="view-captures")loadCaptures();
+      if(target==="view-profile")loadProfile(); 
   };
   document.querySelectorAll("[data-target]").forEach(el => el.onclick = () => navigate(el.dataset.target));
   ui.btnLogout.onclick = async () => { if(confirm("Sair?")) await supabase.auth.signOut(); };
@@ -54,8 +66,15 @@ function setupListeners() {
   const popCapture = document.getElementById("editCapturePopular"); if(popCapture) popCapture.onchange = (e) => updateSpeciesPreview(e.target.value, "editCaptureScientific", "captureSpeciesPreview");
   document.getElementById("btnSaveEditNest").onclick = saveNestEdit;
   
-  // Limpar campo de Ninho ao abrir
+  // Ninho Isca
   ui.btnMarkNest.onclick = () => { if(!state.lastPos) return alert("Aguarde GPS"); document.getElementById("nestNote").value = ""; document.getElementById("nestPhoto").value = ""; document.getElementById("nest-modal").style.display="flex"; };
+
+  // Perfil
+  document.getElementById("btnSaveProfile").onclick = saveProfile;
+  document.getElementById("profileAvatarInput").onchange = (e) => {
+      const file = e.target.files[0];
+      if(file) document.getElementById("profileImageDisplay").src = URL.createObjectURL(file);
+  };
 }
 
 function updateSpeciesPreview(popularName, scientificSelectId, imgId) {
@@ -70,9 +89,62 @@ function updateSpeciesPreview(popularName, scientificSelectId, imgId) {
     } else { sciSelect.disabled = true; img.src = GENERIC_BEE; }
 }
 
-// --- NEGÓCIO ---
+// --- PERFIL ---
+async function loadProfile() {
+    document.getElementById("profileEmailDisplay").textContent = state.user.email;
+    const { data } = await supabase.from('profiles').select('*').eq('id', state.user.id).single();
+    if(data) {
+        document.getElementById("profileFullName").value = data.full_name || "";
+        document.getElementById("profileCPF").value = data.cpf || "";
+        document.getElementById("profilePhone").value = data.phone || "";
+        document.getElementById("profileType").value = data.user_type || "ENTUSIASTA";
+        if(data.avatar_url) document.getElementById("profileImageDisplay").src = data.avatar_url;
+        updateMenuUI(data); 
+    }
+}
+
+async function saveProfile() {
+    const avatarFile = document.getElementById("profileAvatarInput").files[0];
+    let avatarUrl = null;
+    if(avatarFile) avatarUrl = await uploadFile(avatarFile, 'avatars');
+
+    const updates = {
+        full_name: document.getElementById("profileFullName").value,
+        cpf: document.getElementById("profileCPF").value,
+        phone: document.getElementById("profilePhone").value,
+        user_type: document.getElementById("profileType").value,
+    };
+    if(avatarUrl) updates.avatar_url = avatarUrl;
+
+    const { error } = await supabase.from('profiles').update(updates).eq('id', state.user.id);
+    if(error) alert("Erro ao salvar: " + error.message);
+    else { 
+        toast(ui.routeHint, "Perfil atualizado!"); 
+        loadProfile(); 
+    }
+}
+
+function updateMenuUI(profile) {
+    const name = profile.full_name || "Usuário";
+    document.getElementById("menu-name-display").textContent = name.split(" ")[0]; 
+    document.getElementById("menu-user-role").textContent = profile.user_type;
+    
+    if(profile.avatar_url) {
+        document.getElementById("menu-avatar-char").classList.add("hidden");
+        const img = document.getElementById("menu-avatar-img");
+        img.src = profile.avatar_url;
+        img.classList.remove("hidden");
+    } else {
+        document.getElementById("menu-avatar-img").classList.add("hidden");
+        const char = document.getElementById("menu-avatar-char");
+        char.textContent = name.charAt(0).toUpperCase();
+        char.classList.remove("hidden");
+    }
+}
+
+// --- NEGÓCIO (Ninhos e Trilhas) ---
 async function createNestFull(note, lat, lng, routeId, photoFile) {
-    const publicUrl = await uploadPhoto(photoFile);
+    const publicUrl = await uploadFile(photoFile, 'ninhos-fotos');
     const { error } = await supabase.from("nests").insert({ user_id: state.user.id, route_id: routeId, lat, lng, note, status: "CATALOGADO", photo_url: publicUrl });
     if (error) throw new Error(error.message);
 }
@@ -197,7 +269,7 @@ async function saveNestEdit() {
     if (status === "CAPTURADO") {
         if(!updates.capture_date) updates.capture_date = new Date().toISOString();
         updates.species_name = popular ? `${popular} (${scientific})` : "Não identificada";
-        if (photoFile) updates.photo_url = await uploadPhoto(photoFile);
+        if (photoFile) updates.photo_url = await uploadFile(photoFile, 'ninhos-fotos');
     }
     const { error } = await supabase.from("nests").update(updates).eq("id", id);
     if (error) alert("Erro ao atualizar: " + error.message); else { document.getElementById("nest-edit-modal").style.display = "none"; toast(ui.routeHint, "Atualizado!"); const routeId = state.currentDetailNests ? state.currentDetailNests.find(n=>n.id===id).route_id : null; if(routeId) window.openTrailDetail(routeId); loadColoniesData(); loadCaptures(); }
@@ -212,17 +284,12 @@ window.deleteNest = async (nestId) => {
 // --- GRAVAÇÃO ---
 ui.btnStartRoute.onclick=async()=>{
     const name=prompt("Nome da Instalação:",`Instalação ${new Date().toLocaleDateString()}`); if(!name)return;
-    // CONTAGEM REGRESSIVA (3, 2, 1)
     const modal = document.getElementById("countdown-modal"); const num = document.getElementById("countdown-number");
-    modal.style.display = "flex";
-    let count = 3; num.textContent = count;
+    modal.style.display = "flex"; let count = 3; num.textContent = count;
     const timer = setInterval(async () => {
-        count--;
-        if(count > 0) num.textContent = count;
+        count--; if(count > 0) num.textContent = count;
         else {
-            clearInterval(timer);
-            modal.style.display = "none";
-            // INICIA
+            clearInterval(timer); modal.style.display = "none";
             await createRoute(supabase,name);
             ui.btnStartRoute.classList.add("hidden");ui.btnFinishRoute.classList.remove("hidden");ui.btnMarkNest.disabled=false;
             ui.statusBadge.textContent="GRAVANDO";ui.statusBadge.classList.add("active");
@@ -236,43 +303,18 @@ function startGPS(){
     if(!navigator.geolocation)return alert("Sem GPS");
     state.watchId=navigator.geolocation.watchPosition(async(pos)=>{
         const p={lat:pos.coords.latitude,lng:pos.coords.longitude,t:new Date().toISOString()};
-        
-        // FILTRO DE DISTÂNCIA FANTASMA
-        if (state.routePoints.length > 0) {
-            const last = state.routePoints[state.routePoints.length-1];
-            const dist = calcDist(last, p);
-            // Se pulou mais de 500m em 1 segundo (bug comum), ignora
-            if (dist > 500) { console.log("Salto de GPS ignorado:", dist); return; }
-        }
-
+        if(state.routePoints.length>0){const last=state.routePoints[state.routePoints.length-1];const dist=calcDist(last,p);if(dist>500){console.log("GPS Pulo");return;}}
         state.lastPos=p;ui.gpsStatus.textContent="GPS: OK";addRoutePoint(p.lat,p.lng);
-        if(state.routePoints.length===0) {
-            setMapCenter(p.lat,p.lng);
-            addMarker(p.lat, p.lng, "#10b981", "Início"); // PINO VERDE INÍCIO
-        } else {
-            state._dist+=calcDist(state.routePoints[state.routePoints.length-1],p);
-            ui.distanceText.textContent=Math.round(state._dist)+" m";
-        }
-        if(navigator.onLine)await appendRoutePoint(supabase,p);
+        if(state.routePoints.length===0){setMapCenter(p.lat,p.lng);addMarker(p.lat,p.lng,"#10b981","Início");}else{state._dist+=calcDist(state.routePoints[state.routePoints.length-1],p);ui.distanceText.textContent=Math.round(state._dist)+" m";}if(navigator.onLine)await appendRoutePoint(supabase,p);
     },(e)=>ui.gpsStatus.textContent="Erro GPS",{enableHighAccuracy:true});
 }
 
 ui.btnFinishRoute.onclick=async()=>{
     if(state.watchId)navigator.geolocation.clearWatch(state.watchId);
-    if(state.nestCount===0){
-        if(confirm("Sem ninhos. Descartar?")){await discardRoute(supabase);toast(ui.routeHint,"Descartado","error");}
-        else if(navigator.onLine)await finishRoute(supabase);
-    }else{
-        if(state.lastPos) addMarker(state.lastPos.lat,state.lastPos.lng,"#ef4444", "Fim"); // PINO VERMELHO FIM
-        if(navigator.onLine)await finishRoute(supabase);
-        toast(ui.routeHint,"Salvo!","ok");
-    }
-    ui.btnStartRoute.classList.remove("hidden");ui.btnFinishRoute.classList.add("hidden");ui.btnMarkNest.disabled=true;
-    ui.statusBadge.textContent="PARADO";ui.statusBadge.classList.remove("active");
-    loadRecentTrails();
+    if(state.nestCount===0){if(confirm("Sem ninhos. Descartar?")){await discardRoute(supabase);toast(ui.routeHint,"Descartado","error");}else if(navigator.onLine)await finishRoute(supabase);}else{if(state.lastPos)addMarker(state.lastPos.lat,state.lastPos.lng,"#ef4444","Fim");if(navigator.onLine)await finishRoute(supabase);toast(ui.routeHint,"Salvo!","ok");}ui.btnStartRoute.classList.remove("hidden");ui.btnFinishRoute.classList.add("hidden");ui.btnMarkNest.disabled=true;ui.statusBadge.textContent="PARADO";ui.statusBadge.classList.remove("active");loadRecentTrails();
 };
 
-ui.btnMarkNest.onclick=()=>{if(!state.lastPos)return alert("Aguarde GPS");document.getElementById("nest-modal").style.display="flex";};
-ui.btnConfirmNest.onclick=async()=>{ui.btnConfirmNest.textContent="...";try{const file=document.getElementById("nestPhoto").files[0];const note=document.getElementById("nestNote").value;await createNestFull(note,state.lastPos.lat,state.lastPos.lng,state.currentRoute.id,file);addMarker(state.lastPos.lat,state.lastPos.lng,"#fbbf24", "Ninho");state.nestCount++;ui.nestsCountText.textContent=state.nestCount;closeNestModal();toast(ui.routeHint,"Ninho salvo");}catch(e){alert(e.message);}finally{ui.btnConfirmNest.textContent="Salvar";}};
+ui.btnMarkNest.onclick=()=>{if(!state.lastPos)return alert("Aguarde GPS");document.getElementById("nestNote").value="";document.getElementById("nestPhoto").value="";document.getElementById("nest-modal").style.display="flex";};
+ui.btnConfirmNest.onclick=async()=>{ui.btnConfirmNest.textContent="...";try{const file=document.getElementById("nestPhoto").files[0];const note=document.getElementById("nestNote").value;await createNestFull(note,state.lastPos.lat,state.lastPos.lng,state.currentRoute.id,file);addMarker(state.lastPos.lat,state.lastPos.lng,"#fbbf24","Ninho");state.nestCount++;ui.nestsCountText.textContent=state.nestCount;closeNestModal();toast(ui.routeHint,"Ninho salvo");}catch(e){alert(e.message);}finally{ui.btnConfirmNest.textContent="Salvar";}};
 
-bindAuth(supabase, async () => { setupListeners(); initMap(); setOnlineUI(navigator.onLine); if(state.user) { switchTab("view-home"); loadMyTrails(supabase); loadCaptures(); } });
+bindAuth(supabase, async () => { setupListeners(); initMap(); setOnlineUI(navigator.onLine); if(state.user) { switchTab("view-home"); loadMyTrails(supabase); loadCaptures(); loadProfile(); } });

@@ -4,7 +4,6 @@ import { state } from "./state.js";
 export function initMap() {
   if (state.mapReady) return;
   
-  // Inicia sem controles para ficar limpo
   state.map = L.map("map", { zoomControl: false }).setView([-15.6, -56.1], 15);
   
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -28,7 +27,7 @@ export function addRoutePoint(lat, lng) {
 }
 
 export function addMarker(lat, lng, color = "#10b981", label = "") {
-  // Cria ícone CSS puro para não depender de imagens externas
+  // CORREÇÃO DOS PINOS SAMBANDO
   const icon = L.divIcon({
     className: 'custom-pin',
     html: `<div style="
@@ -37,10 +36,10 @@ export function addMarker(lat, lng, color = "#10b981", label = "") {
       height: 18px;
       border-radius: 50%;
       border: 3px solid white;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4);
     "></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10]
+    iconSize: [18, 18],
+    iconAnchor: [9, 9] // Metade do tamanho para centrar
   });
   
   const marker = L.marker([lat, lng], { icon }).addTo(state.map);
