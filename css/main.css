@@ -1,51 +1,154 @@
 /* css/main.css */
-/* ... mantenha o topo do arquivo igual ... */
-
-/* ... (Authentication CSS mantido) ... */
-
-/* ... (App Grid CSS mantido) ... */
-
-/* AJUSTE AQUI NO FINAL DO ARQUIVO */
-
-/* MAPA */
-#map-container {
-  position: relative; /* Garante contexto para o botão */
+:root {
+  --primary: #22c55e;
+  --stop: #ef4444;
+  --bg: #020617;
+  --card: #0f172a;
+  --border: #1e293b;
+  --text: #f8fafc;
 }
 
-#map { 
+* { box-sizing: border-box; }
+
+body {
+  margin: 0; 
+  font-family: sans-serif; 
+  background: radial-gradient(circle at top, #064e3b 0%, var(--bg) 60%);
+  color: var(--text); 
+  min-height: 100vh; 
+  padding-bottom: 70px; /* Espaço para nav bottom */
+}
+
+.hidden { display: none !important; }
+
+/* --- TELA DE LOGIN (AUTH) --- */
+#auth-screen { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  min-height: 100vh; 
+  padding: 20px; 
+}
+
+.brand-hero { text-align: center; margin-bottom: 30px; }
+.brand-logo { font-size: 80px; margin-bottom: 10px; filter: drop-shadow(0 0 20px rgba(34, 197, 94, 0.4)); }
+.brand-name { font-size: 36px; font-weight: 900; letter-spacing: 2px; }
+
+#auth-card { 
   width: 100%; 
-  height: 400px; 
+  max-width: 400px; 
+  background: var(--card); 
+  padding: 30px; 
   border-radius: 20px; 
-  margin: 15px 0; 
   border: 1px solid var(--border); 
-  z-index: 1; 
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
 
-/* Botão Flutuante (FAB) - Z-Index Aumentado */
-.fab-map { 
-  position: absolute; 
-  bottom: 20px; 
-  right: 20px; 
-  width: 60px; 
-  height: 60px; 
-  border-radius: 50%; 
+.auth-field { margin-bottom: 15px; }
+.auth-field label { display: block; margin-bottom: 5px; font-size: 14px; color: #94a3b8; }
+.auth-field input { 
+  width: 100%; 
+  padding: 12px; 
+  border-radius: 12px; 
+  border: 1px solid var(--border); 
+  background: #020617; 
+  color: white; 
+  outline: none;
+}
+
+.btn-primary { 
+  width: 100%; 
   background: var(--primary); 
-  border: none; 
-  font-size: 30px; 
   color: #052e16; 
-  box-shadow: 0 10px 25px rgba(34,197,94,0.5); 
-  z-index: 1000; /* Garante que fique acima do mapa */
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: none; 
+  padding: 15px; 
+  border-radius: 14px; 
+  font-weight: 800; 
+  cursor: pointer; 
+  font-size: 16px;
+  transition: transform 0.1s;
+}
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-outline { 
+  width: 100%; 
+  background: transparent; 
+  border: 1px solid var(--border); 
+  color: white; 
+  padding: 12px; 
+  border-radius: 14px; 
+  margin-top: 10px; 
+  cursor: pointer; 
 }
 
-.fab-map:disabled {
-  background: #374151;
-  color: #9ca3af;
-  cursor: not-allowed;
-  box-shadow: none;
+.btn-google { 
+  width: 100%; 
+  background: #0f172a; 
+  border: 1px solid var(--border); 
+  color: white; 
+  padding: 12px; 
+  border-radius: 14px; 
+  margin-top: 15px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 10px; 
+  cursor: pointer; 
 }
 
-/* ... (Resto do CSS mantido: modals, bottom-nav etc) ... */
+/* --- APP LAYOUT --- */
+.app-header { 
+  padding: 15px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  background: rgba(2,6,23,0.9); 
+  position: sticky; 
+  top: 0; 
+  z-index: 900; 
+  border-bottom: 1px solid var(--border); 
+  backdrop-filter: blur(10px);
+}
+
+.brand-mini { font-weight: 900; letter-spacing: 1px; }
+
+.status-pill { 
+  border: 1px solid var(--primary); 
+  padding: 4px 12px; 
+  border-radius: 20px; 
+  font-size: 12px; 
+  display: flex; 
+  align-items: center; 
+  gap: 6px; 
+}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+.status-dot.offline { background: var(--stop); }
+
+/* --- MENU LATERAL (DRAWER) --- */
+.side-drawer { 
+  position: fixed; 
+  top: 0; 
+  left: -280px; 
+  width: 280px; 
+  height: 100%; 
+  background: var(--card); 
+  z-index: 5000; /* BEM ALTO PARA FICAR EM CIMA DO MAPA */
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-right: 1px solid var(--border); 
+  padding: 20px; 
+  box-shadow: 10px 0 30px rgba(0,0,0,0.5); 
+}
+.side-drawer.open { left: 0; }
+
+.drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.avatar-circle { width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #052e16; font-weight: bold; }
+#close-menu { background: none; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; }
+
+.menu-item { 
+  display: flex; 
+  align-items: center; 
+  width: 100%; 
+  background: none; 
+  border: none; 
+  color: var(--text
