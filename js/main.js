@@ -1,4 +1,4 @@
-// js/main.js - ARQUIVO COMPLETO v6
+// js/main.js - ARQUIVO COMPLETO v7
 import { getSupabase } from "./supabaseClient.js";
 import { state } from "./state.js";
 import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js";
@@ -9,7 +9,6 @@ import { createRoute, appendRoutePoint, finishRoute, discardRoute, loadMyTrails 
 const supabase = getSupabase();
 let detailMap = null;
 let allSpeciesData = [];
-// Imagem padrão (abelha genérica)
 const GENERIC_BEE = "https://cdn-icons-png.flaticon.com/512/3069/3069186.png";
 
 // --- AUXILIARES ---
@@ -39,69 +38,36 @@ function setupListeners() {
   // Modal Matriz
   document.getElementById("btnAddColony").onclick = () => { 
       loadSpeciesData(); 
-      // Limpa campos
-      document.getElementById("colonyName").value = "";
-      document.getElementById("colonyDate").value = "";
-      document.getElementById("colonyPopularName").value = "";
-      document.getElementById("speciesPreview").src = GENERIC_BEE;
+      document.getElementById("colonyName").value = ""; document.getElementById("colonyDate").value = ""; document.getElementById("colonyPopularName").value = ""; document.getElementById("speciesPreview").src = GENERIC_BEE;
       document.getElementById("colony-modal").style.display="flex"; 
   };
   document.getElementById("colonyCancel").onclick = () => document.getElementById("colony-modal").style.display="none";
   document.getElementById("colonyStatus").onchange = (e) => { const g=document.getElementById("removalDateGroup"); if(e.target.value!=="ATIVA")g.classList.remove("hidden"); else{g.classList.add("hidden");document.getElementById("colonyRemovalDate").value="";}};
-  
-  // Busca e Imagem Espécie (Colônia)
   document.getElementById("colonyPopularName").onchange = (e) => updateSpeciesPreview(e.target.value, "colonyScientificName", "speciesPreview");
-  
   document.getElementById("colonySave").onclick = saveColony;
   document.getElementById("historyDateFilter").onchange = loadColoniesData;
   document.getElementById("closeDetailTrail").onclick = () => document.getElementById("trail-detail-modal").style.display="none";
   
   // Modal Edição Ninho
   document.getElementById("btnCancelEditNest").onclick = () => document.getElementById("nest-edit-modal").style.display="none";
-  document.getElementById("editNestStatus").onchange = (e) => { 
-      const isCaptured = e.target.value === "CAPTURADO";
-      document.getElementById("editCaptureContainer").classList.toggle("hidden", !isCaptured);
-      if(isCaptured) loadSpeciesData();
-  };
-  
-  // Busca e Imagem Espécie (Captura)
-  const popCapture = document.getElementById("editCapturePopular");
-  if(popCapture) popCapture.onchange = (e) => updateSpeciesPreview(e.target.value, "editCaptureScientific", "captureSpeciesPreview");
-
+  document.getElementById("editNestStatus").onchange = (e) => { const isCaptured = e.target.value === "CAPTURADO"; document.getElementById("editCaptureContainer").classList.toggle("hidden", !isCaptured); if(isCaptured) loadSpeciesData(); };
+  const popCapture = document.getElementById("editCapturePopular"); if(popCapture) popCapture.onchange = (e) => updateSpeciesPreview(e.target.value, "editCaptureScientific", "captureSpeciesPreview");
   document.getElementById("btnSaveEditNest").onclick = saveNestEdit;
   
-  // Limpar campo de Ninho ao abrir (Isca)
-  ui.btnMarkNest.onclick = () => {
-      if(!state.lastPos) return alert("Aguarde GPS");
-      document.getElementById("nestNote").value = ""; // Limpa obs
-      document.getElementById("nestPhoto").value = ""; // Limpa foto
-      document.getElementById("nest-modal").style.display="flex";
-  };
+  // Limpar campo de Ninho ao abrir
+  ui.btnMarkNest.onclick = () => { if(!state.lastPos) return alert("Aguarde GPS"); document.getElementById("nestNote").value = ""; document.getElementById("nestPhoto").value = ""; document.getElementById("nest-modal").style.display="flex"; };
 }
 
-// Atualiza preview da imagem e select científico
 function updateSpeciesPreview(popularName, scientificSelectId, imgId) {
-    const sciSelect = document.getElementById(scientificSelectId);
-    const img = document.getElementById(imgId);
-    
+    const sciSelect = document.getElementById(scientificSelectId); const img = document.getElementById(imgId);
     sciSelect.innerHTML = '<option value="Sem identificação">Sem identificação</option>';
-    
     if(popularName) {
         sciSelect.disabled = false;
-        // Pega todos que dão match com o nome popular
         const matches = allSpeciesData.filter(s => s.popular_name === popularName);
-        
-        matches.forEach(m => {
-            sciSelect.innerHTML += `<option value="${m.scientific_name}">${m.scientific_name}</option>`;
-        });
-
-        // Tenta achar imagem na primeira ocorrência válida
+        matches.forEach(m => { sciSelect.innerHTML += `<option value="${m.scientific_name}">${m.scientific_name}</option>`; });
         const withImg = matches.find(m => m.image_url);
         img.src = withImg ? withImg.image_url : GENERIC_BEE;
-    } else {
-        sciSelect.disabled = true;
-        img.src = GENERIC_BEE;
-    }
+    } else { sciSelect.disabled = true; img.src = GENERIC_BEE; }
 }
 
 // --- NEGÓCIO ---
@@ -158,7 +124,6 @@ async function loadColoniesData() {
   if(histList) histList.innerHTML = (!trails||trails.length===0) ? "<div class='empty-state' style='padding:20px; text-align:center; color:#9ca3af'>Sem trilhas.</div>" : trails.map(renderTrailCard).join("");
 }
 
-// --- MINHAS CAPTURAS ---
 async function loadCaptures() {
     const { data: captures } = await supabase.from("nests").select("*, routes(name, created_at)").eq("user_id", state.user.id).eq("status", "CAPTURADO").order("capture_date", {ascending: false});
     const count = captures ? captures.length : 0;
@@ -179,7 +144,6 @@ async function loadCaptures() {
     }).join("");
 }
 
-// --- DETALHES & EDIÇÃO ---
 window.openTrailDetail = async (trailId) => {
   document.getElementById("trail-detail-modal").style.display="flex"; document.getElementById("detailTrailTitle").textContent="Carregando...";
   setTimeout(() => { initDetailMap(); detailMap.invalidateSize(); }, 200);
@@ -218,7 +182,7 @@ window.editNest = (nestId) => {
         document.getElementById("editNestStatus").value = n.status;
         document.getElementById("editNestNote").value = n.note || "";
         document.getElementById("editCaptureContainer").classList.toggle("hidden", n.status !== "CAPTURADO");
-        document.getElementById("captureSpeciesPreview").src = GENERIC_BEE; // Reset img
+        document.getElementById("captureSpeciesPreview").src = GENERIC_BEE;
         document.getElementById("nest-edit-modal").style.display = "flex";
         loadSpeciesData();
     };
@@ -246,9 +210,69 @@ window.deleteNest = async (nestId) => {
 };
 
 // --- GRAVAÇÃO ---
-ui.btnStartRoute.onclick=async()=>{const name=prompt("Nome da Instalação:",`Instalação ${new Date().toLocaleDateString()}`);if(!name)return;await createRoute(supabase,name);ui.btnStartRoute.classList.add("hidden");ui.btnFinishRoute.classList.remove("hidden");ui.btnMarkNest.disabled=false;ui.statusBadge.textContent="GRAVANDO";ui.statusBadge.classList.add("active");clearMapLayers();state._dist=0;state.nestCount=0;ui.distanceText.textContent="0 m";ui.nestsCountText.textContent="0";startGPS();};
-function startGPS(){if(!navigator.geolocation)return alert("Sem GPS");state.watchId=navigator.geolocation.watchPosition(async(pos)=>{const p={lat:pos.coords.latitude,lng:pos.coords.longitude,t:new Date().toISOString()};state.lastPos=p;ui.gpsStatus.textContent="GPS: OK";addRoutePoint(p.lat,p.lng);if(state.routePoints.length===0)setMapCenter(p.lat,p.lng);else{state._dist+=calcDist(state.routePoints[state.routePoints.length-1],p);ui.distanceText.textContent=Math.round(state._dist)+" m";}if(navigator.onLine)await appendRoutePoint(supabase,p);},(e)=>ui.gpsStatus.textContent="Erro GPS",{enableHighAccuracy:true});}
-ui.btnFinishRoute.onclick=async()=>{if(state.watchId)navigator.geolocation.clearWatch(state.watchId);if(state.nestCount===0){if(confirm("Sem ninhos. Descartar?")){await discardRoute(supabase);toast(ui.routeHint,"Descartado","error");}else if(navigator.onLine)await finishRoute(supabase);}else{if(state.lastPos)addMarker(state.lastPos.lat,state.lastPos.lng,"#ef4444");if(navigator.onLine)await finishRoute(supabase);toast(ui.routeHint,"Salvo!","ok");}ui.btnStartRoute.classList.remove("hidden");ui.btnFinishRoute.classList.add("hidden");ui.btnMarkNest.disabled=true;ui.statusBadge.textContent="PARADO";ui.statusBadge.classList.remove("active");loadRecentTrails();};
-ui.btnConfirmNest.onclick=async()=>{ui.btnConfirmNest.textContent="...";try{const file=document.getElementById("nestPhoto").files[0];const note=document.getElementById("nestNote").value;await createNestFull(note,state.lastPos.lat,state.lastPos.lng,state.currentRoute.id,file);addMarker(state.lastPos.lat,state.lastPos.lng,"#fbbf24");state.nestCount++;ui.nestsCountText.textContent=state.nestCount;closeNestModal();toast(ui.routeHint,"Ninho salvo");}catch(e){alert(e.message);}finally{ui.btnConfirmNest.textContent="Salvar";}};
+ui.btnStartRoute.onclick=async()=>{
+    const name=prompt("Nome da Instalação:",`Instalação ${new Date().toLocaleDateString()}`); if(!name)return;
+    // CONTAGEM REGRESSIVA (3, 2, 1)
+    const modal = document.getElementById("countdown-modal"); const num = document.getElementById("countdown-number");
+    modal.style.display = "flex";
+    let count = 3; num.textContent = count;
+    const timer = setInterval(async () => {
+        count--;
+        if(count > 0) num.textContent = count;
+        else {
+            clearInterval(timer);
+            modal.style.display = "none";
+            // INICIA
+            await createRoute(supabase,name);
+            ui.btnStartRoute.classList.add("hidden");ui.btnFinishRoute.classList.remove("hidden");ui.btnMarkNest.disabled=false;
+            ui.statusBadge.textContent="GRAVANDO";ui.statusBadge.classList.add("active");
+            clearMapLayers(); state._dist=0;state.nestCount=0;ui.distanceText.textContent="0 m";ui.nestsCountText.textContent="0";
+            startGPS();
+        }
+    }, 1000);
+};
+
+function startGPS(){
+    if(!navigator.geolocation)return alert("Sem GPS");
+    state.watchId=navigator.geolocation.watchPosition(async(pos)=>{
+        const p={lat:pos.coords.latitude,lng:pos.coords.longitude,t:new Date().toISOString()};
+        
+        // FILTRO DE DISTÂNCIA FANTASMA
+        if (state.routePoints.length > 0) {
+            const last = state.routePoints[state.routePoints.length-1];
+            const dist = calcDist(last, p);
+            // Se pulou mais de 500m em 1 segundo (bug comum), ignora
+            if (dist > 500) { console.log("Salto de GPS ignorado:", dist); return; }
+        }
+
+        state.lastPos=p;ui.gpsStatus.textContent="GPS: OK";addRoutePoint(p.lat,p.lng);
+        if(state.routePoints.length===0) {
+            setMapCenter(p.lat,p.lng);
+            addMarker(p.lat, p.lng, "#10b981", "Início"); // PINO VERDE INÍCIO
+        } else {
+            state._dist+=calcDist(state.routePoints[state.routePoints.length-1],p);
+            ui.distanceText.textContent=Math.round(state._dist)+" m";
+        }
+        if(navigator.onLine)await appendRoutePoint(supabase,p);
+    },(e)=>ui.gpsStatus.textContent="Erro GPS",{enableHighAccuracy:true});
+}
+
+ui.btnFinishRoute.onclick=async()=>{
+    if(state.watchId)navigator.geolocation.clearWatch(state.watchId);
+    if(state.nestCount===0){
+        if(confirm("Sem ninhos. Descartar?")){await discardRoute(supabase);toast(ui.routeHint,"Descartado","error");}
+        else if(navigator.onLine)await finishRoute(supabase);
+    }else{
+        if(state.lastPos) addMarker(state.lastPos.lat,state.lastPos.lng,"#ef4444", "Fim"); // PINO VERMELHO FIM
+        if(navigator.onLine)await finishRoute(supabase);
+        toast(ui.routeHint,"Salvo!","ok");
+    }
+    ui.btnStartRoute.classList.remove("hidden");ui.btnFinishRoute.classList.add("hidden");ui.btnMarkNest.disabled=true;
+    ui.statusBadge.textContent="PARADO";ui.statusBadge.classList.remove("active");
+    loadRecentTrails();
+};
+
+ui.btnMarkNest.onclick=()=>{if(!state.lastPos)return alert("Aguarde GPS");document.getElementById("nest-modal").style.display="flex";};
+ui.btnConfirmNest.onclick=async()=>{ui.btnConfirmNest.textContent="...";try{const file=document.getElementById("nestPhoto").files[0];const note=document.getElementById("nestNote").value;await createNestFull(note,state.lastPos.lat,state.lastPos.lng,state.currentRoute.id,file);addMarker(state.lastPos.lat,state.lastPos.lng,"#fbbf24", "Ninho");state.nestCount++;ui.nestsCountText.textContent=state.nestCount;closeNestModal();toast(ui.routeHint,"Ninho salvo");}catch(e){alert(e.message);}finally{ui.btnConfirmNest.textContent="Salvar";}};
 
 bindAuth(supabase, async () => { setupListeners(); initMap(); setOnlineUI(navigator.onLine); if(state.user) { switchTab("view-home"); loadMyTrails(supabase); loadCaptures(); } });

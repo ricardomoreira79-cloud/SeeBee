@@ -92,50 +92,23 @@
       <div class="modal-card">
         <h3>Editar Ninho</h3>
         <input type="hidden" id="editNestId">
-        
         <label class="field-label">Status Atual</label>
-        <select id="editNestStatus" class="input-dark">
-          <option value="CATALOGADO">Catalogado (Isca na mata)</option>
-          <option value="CAPTURADO">Capturado (Sucesso!)</option>
-          <option value="REMOVIDO">Removido / Perdido</option>
-        </select>
-        
+        <select id="editNestStatus" class="input-dark"><option value="CATALOGADO">Catalogado</option><option value="CAPTURADO">Capturado</option><option value="REMOVIDO">Removido</option></select>
         <div id="editCaptureContainer" class="hidden" style="background:#111827; padding:15px; border-radius:12px; border:1px solid #374151; margin-bottom:15px;">
-           <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-             <img id="captureSpeciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #374151;">
-             <p style="font-size:13px; color:#10b981; font-weight:bold; margin:0;">Captura Confirmada</p>
-           </div>
-           
-           <label class="field-label">Espécie (Popular)</label>
-           <select id="editCapturePopular" class="input-dark"><option value="">Não identificada</option></select>
-           
-           <label class="field-label">Nome Científico</label>
-           <select id="editCaptureScientific" class="input-dark" disabled><option value="Sem identificação">Sem identificação</option></select>
-
-           <label class="btn-outline-photo" style="margin:10px 0; padding:15px; border-color:var(--primary);">📷 Atualizar Foto do Ninho <input id="editNestPhoto" type="file" accept="image/*" style="display:none"></label>
+           <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><img id="captureSpeciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #374151;"><p style="font-size:13px; color:#10b981; font-weight:bold; margin:0;">Captura Confirmada</p></div>
+           <label class="field-label">Espécie (Popular)</label><select id="editCapturePopular" class="input-dark"><option value="">Não identificada</option></select>
+           <label class="field-label">Nome Científico</label><select id="editCaptureScientific" class="input-dark" disabled><option value="Sem identificação">Sem identificação</option></select>
+           <label class="btn-outline-photo" style="margin:10px 0; padding:15px; border-color:var(--primary);">📷 Atualizar Foto <input id="editNestPhoto" type="file" accept="image/*" style="display:none"></label>
         </div>
-
-        <label class="field-label">Observações</label>
-        <textarea id="editNestNote" rows="3" class="input-dark"></textarea>
-
-        <div class="modal-actions">
-          <button id="btnCancelEditNest" class="btn-ghost">Cancelar</button>
-          <button id="btnSaveEditNest" class="btn-solid">Atualizar</button>
-        </div>
+        <label class="field-label">Observações</label><textarea id="editNestNote" rows="3" class="input-dark"></textarea>
+        <div class="modal-actions"><button id="btnCancelEditNest" class="btn-ghost">Cancelar</button><button id="btnSaveEditNest" class="btn-solid">Atualizar</button></div>
       </div>
     </div>
 
     <div id="colony-modal" class="modal-backdrop" style="display:none">
       <div class="modal-card">
         <h3>Nova Matriz</h3>
-        
-        <div style="text-align:center; margin-bottom:15px;">
-          <div style="width:80px; height:80px; background:#1f2937; border-radius:50%; margin:0 auto; overflow:hidden; border:2px solid #374151;">
-            <img id="speciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:100%; height:100%; object-fit:cover;">
-          </div>
-          <small style="color:#94a3b8; display:block; margin-top:5px;">Espécie</small>
-        </div>
-
+        <div style="text-align:center; margin-bottom:15px;"><div style="width:80px; height:80px; background:#1f2937; border-radius:50%; margin:0 auto; overflow:hidden; border:2px solid #374151;"><img id="speciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:100%; height:100%; object-fit:cover;"></div><small style="color:#94a3b8; display:block; margin-top:5px;">Espécie</small></div>
         <label class="field-label">Espécie (Popular)</label><select id="colonyPopularName" class="input-dark"><option value="">Selecione...</option></select>
         <label class="field-label">Nome Científico</label><select id="colonyScientificName" class="input-dark" disabled><option value="Sem identificação">Sem identificação</option></select>
         <label class="field-label">Nome / ID</label><input type="text" id="colonyName" class="input-dark">
@@ -152,16 +125,21 @@
           <h3 id="detailTrailTitle">Detalhes</h3>
           <button id="closeDetailTrail" style="background:none; border:none; color:white; font-size:24px;">✕</button>
         </div>
-        
         <div class="detail-meta-grid">
            <div class="detail-item"><strong>Data</strong> <span id="metaDate">-</span></div>
            <div class="detail-item"><strong>Distância</strong> <span id="metaDist">-</span></div>
            <div class="detail-item"><strong>Ninhos</strong> <span id="metaNests">-</span></div>
            <div class="detail-item"><strong>Início</strong> <span id="metaTime">-</span></div>
         </div>
-
         <div id="mapDetail" style="flex:1; border-radius:12px; border:1px solid #374151; margin-bottom:10px; min-height: 200px;"></div>
         <div id="detailNestsList" style="height:150px; overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <div id="countdown-modal" class="modal-backdrop" style="display:none; z-index:9999; background:rgba(2,6,23,0.95);">
+      <div style="text-align:center;">
+        <div id="countdown-number" style="font-size:120px; font-weight:900; color:var(--primary); text-shadow:0 0 30px var(--primary);">3</div>
+        <p style="color:white; font-size:18px; margin-top:20px;">Preparando GPS...</p>
       </div>
     </div>
 
