@@ -17,8 +17,7 @@
       <div class="brand-name">SeeBee</div>
     </div>
     <div id="auth-card">
-      <h2>Bem-vindo</h2>
-      <p style="color:#94a3b8; font-size:14px; margin-bottom:20px">Gestão profissional de meliponários.</p>
+      <h2>Entrar</h2>
       <div class="auth-field">
         <label>E-mail</label>
         <input id="email" type="email" placeholder="seu@email.com">
@@ -40,28 +39,25 @@
       <div class="drawer-header">
         <div class="profile-mini">
           <div class="avatar-circle" id="menu-avatar-char">U</div>
-          <span id="menu-email-display">usuario</span>
+          <span id="menu-email-display">...</span>
         </div>
         <button id="close-menu">✕</button>
       </div>
       <nav class="drawer-nav">
-        <button class="menu-item" data-target="view-home">🏠 Início</button>
-        <button class="menu-item" data-target="view-traps">🗺️ Trilhas & Iscas</button>
-        <button class="menu-item" data-target="view-meliponaries">📦 Minhas Colônias</button>
-        <button class="menu-item" data-target="view-captures">🍯 Minhas Capturas</button>
-        <button class="menu-item" data-target="view-profile">👤 Meus Dados</button>
+        <button class="menu-item" id="menu-home" data-target="view-home">🏠 Início</button>
+        <button class="menu-item" id="menu-traps" data-target="view-traps">🗺️ Trilhas</button>
+        <button class="menu-item" data-target="view-meliponaries">📦 Colônias</button>
+        <button class="menu-item" data-target="view-captures">🍯 Capturas</button>
+        <button class="menu-item" data-target="view-profile">👤 Perfil</button>
         <hr>
-        <button id="btnLogout" class="menu-item danger">Sair da Conta</button>
+        <button id="btnLogout" class="menu-item danger">Sair</button>
       </nav>
     </div>
 
     <header class="app-header">
       <button id="open-menu" class="btn-icon">☰</button>
       <div class="brand-mini">SEEBEE</div>
-      <div class="status-pill" id="statusPill">
-        <span id="onlineDot" class="status-dot"></span> <span id="onlineText">Online</span>
-      </div>
-    </header>
+      <div style="width: 24px;"></div> </header>
 
     <main class="content-area">
       
@@ -76,45 +72,41 @@
           <div class="dash-card" data-target="view-meliponaries">
             <div class="dash-icon">📦</div>
             <h3>Colônias</h3>
-            <p>Gestão do Meliponário</p>
+            <p>Gestão</p>
           </div>
           <div class="dash-card" data-target="view-captures">
             <div class="dash-icon">🍯</div>
             <h3>Capturas</h3>
-            <p>Maturação (35 dias)</p>
+            <p>Maturação</p>
           </div>
           <div class="dash-card" data-target="view-profile">
             <div class="dash-icon">👤</div>
             <h3>Perfil</h3>
             <p>Meus Dados</p>
           </div>
-          <div class="dash-card disabled">
-            <div class="dash-icon">🌳</div>
-            <h3>Vi na Mata</h3>
-            <p>Em breve</p>
-          </div>
-          <div class="dash-card disabled">
-            <div class="dash-icon">🛒</div>
-            <h3>Loja</h3>
-            <p>Em breve</p>
-          </div>
         </div>
       </section>
 
       <section id="view-traps" class="view-section hidden">
-        <button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button>
+          
+          <div id="statusPill" class="status-pill">
+            <span id="onlineDot" class="status-dot"></span> <span id="onlineText">Online</span>
+          </div>
+        </div>
         
         <div class="tracking-card">
           <div class="card-header">
-            <h3>Trajeto em andamento</h3>
+            <h3>Trajeto</h3>
             <span id="statusBadge" class="badge-status">Parado</span>
           </div>
-          <p class="sub-text">Registre o trajeto e marque ninhos.</p>
+          <p class="sub-text">Caminhe instalando ninhos e registre cada ponto.</p>
           
           <div class="action-buttons-row">
-            <button id="btnStartRoute" class="btn-action-start">▶ Iniciar trajeto</button>
-            <button id="btnFinishRoute" class="btn-action-stop hidden">■ Parar e Salvar</button>
-            <button id="btnMarkNest" class="btn-action-nest" disabled>🐝 Marcar ninho</button>
+            <button id="btnStartRoute" class="btn-action-start">▶ Iniciar</button>
+            <button id="btnFinishRoute" class="btn-action-stop hidden">■ Parar</button>
+            <button id="btnMarkNest" class="btn-action-nest" disabled>🐝 Marcar</button>
           </div>
 
           <div class="stats-row">
@@ -129,10 +121,11 @@
 
         <h3 class="list-label">Histórico</h3>
         <div id="trailsList"></div>
+        <div id="trailsEmpty" class="empty-state hidden">Nenhuma trilha gravada.</div>
       </section>
 
-      <section id="view-meliponaries" class="view-section hidden"><h2>Minhas Colônias</h2></section>
-      <section id="view-captures" class="view-section hidden"><h2>Minhas Capturas</h2><div id="capturedList"></div></section>
+      <section id="view-meliponaries" class="view-section hidden"><h2>Colônias</h2></section>
+      <section id="view-captures" class="view-section hidden"><h2>Capturas</h2><div id="capturedList"></div></section>
       <section id="view-profile" class="view-section hidden"><h2>Meus Dados</h2></section>
     </main>
 

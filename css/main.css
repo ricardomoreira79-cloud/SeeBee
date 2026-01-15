@@ -1,4 +1,4 @@
-/* css/main.css */
+/* css/main.css - ARQUIVO COMPLETO */
 
 /* --- VARIÁVEIS GLOBAIS (TEMA BEETRACK) --- */
 :root {
@@ -22,7 +22,7 @@ body {
   color: var(--text); 
   min-height: 100vh; 
   padding-bottom: 90px; /* Espaço para o menu rodapé */
-  overflow-x: hidden;   /* Evita rolagem lateral */
+  overflow-x: hidden;   /* Evita rolagem lateral indesejada */
 }
 
 .hidden { display: none !important; }
@@ -126,16 +126,17 @@ body {
 .brand-mini { font-weight: 900; letter-spacing: 1px; font-size: 18px; }
 .btn-icon { background: none; border: none; color: white; font-size: 26px; cursor: pointer; }
 
-/* Status Pill (Online/Offline) */
+/* Status Pill (Online/Offline) - Estilo Local */
 .status-pill { 
   border: 1px solid var(--primary); 
   padding: 4px 12px; 
   border-radius: 20px; 
   font-size: 12px; 
-  display: flex; 
+  display: inline-flex; 
   align-items: center; 
   gap: 6px; 
   background: rgba(16, 185, 129, 0.1);
+  transition: all 0.3s;
 }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 8px var(--primary); }
 
@@ -177,6 +178,7 @@ body {
   display: grid; 
   grid-template-columns: 1fr 1fr; 
   gap: 15px; 
+  padding: 0 5px;
 }
 
 .dash-card { 
@@ -294,8 +296,9 @@ body {
   border-radius: 20px; 
   border: 1px solid var(--border); 
   margin-bottom: 25px; 
-  background-color: #0f172a; /* Placeholder enquanto carrega */
-  display: block;
+  background-color: #0f172a; /* Garante fundo visível */
+  display: block; 
+  z-index: 1;
 }
 .map-label { font-size: 18px; margin-bottom: 10px; color: white; }
 

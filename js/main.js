@@ -5,9 +5,11 @@ import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js";
 import { bindAuth } from "./auth.js";
 import { initMap, setMapCenter, addRoutePoint, addMarker, clearMapLayers } from "./map.js";
 import { createRoute, appendRoutePoint, finishRoute, discardRoute, loadMyTrails } from "./routes.js";
-import { createNest } from "./nests.js";
+import { createNest, loadMyNests } from "./nests.js";
 
 const supabase = getSupabase();
+
+// --- FUNÇÕES AUXILIARES ---
 
 function calcDist(p1, p2) {
   const R = 6371e3;
@@ -16,61 +18,62 @@ function calcDist(p1, p2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// Atualiza o mapa quando a aba muda (Correção do mapa sumido)
+// Redesenha o mapa (Correção do mapa cinza/branco)
 function refreshMap() {
   setTimeout(() => {
     if(state.map) {
       state.map.invalidateSize();
-      if(state.lastPos) setMapCenter(state.lastPos.lat, state.lastPos.lng, 18);
+      // Se tiver posição, centraliza. Se não, tenta localizar.
+      if(state.lastPos) {
+        setMapCenter(state.lastPos.lat, state.lastPos.lng, 18);
+      } else {
+        state.map.locate({ setView: true, maxZoom: 18 });
+      }
     }
-  }, 300); // Delay pequeno para dar tempo da animação da tela
+  }, 100);
+}
+
+// Navegação Centralizada (Resolve o problema dos botões não funcionarem)
+function handleNavigation(targetId) {
+  if(!targetId) return;
+  
+  switchTab(targetId);
+  ui.sideMenu.classList.remove("open");
+  
+  // Se for a tela de trilhas, FORÇA o redesenho do mapa
+  if(targetId === "view-traps") {
+    refreshMap();
+    renderTrails(); // Atualiza lista
+  }
 }
 
 function setupListeners() {
-  // Menu Lateral
   ui.openMenu.onclick = () => ui.sideMenu.classList.add("open");
   ui.closeMenu.onclick = () => ui.sideMenu.classList.remove("open");
   if(ui.nestCancel) ui.nestCancel.onclick = closeNestModal;
 
-  // Cliques no Menu Lateral
+  // 1. MENU LATERAL
   document.querySelectorAll(".menu-item").forEach(item => {
-    item.addEventListener("click", () => {
-      const target = item.dataset.target;
-      if(target) {
-        switchTab(target);
-        ui.sideMenu.classList.remove("open");
-        if(target === "view-traps") refreshMap();
-      }
-    });
+    item.onclick = () => handleNavigation(item.dataset.target);
   });
 
-  // Cliques no Rodapé (CORREÇÃO DO RODAPÉ)
-  ui.navItems.forEach(item => {
-    item.addEventListener("click", () => {
-      const target = item.dataset.target;
-      if(target) {
-        switchTab(target);
-        if(target === "view-traps") refreshMap();
-      }
-    });
-  });
-
-  // Cards da Home
+  // 2. CARDS DA HOME
   document.querySelectorAll(".dash-card").forEach(card => {
-    card.addEventListener("click", () => {
-      if(card.classList.contains("disabled")) return;
-      const target = card.dataset.target;
-      if(target) {
-        switchTab(target);
-        if(target === "view-traps") refreshMap();
-      }
-    });
+    card.onclick = () => {
+      if(!card.classList.contains("disabled")) handleNavigation(card.dataset.target);
+    };
+  });
+
+  // 3. BARRA INFERIOR (RODAPÉ)
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.onclick = () => handleNavigation(item.dataset.target);
   });
 
   ui.btnLogout.onclick = async () => {
     if(confirm("Sair?")) await supabase.auth.signOut();
   };
 
+  // Monitora Online/Offline
   window.addEventListener('online', () => setOnlineUI(true));
   window.addEventListener('offline', () => setOnlineUI(false));
 }
@@ -95,7 +98,7 @@ ui.btnStartRoute.onclick = async () => {
     
     clearMapLayers();
     state._dist = 0;
-    state.nestCount = 0; // Reinicia contador
+    state.nestCount = 0;
     ui.distanceText.textContent = "0 m";
     ui.nestsCountText.textContent = "0";
     ui.gpsStatus.textContent = "Buscando...";
@@ -123,33 +126,30 @@ function startGPS() {
       ui.distanceText.textContent = Math.round(state._dist) + " m";
     }
     
+    // Salva localmente ou na nuvem
     if(navigator.onLine) await appendRoutePoint(supabase, p);
 
   }, (err) => ui.gpsStatus.textContent = "Erro GPS", { enableHighAccuracy: true });
 }
 
-// NOVA LÓGICA DE FINALIZAR
+// FINALIZAR TRILHA (Lógica de Descarte)
 ui.btnFinishRoute.onclick = async () => {
   if(state.watchId) navigator.geolocation.clearWatch(state.watchId);
   
-  // Verifica se tem ninhos
+  // Se não tiver ninhos, joga fora
   if (state.nestCount === 0) {
-    // Se não tem ninhos, descarta
-    const confirmDiscard = confirm("Nenhum ninho foi marcado. A trilha será descartada. Confirmar?");
-    if(confirmDiscard) {
+    if(confirm("Trilha sem ninhos. Descartar?")) {
       await discardRoute(supabase);
       toast(ui.routeHint, "Trilha vazia descartada.", "error");
     } else {
-      // Se usuário cancelar o descarte, ele pode continuar gravando? 
-      // Por simplicidade aqui, vamos apenas parar o GPS mas manter o estado para ele decidir.
-      // Mas para seguir sua regra estrita: Trilha sem ninho = Lixo.
-      await discardRoute(supabase); // Força descarte
+      // Se o usuário insistir em salvar vazia (raro, mas evita travar)
+      if(navigator.onLine) await finishRoute(supabase);
     }
   } else {
-    // Tem ninhos, salva normal
+    // Salva normal
     if(state.lastPos) addMarker(state.lastPos.lat, state.lastPos.lng, "#ef4444", "Fim");
     if(navigator.onLine) await finishRoute(supabase);
-    toast(ui.routeHint, "Trilha salva com sucesso!", "ok");
+    toast(ui.routeHint, "Trilha salva!", "ok");
   }
   
   // Reseta UI
@@ -181,12 +181,13 @@ ui.btnConfirmNest.onclick = async () => {
     
     addMarker(state.lastPos.lat, state.lastPos.lng, "#fbbf24", "Ninho");
     
-    // Incrementa contadores
     state.nestCount = (state.nestCount || 0) + 1;
     ui.nestsCountText.textContent = state.nestCount;
     
     closeNestModal();
-  } catch(e) { alert("Erro ao salvar: " + e.message); }
+    toast(ui.routeHint, "Ninho salvo!");
+
+  } catch(e) { alert("Erro: " + e.message); }
   finally { ui.btnConfirmNest.textContent = "Salvar"; }
 };
 
@@ -203,11 +204,7 @@ async function renderTrails() {
   ui.trailsEmpty.classList.add("hidden");
 
   list.innerHTML = trails.map(t => {
-    // Se o banco retornar ninhos, usa o count, senão usa 0
-    // O select 'nests(count)' retorna array [{count: N}]
-    let ninhosCount = 0;
-    if(t.nests && t.nests[0]) ninhosCount = t.nests[0].count;
-
+    let ninhosCount = (t.nests && t.nests[0]) ? t.nests[0].count : 0;
     return `
     <div class="route-card">
       <div style="display:flex; justify-content:space-between;">
@@ -226,8 +223,9 @@ bindAuth(supabase, async () => {
   initMap();
   setOnlineUI(navigator.onLine);
   if(state.user) {
-    switchTab("view-home");
-    // Pré-carrega
+    // Inicia sempre na Home
+    handleNavigation("view-home");
+    // Carrega trilhas em background
     loadMyTrails(supabase);
   }
 });
