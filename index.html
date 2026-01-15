@@ -9,7 +9,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body>
+<body class="dark-theme">
 
   <div id="auth-screen">
     <div class="brand-hero">
@@ -20,75 +20,143 @@
       <h2 style="margin:0 0 8px">Bem-vindo</h2>
       <p style="color:#94a3b8; font-size:14px; margin-bottom:24px">Gestão profissional de meliponários.</p>
       
-      <div class="auth-field" style="margin-bottom:16px">
-        <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:6px">E-mail</label>
-        <input id="email" type="email" placeholder="seu@email.com" style="width:100%; padding:14px; border-radius:12px; border:1px solid #1e293b; background:#020617; color:white">
+      <div class="auth-field">
+        <label>E-mail</label>
+        <input id="email" type="email" placeholder="seu@email.com">
       </div>
-      <div class="auth-field" style="margin-bottom:24px">
-        <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:6px">Senha</label>
-        <input id="password" type="password" placeholder="******" style="width:100%; padding:14px; border-radius:12px; border:1px solid #1e293b; background:#020617; color:white">
+      <div class="auth-field">
+        <label>Senha</label>
+        <input id="password" type="password" placeholder="******">
       </div>
 
       <button id="btnLogin" class="btn-primary">Entrar</button>
-      <button id="btnSignup" class="btn-outline">Criar Minha Conta</button>
-      
+      <button id="btnSignup" class="btn-outline">Criar Conta</button>
       <button id="btnGoogle" class="btn-google">
-        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.41 3.06-7.27 7.18-7.27c1.69 0 3.15.55 4.12 1.48l2.26-2.26C16.81 2.23 14.67 1.25 12.18 1.25c-5.92 0-10.18 4.41-10.18 10.75S6.43 22.75 12.18 22.75c5.66 0 9.27-4.03 9.27-9.35c0-.83-.1-1.63-.1-2.3z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.41 3.06-7.27 7.18-7.27c1.69 0 3.15.55 4.12 1.48l2.26-2.26C16.81 2.23 14.67 1.25 12.18 1.25c-5.92 0-10.18 4.41-10.18 10.75S6.43 22.75 12.18 22.75c5.66 0 9.27-4.03 9.27-9.35c0-.83-.1-1.63-.1-2.3z"/></svg>
         Entrar com Google
       </button>
-      <div id="authMsg" style="margin-top:16px; text-align:center; font-size:14px; color:#22c55e"></div>
+      <div id="authMsg"></div>
     </div>
   </div>
 
   <div id="app-screen" class="hidden">
+    
     <div id="side-menu" class="side-drawer">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px">
-        <div style="display:flex; align-items:center; gap:12px">
-          <div style="width:48px; height:48px; background:#22c55e; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:#052e16" id="menu-avatar-char">U</div>
-          <span id="menu-email-display" style="font-weight:600; font-size:14px">...</span>
+      <div class="drawer-header">
+        <div class="profile-mini">
+          <div class="avatar-circle" id="menu-avatar-char">U</div>
+          <span id="menu-email-display">...</span>
         </div>
-        <button id="close-menu" style="background:none; border:none; color:#94a3b8; font-size:30px">✕</button>
+        <button id="close-menu">✕</button>
       </div>
-      <nav style="display:flex; flex-direction:column; gap:10px">
-        <button class="menu-item active" data-target="view-traps" style="display:flex; align-items:center; gap:12px; width:100%; padding:14px; border:none; background:none; color:white; border-radius:12px; text-align:left; cursor:pointer">🗺️ Trilhas e Iscas</button>
-        <button class="menu-item" data-target="view-meliponaries" style="display:flex; align-items:center; gap:12px; width:100%; padding:14px; border:none; background:none; color:white; border-radius:12px; text-align:left; cursor:pointer">🏠 Minhas Colônias</button>
-        <button class="menu-item" data-target="view-captures" style="display:flex; align-items:center; gap:12px; width:100%; padding:14px; border:none; background:none; color:white; border-radius:12px; text-align:left; cursor:pointer">🍯 Minhas Capturas</button>
-        <button class="menu-item" data-target="view-profile" style="display:flex; align-items:center; gap:12px; width:100%; padding:14px; border:none; background:none; color:white; border-radius:12px; text-align:left; cursor:pointer">👤 Meus Dados</button>
-        <hr style="border:0; border-top:1px solid #1e293b; margin:12px 0">
-        <button id="btnLogout" style="display:flex; align-items:center; gap:12px; width:100%; padding:14px; border:none; background:none; color:#ef4444; border-radius:12px; text-align:left; cursor:pointer">🚪 Sair da Conta</button>
+      <nav class="drawer-nav">
+        <button class="menu-item" data-target="view-home">🏠 Início</button>
+        <button class="menu-item" data-target="view-traps">🗺️ Trilhas e Iscas</button>
+        <button class="menu-item" data-target="view-meliponaries">📦 Minhas Colônias</button>
+        <button class="menu-item" data-target="view-captures">🍯 Minhas Capturas</button>
+        <button class="menu-item" data-target="view-profile">👤 Meus Dados</button>
+        <hr>
+        <button id="btnLogout" class="menu-item danger">🚪 Sair da Conta</button>
       </nav>
     </div>
 
-    <header class="app-header" style="padding:16px; display:flex; justify-content:space-between; align-items:center">
-      <button id="open-menu" style="background:none; border:none; color:white; font-size:28px">☰</button>
-      <div style="font-weight:900; letter-spacing:1px">SEEBEE</div>
-      <div class="status-pill">
+    <header class="app-header">
+      <button id="open-menu">☰</button>
+      <div class="brand-mini">SEEBEE</div>
+      <div class="status-pill" id="statusPill">
         <span id="onlineDot" class="status-dot"></span> <span id="onlineText">Online</span>
       </div>
     </header>
 
-    <main style="padding:0 16px 32px">
-      <section id="view-traps" class="view-section active">
-        <div style="background:#0f172a; border:1px solid #1e293b; border-radius:24px; padding:20px; display:flex; justify-content:space-between; align-items:center">
-          <div>
-            <div id="distanceText" style="font-size:24px; font-weight:900">0 m</div>
-            <div id="nestsCountText" style="color:#94a3b8; font-size:13px">Aguardando início...</div>
+    <main class="content-area">
+      
+      <section id="view-home" class="view-section active">
+        <h2 style="margin-bottom:20px;">Painel Principal</h2>
+        <div class="dashboard-grid">
+          <div class="dash-card" data-target="view-traps">
+            <div class="dash-icon">🗺️</div>
+            <h3>Trilhas & Iscas</h3>
+            <p>Mapeamento GPS</p>
           </div>
-          <button id="btnStartRoute" class="btn-primary" style="width:auto; padding:12px 24px">▶ Iniciar</button>
-          <button id="btnFinishRoute" class="btn-stop hidden">■ Parar</button>
+          <div class="dash-card" data-target="view-meliponaries">
+            <div class="dash-icon">📦</div>
+            <h3>Colônias</h3>
+            <p>Gestão do Meliponário</p>
+          </div>
+          <div class="dash-card" data-target="view-captures">
+            <div class="dash-icon">🍯</div>
+            <h3>Capturas</h3>
+            <p>Maturação (35 dias)</p>
+          </div>
+          <div class="dash-card" data-target="view-profile">
+            <div class="dash-icon">👤</div>
+            <h3>Perfil</h3>
+            <p>Meus Dados</p>
+          </div>
+          <div class="dash-card disabled">
+            <div class="dash-icon">🌳</div>
+            <h3>Vi na Mata</h3>
+            <p>Em breve</p>
+          </div>
+          <div class="dash-card disabled">
+            <div class="dash-icon">🛒</div>
+            <h3>Loja</h3>
+            <p>Em breve</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-traps" class="view-section hidden">
+        <div class="card-summary">
+          <div>
+            <div id="distanceText">0 m</div>
+            <div id="nestsCountText">0 ninhos</div>
+          </div>
+          <button id="btnStartRoute" class="btn-primary-sm">▶ Iniciar</button>
+          <button id="btnFinishRoute" class="btn-stop-sm hidden">■ Parar</button>
         </div>
         <div id="map"></div>
-        <div id="routeHint" class="hidden" style="text-align:center; padding:12px; background:rgba(34, 197, 94, 0.1); border-radius:12px"></div>
+        <button id="btnMarkNest" class="fab-btn" disabled>+</button>
+        <div id="routeHint" class="hidden"></div>
       </section>
-      
-      <section id="view-profile" class="view-section hidden"><h2>Meus Dados</h2></section>
-      <section id="view-meliponaries" class="view-section hidden"><h2>Minhas Colônias</h2></section>
-      <section id="view-captures" class="view-section hidden"><h2>Minhas Capturas</h2></section>
+
+      <section id="view-meliponaries" class="view-section hidden"><h2>Minhas Colônias</h2><p class="subtle">Gestão de caixas em desenvolvimento.</p></section>
+      <section id="view-captures" class="view-section hidden"><h2>Minhas Capturas</h2><div id="capturedList"></div></section>
+      <section id="view-profile" class="view-section hidden"><h2>Meus Dados</h2><div class="card"><p>Dados do usuário carregados.</p></div></section>
     </main>
 
-    <button id="btnMarkNest" style="position:fixed; bottom:30px; right:20px; width:65px; height:65px; border-radius:50%; background:#22c55e; border:none; font-size:30px; color:#052e16; box-shadow: 0 10px 25px rgba(34,197,94,0.4); z-index:900; cursor:pointer" disabled>+</button>
-  </div>
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-target="view-home">
+        <span>🏠</span>
+        <small>Início</small>
+      </button>
+      <button class="nav-item" data-target="view-traps">
+        <span>🗺️</span>
+        <small>Trilhas</small>
+      </button>
+      <button class="nav-item" data-target="view-captures">
+        <span>🍯</span>
+        <small>Capturas</small>
+      </button>
+      <button class="nav-item" data-target="view-profile">
+        <span>👤</span>
+        <small>Perfil</small>
+      </button>
+    </nav>
 
+    <div id="nest-modal" class="modal-backdrop" style="display:none">
+      <div class="modal-card">
+        <h3>Marcar Isca</h3>
+        <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
+        <label class="btn-outline-photo">📷 Foto <input id="nestPhoto" type="file" style="display:none"></label>
+        <div class="modal-actions">
+          <button id="nestCancel" class="btn-outline-sm">Cancelar</button>
+          <button id="btnConfirmNest" class="btn-primary-sm">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>
