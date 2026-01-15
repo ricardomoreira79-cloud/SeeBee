@@ -1,7 +1,7 @@
 // js/main.js
 import { getSupabase } from "./supabaseClient.js";
 import { state } from "./state.js";
-import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js";
+import { ui, toast, switchTab, switchSubTab, openNestModal, closeNestModal, setOnlineUI } from "./ui.js";
 import { bindAuth } from "./auth.js";
 import { initMap, setMapCenter, addRoutePoint, addMarker, clearMapLayers } from "./map.js";
 import { createRoute, appendRoutePoint, finishRoute, loadMyTrails } from "./routes.js";
@@ -9,7 +9,7 @@ import { createNest, loadMyNests } from "./nests.js";
 
 const supabase = getSupabase();
 
-// Função de distância (Haversine)
+// --- FUNÇÃO AUXILIAR DE DISTÂNCIA ---
 function calcDist(p1, p2) {
   const R = 6371e3;
   const φ1 = p1.lat * Math.PI/180;
@@ -22,7 +22,6 @@ function calcDist(p1, p2) {
 }
 
 function setupListeners() {
-  // Menu Lateral
   ui.openMenu.onclick = () => ui.sideMenu.classList.add("open");
   ui.closeMenu.onclick = () => ui.sideMenu.classList.remove("open");
 
@@ -35,7 +34,7 @@ function setupListeners() {
         ui.sideMenu.classList.remove("open");
         if(target === "view-traps") {
           setTimeout(() => state.map && state.map.invalidateSize(), 200);
-          renderTrails();
+          switchSubTab("sub-deposit"); // Vai para o mapa por padrão
         }
       }
     });
@@ -47,12 +46,12 @@ function setupListeners() {
       switchTab(item.dataset.target);
       if(item.dataset.target === "view-traps") {
         setTimeout(() => state.map && state.map.invalidateSize(), 200);
-        renderTrails();
+        switchSubTab("sub-deposit");
       }
     });
   });
 
-  // CORREÇÃO: Seleção direta dos cards do Dashboard para garantir que o clique funcione
+  // Dashboard Cards
   const dashCards = document.querySelectorAll(".dash-card");
   dashCards.forEach(card => {
     card.addEventListener("click", () => {
@@ -62,13 +61,12 @@ function setupListeners() {
         switchTab(target);
         if(target === "view-traps") {
           setTimeout(() => state.map && state.map.invalidateSize(), 200);
-          renderTrails();
+          switchSubTab("sub-deposit");
         }
       }
     });
   });
 
-  // Logout
   if(ui.btnLogout) {
     ui.btnLogout.addEventListener("click", async () => {
       if(confirm("Deseja realmente sair?")) {
@@ -79,111 +77,109 @@ function setupListeners() {
   }
 }
 
-// --- LÓGICA DE TRILHA ---
+// --- TRILHA ---
 
 ui.btnStartRoute.onclick = async () => {
-  if(!state.user) return alert("Erro: Usuário não identificado. Faça login novamente.");
+  if(!state.user) return alert("Erro: Faça login novamente.");
 
   const defaultName = `Trilha ${new Date().toLocaleString("pt-BR")}`;
   let customName = prompt("Nome da Trilha:", defaultName);
   
-  if (customName === null) return; // Cancelou
+  if (customName === null) return; 
   if (!customName.trim()) customName = defaultName;
 
-  ui.btnStartRoute.disabled = true; // Evita duplo clique
-  toast(ui.routeHint, "Criando trilha...", "ok");
+  ui.btnStartRoute.disabled = true; 
+  toast(ui.routeHint, "Iniciando...", "ok");
 
   try {
-    // 1. Cria no banco
     await createRoute(supabase, customName);
     
-    // 2. Atualiza UI
     ui.btnStartRoute.classList.add("hidden");
     ui.btnFinishRoute.classList.remove("hidden");
+    
+    // Habilita botão de Ninho explicitamente
     ui.btnMarkNest.disabled = false;
     ui.btnStartRoute.disabled = false;
     
-    // 3. Reseta dados visuais
     clearMapLayers();
     state._dist = 0;
     ui.distanceText.textContent = "0 m";
     ui.nestsCountText.textContent = "0";
     
-    toast(ui.routeHint, "Iniciado! Aguardando GPS...", "ok");
-    
-    // 4. Liga GPS
+    toast(ui.routeHint, "GPS Ligado. Pode caminhar.", "ok");
     startGPS();
 
   } catch(e) { 
     ui.btnStartRoute.disabled = false;
-    alert("Erro ao iniciar trilha: " + e.message); 
+    alert("Erro ao iniciar: " + e.message); 
   }
 };
 
 function startGPS() {
-  if (!navigator.geolocation) return alert("Seu dispositivo não tem GPS.");
+  if (!navigator.geolocation) return alert("GPS não detectado.");
 
   state.watchId = navigator.geolocation.watchPosition(async (pos) => {
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
     const newPoint = { lat, lng, t: new Date().toISOString() };
 
-    // Desenha
+    // Guarda posição para usar no botão de ninho
+    state.lastPos = newPoint;
+
     addRoutePoint(lat, lng);
 
-    // Primeiro ponto?
     if (state.routePoints.length === 0) {
       setMapCenter(lat, lng, 18);
       addMarker(lat, lng, "#22c55e", "Início");
-      toast(ui.routeHint, "GPS Ativo. Gravando...", "ok");
     } else {
-      // Distância
       const lastPoint = state.routePoints[state.routePoints.length - 1];
       const d = calcDist(lastPoint, newPoint);
       state._dist += d;
-      if(state._dist < 1000) ui.distanceText.textContent = Math.round(state._dist) + " m";
-      else ui.distanceText.textContent = (state._dist/1000).toFixed(2) + " km";
+      ui.distanceText.textContent = (state._dist < 1000) ? Math.round(state._dist) + " m" : (state._dist/1000).toFixed(2) + " km";
     }
 
-    // Salva
     await appendRoutePoint(supabase, newPoint);
-    state.lastPos = newPoint;
 
   }, (err) => {
-    console.error("Erro GPS:", err);
-    toast(ui.routeHint, "Buscando sinal GPS...", "error");
-  }, { 
-    enableHighAccuracy: true, 
-    maximumAge: 0 
-  });
+    console.error("GPS Error:", err);
+    toast(ui.routeHint, "Buscando sinal...", "error");
+  }, { enableHighAccuracy: true, maximumAge: 0 });
 }
 
 ui.btnFinishRoute.onclick = async () => {
-  if(!state.watchId) return;
-  
-  navigator.geolocation.clearWatch(state.watchId);
-  state.watchId = null;
+  if(state.watchId) {
+    navigator.geolocation.clearWatch(state.watchId);
+    state.watchId = null;
+  }
 
   if(state.lastPos) addMarker(state.lastPos.lat, state.lastPos.lng, "#ef4444", "Fim");
 
   try {
     await finishRoute(supabase);
-    toast(ui.routeHint, "Trilha salva com sucesso!", "ok");
+    toast(ui.routeHint, "Trilha salva!", "ok");
   } catch(e) {
-    alert("Erro ao finalizar: " + e.message);
+    alert("Erro ao salvar: " + e.message);
   }
   
   ui.btnStartRoute.classList.remove("hidden");
   ui.btnFinishRoute.classList.add("hidden");
   ui.btnMarkNest.disabled = true;
   
+  // AQUI: Troca a aba automaticamente para você ver a trilha
+  switchSubTab("sub-trails");
   await renderTrails();
 };
 
+// --- MARCAR NINHO ---
+
 ui.btnMarkNest.onclick = () => {
+  // Verificação robusta
+  if(!state.currentRoute) {
+    return alert("Inicie uma trilha primeiro.");
+  }
   if(!state.lastPos) {
-    alert("Aguardando sinal GPS para marcar a localização.");
-    return;
+    // No PC, se o GPS não mexeu, pode estar null. Vamos tentar forçar ou avisar.
+    return alert("Aguardando sinal do GPS para marcar local...");
   }
   openNestModal();
 };
@@ -197,10 +193,11 @@ ui.btnConfirmNest.onclick = async () => {
     
     await createNest(supabase, {
       note: ui.nestNote.value,
-      status: "CATALOGADO", 
+      status: ui.nestStatus.value,
+      species: ui.nestSpecies.value,
       lat: state.lastPos.lat,
       lng: state.lastPos.lng,
-      route_id: state.currentRoute?.id,
+      route_id: state.currentRoute.id,
       photoFile: file
     });
     
@@ -210,7 +207,7 @@ ui.btnConfirmNest.onclick = async () => {
     ui.nestsCountText.textContent = count + 1;
 
     closeNestModal();
-    toast(ui.routeHint, "Isca registrada!", "ok");
+    toast(ui.routeHint, "Ninho salvo!", "ok");
     
   } catch(e) {
     alert("Erro: " + e.message);
@@ -240,7 +237,7 @@ async function renderTrails() {
         </div>
       </div>
       <div class="route-actions">
-        <button class="btn-xs">Ver Mapa</button>
+        <button class="btn-xs" onclick="alert('Visualização de mapa em desenvolvimento')">Ver no Mapa</button>
       </div>
     </div>
   `).join("");
@@ -254,7 +251,7 @@ bindAuth(supabase, async () => {
   
   if(state.user) {
     switchTab("view-home");
-    // Pré-carrega trilhas em background
+    // Pré-carrega
     loadMyTrails(supabase); 
   }
 });
