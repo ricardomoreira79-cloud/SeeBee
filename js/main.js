@@ -1,7 +1,7 @@
 // js/main.js
 import { getSupabase } from "./supabaseClient.js";
 import { state } from "./state.js";
-import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js";
+import { ui, toast, switchTab, switchSubTab, closeNestModal, setOnlineUI } from "./ui.js";
 import { bindAuth } from "./auth.js";
 import { initMap, setMapCenter, addRoutePoint, addMarker, clearMapLayers } from "./map.js";
 import { createRoute, appendRoutePoint, finishRoute, loadMyTrails } from "./routes.js";
@@ -20,43 +20,43 @@ function setupListeners() {
   ui.openMenu.onclick = () => ui.sideMenu.classList.add("open");
   ui.closeMenu.onclick = () => ui.sideMenu.classList.remove("open");
 
-  if(ui.menuItems) {
-    ui.menuItems.forEach(item => {
-      item.onclick = () => {
-        const target = item.dataset.target;
-        if(target) {
-          switchTab(target);
-          ui.sideMenu.classList.remove("open");
-          // Se for para trilhas, ajusta o mapa
-          if(target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
-        }
-      };
-    });
-  }
+  // Botão Cancelar do Modal (CORREÇÃO)
+  if(ui.nestCancel) ui.nestCancel.onclick = closeNestModal;
 
-  // Dashboard Cards
+  // Menu Lateral
+  document.querySelectorAll(".menu-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const target = item.dataset.target;
+      if(target) {
+        switchTab(target);
+        ui.sideMenu.classList.remove("open");
+        if(target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
+      }
+    });
+  });
+
+  // Dashboard (Painel Principal)
   const dashCards = document.querySelectorAll(".dash-card");
   dashCards.forEach(card => {
-    card.onclick = () => {
+    card.addEventListener("click", () => {
       if(card.classList.contains("disabled")) return;
       const target = card.dataset.target;
       if(target) {
         switchTab(target);
         if(target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
       }
-    };
+    });
   });
 
   ui.btnLogout.onclick = async () => {
     if(confirm("Sair?")) await supabase.auth.signOut();
   };
 
-  // DETECÇÃO OFFLINE/ONLINE ROBUSTA
   window.addEventListener('online', () => setOnlineUI(true));
   window.addEventListener('offline', () => setOnlineUI(false));
 }
 
-// --- TRILHA ---
+// --- LÓGICA DE TRILHA ---
 
 ui.btnStartRoute.onclick = async () => {
   const defaultName = `Trilha ${new Date().toLocaleString("pt-BR")}`;
@@ -71,14 +71,14 @@ ui.btnStartRoute.onclick = async () => {
     ui.btnFinishRoute.classList.remove("hidden");
     ui.btnMarkNest.disabled = false;
     
-    ui.statusBadge.textContent = "GRAVANDO";
-    ui.statusBadge.classList.add("active");
+    // Status Badge
+    const badge = document.getElementById("statusBadge");
+    if(badge) { badge.textContent = "GRAVANDO"; badge.classList.add("active"); }
     
     clearMapLayers();
     state._dist = 0;
     ui.distanceText.textContent = "0 m";
     ui.nestsCountText.textContent = "0";
-    ui.gpsStatus.textContent = "Buscando GPS...";
     
     startGPS();
 
@@ -91,7 +91,9 @@ function startGPS() {
   state.watchId = navigator.geolocation.watchPosition(async (pos) => {
     const p = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: new Date().toISOString() };
     state.lastPos = p;
-    ui.gpsStatus.textContent = "GPS: OK";
+    
+    const gpsStatus = document.getElementById("gpsStatus");
+    if(gpsStatus) gpsStatus.textContent = "GPS: OK";
 
     addRoutePoint(p.lat, p.lng);
 
@@ -104,10 +106,9 @@ function startGPS() {
       ui.distanceText.textContent = Math.round(state._dist) + " m";
     }
     
-    // Se estiver online, salva. Se não, (futuramente) guarda local.
     if(navigator.onLine) await appendRoutePoint(supabase, p);
 
-  }, (err) => ui.gpsStatus.textContent = "GPS: Erro", { enableHighAccuracy: true });
+  }, (err) => console.error(err), { enableHighAccuracy: true });
 }
 
 ui.btnFinishRoute.onclick = async () => {
@@ -115,15 +116,13 @@ ui.btnFinishRoute.onclick = async () => {
   if(state.lastPos) addMarker(state.lastPos.lat, state.lastPos.lng, "#ef4444", "Fim");
 
   if(navigator.onLine) await finishRoute(supabase);
-  else alert("Aviso: Sem internet. A finalização será sincronizada depois (Futuro).");
   
   ui.btnStartRoute.classList.remove("hidden");
   ui.btnFinishRoute.classList.add("hidden");
   ui.btnMarkNest.disabled = true;
   
-  ui.statusBadge.textContent = "PARADO";
-  ui.statusBadge.classList.remove("active");
-  ui.gpsStatus.textContent = "GPS: Parado";
+  const badge = document.getElementById("statusBadge");
+  if(badge) { badge.textContent = "PARADO"; badge.classList.remove("active"); }
   
   await renderTrails();
   toast(ui.routeHint, "Trilha salva!", "ok");
@@ -148,8 +147,8 @@ ui.btnConfirmNest.onclick = async () => {
     addMarker(state.lastPos.lat, state.lastPos.lng, "#fbbf24", "Ninho");
     ui.nestsCountText.textContent = (parseInt(ui.nestsCountText.textContent)||0) + 1;
     closeNestModal();
-  } catch(e) { alert(e.message); }
-  finally { ui.btnConfirmNest.textContent = "Salvar Registro"; }
+  } catch(e) { alert("Erro ao salvar: " + e.message); }
+  finally { ui.btnConfirmNest.textContent = "Salvar"; }
 };
 
 async function renderTrails() {
@@ -177,14 +176,11 @@ async function renderTrails() {
 bindAuth(supabase, async () => {
   setupListeners();
   initMap();
-  
-  // Atualiza UI Offline/Online imediatamente
   setOnlineUI(navigator.onLine);
 
   if(state.user) {
-    // CORREÇÃO: Vai para a HOME (Dashboard) ao invés das trilhas
+    // CORREÇÃO: Força ir para a HOME (Dashboard) ao logar
     switchTab("view-home");
-    // Carrega trilhas em background para quando o usuário clicar
     loadMyTrails(supabase);
   }
 });

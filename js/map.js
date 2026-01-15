@@ -1,63 +1,41 @@
 // js/map.js
 import { state } from "./state.js";
-import { CONFIG } from "./config.js";
 
 export function initMap() {
   if (state.mapReady) return;
-
-  state.map = L.map("map", { zoomControl: false }); // ZoomControl false pra ficar mais limpo no mobile
+  
+  // Inicia o mapa (sem controle de zoom para ficar limpo no mobile)
+  state.map = L.map("map", { zoomControl: false }).setView([-15.6, -56.1], 15);
+  
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 20,
     attribution: '&copy; OpenStreetMap'
   }).addTo(state.map);
-
-  state.map.setView([-15.6, -56.1], CONFIG.MAP.defaultZoom || 15);
-  state.polyline = L.polyline([], { weight: 5, color: '#22c55e' }).addTo(state.map);
-  state.nestsLayerGroup = L.layerGroup().addTo(state.map); // Grupo para ninhos
-
+  
+  state.polyline = L.polyline([], { color: '#10b981', weight: 5 }).addTo(state.map);
   state.mapReady = true;
+
+  // ZOOM AUTOMÁTICO AO ABRIR (Correção solicitada)
+  state.map.locate({ setView: true, maxZoom: 18 });
 }
 
-export function setMapCenter(lat, lng, zoom = null) {
-  if (!state.mapReady) return;
-  state.map.setView([lat, lng], zoom ?? state.map.getZoom());
+export function setMapCenter(lat, lng, zoom = 18) {
+  if (state.mapReady) state.map.setView([lat, lng], zoom);
 }
 
 export function addRoutePoint(lat, lng) {
-  if (!state.polyline) return;
-  state.polyline.addLatLng([lat, lng]);
+  if (state.polyline) state.polyline.addLatLng([lat, lng]);
 }
 
-// CORREÇÃO: Função genérica para atender main.js e routes.js
-export function addNestMarker(lat, lng) {
-  if (!state.mapReady) return;
-  L.marker([lat, lng]).addTo(state.nestsLayerGroup);
-}
-// Alias para compatibilidade
-export const addMarker = addNestMarker; 
-
-export function updateUserMarker(lat, lng) {
-  if (!state.map) return;
-  if (!state.userMarker) {
-    state.userMarker = L.circleMarker([lat, lng], { radius: 8, color: '#fff', fillColor: '#3b82f6', fillOpacity: 1 }).addTo(state.map);
-  } else {
-    state.userMarker.setLatLng([lat, lng]);
-  }
+export function addMarker(lat, lng, color = "#10b981", label = "") {
+  const icon = L.divIcon({
+    className: 'custom-pin',
+    html: `<div style="background-color:${color}; width:16px; height:16px; border-radius:50%; border:3px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.4);"></div>`,
+    iconSize: [16, 16]
+  });
+  L.marker([lat, lng], { icon }).addTo(state.map).bindPopup(label);
 }
 
-// CORREÇÃO: Função genérica para limpar
-export function resetMapOverlays() {
+export function clearMapLayers() {
   if (state.polyline) state.polyline.setLatLngs([]);
-  if (state.nestsLayerGroup) state.nestsLayerGroup.clearLayers();
-}
-// Alias para compatibilidade com routes.js
-export const clearMapLayers = resetMapOverlays;
-
-export function drawRouteOnMap(route) {
-  resetMapOverlays();
-  if (!route?.path?.length) return;
-  
-  const latlngs = route.path.map(p => [p.lat, p.lng]);
-  state.polyline.setLatLngs(latlngs);
-  state.map.fitBounds(state.polyline.getBounds());
 }
