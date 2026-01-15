@@ -3,20 +3,21 @@ import { state } from "./state.js";
 import { persistLocalRoutes, loadLocalRoutes } from "./storage.js";
 
 /**
- * Cria uma trilha nova e limpa o estado anterior
+ * Cria uma trilha nova com nome definido no INÍCIO
  */
-export async function createRoute(supabase) {
+export async function createRoute(supabase, customName) {
   const user = state.user;
   if (!user) throw new Error("Usuário não autenticado.");
 
-  const name = `Trilha ${new Date().toLocaleString("pt-BR")}`;
+  // Se o usuário não digitou nada, usa o padrão com data/hora
+  const finalName = customName || `Trilha ${new Date().toLocaleString("pt-BR")}`;
 
   const payload = {
     user_id: user.id,
-    name,
+    name: finalName,
     status: "recording",
     path: [],
-    traps: []
+    traps: [] 
   };
 
   const { data, error } = await supabase
@@ -30,35 +31,30 @@ export async function createRoute(supabase) {
   state.currentRoute = data;
   state.routePoints = [];
   state.nestsThisRoute = [];
+  state._dist = 0; // Reseta distância
   return data;
 }
 
-/**
- * Adiciona ponto GPS ao trajeto atual
- */
 export async function appendRoutePoint(supabase, point) {
   if (!state.currentRoute) return;
 
   state.routePoints.push(point);
-  
-  // Atualiza objeto local
+
+  // Atualiza objeto local e visual
   const currentPath = state.currentRoute.path || [];
   const newPath = [...currentPath, point];
   state.currentRoute.path = newPath;
 
-  // Atualiza no banco
+  // Atualiza no banco silenciosamente
   const { error } = await supabase
     .from("routes")
     .update({ path: newPath })
     .eq("id", state.currentRoute.id)
     .eq("user_id", state.user.id);
 
-  if (error) console.error("Erro ao salvar ponto:", error.message);
+  if (error) console.error("Erro sync ponto:", error.message);
 }
 
-/**
- * Finaliza a trilha
- */
 export async function finishRoute(supabase) {
   if (!state.currentRoute) return;
 
@@ -77,9 +73,6 @@ export async function finishRoute(supabase) {
   state.currentRoute = null;
 }
 
-/**
- * Carrega histórico de trilhas
- */
 export async function loadMyTrails(supabase) {
   const { data, error } = await supabase
     .from("routes")
@@ -90,8 +83,5 @@ export async function loadMyTrails(supabase) {
   if (error) throw new Error(error.message);
 
   state.allTrails = data || [];
-  // Aproveita para salvar cache local
-  persistLocalRoutes(state.allTrails);
-  
   return state.allTrails;
 }
