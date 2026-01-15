@@ -1,11 +1,11 @@
 // js/main.js
 import { getSupabase } from "./supabaseClient.js";
 import { state } from "./state.js";
-import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js"; // IMPORTAÇÃO CORRIGIDA
+import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js";
 import { bindAuth } from "./auth.js";
 import { initMap, setMapCenter, addRoutePoint, addMarker, clearMapLayers } from "./map.js";
-import { createRoute, appendRoutePoint, finishRoute, loadMyTrails } from "./routes.js";
-import { createNest, loadMyNests } from "./nests.js";
+import { createRoute, appendRoutePoint, finishRoute, discardRoute, loadMyTrails } from "./routes.js";
+import { createNest } from "./nests.js";
 
 const supabase = getSupabase();
 
@@ -16,41 +16,54 @@ function calcDist(p1, p2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+// Atualiza o mapa quando a aba muda (Correção do mapa sumido)
+function refreshMap() {
+  setTimeout(() => {
+    if(state.map) {
+      state.map.invalidateSize();
+      if(state.lastPos) setMapCenter(state.lastPos.lat, state.lastPos.lng, 18);
+    }
+  }, 300); // Delay pequeno para dar tempo da animação da tela
+}
+
 function setupListeners() {
+  // Menu Lateral
   ui.openMenu.onclick = () => ui.sideMenu.classList.add("open");
   ui.closeMenu.onclick = () => ui.sideMenu.classList.remove("open");
-  
   if(ui.nestCancel) ui.nestCancel.onclick = closeNestModal;
 
-  // MENU LATERAL
+  // Cliques no Menu Lateral
   document.querySelectorAll(".menu-item").forEach(item => {
     item.addEventListener("click", () => {
       const target = item.dataset.target;
       if(target) {
         switchTab(target);
         ui.sideMenu.classList.remove("open");
-        if(target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
+        if(target === "view-traps") refreshMap();
       }
     });
   });
 
-  // CARDS DO DASHBOARD (HOME)
+  // Cliques no Rodapé (CORREÇÃO DO RODAPÉ)
+  ui.navItems.forEach(item => {
+    item.addEventListener("click", () => {
+      const target = item.dataset.target;
+      if(target) {
+        switchTab(target);
+        if(target === "view-traps") refreshMap();
+      }
+    });
+  });
+
+  // Cards da Home
   document.querySelectorAll(".dash-card").forEach(card => {
     card.addEventListener("click", () => {
       if(card.classList.contains("disabled")) return;
       const target = card.dataset.target;
       if(target) {
         switchTab(target);
-        if(target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
+        if(target === "view-traps") refreshMap();
       }
-    });
-  });
-
-  // NAV BOTTOM
-  ui.navItems.forEach(item => {
-    item.addEventListener("click", () => {
-      switchTab(item.dataset.target);
-      if(item.dataset.target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
     });
   });
 
@@ -82,9 +95,10 @@ ui.btnStartRoute.onclick = async () => {
     
     clearMapLayers();
     state._dist = 0;
+    state.nestCount = 0; // Reinicia contador
     ui.distanceText.textContent = "0 m";
     ui.nestsCountText.textContent = "0";
-    ui.gpsStatus.textContent = "Buscando GPS...";
+    ui.gpsStatus.textContent = "Buscando...";
     
     startGPS();
   } catch(e) { alert(e.message); }
@@ -114,22 +128,38 @@ function startGPS() {
   }, (err) => ui.gpsStatus.textContent = "Erro GPS", { enableHighAccuracy: true });
 }
 
+// NOVA LÓGICA DE FINALIZAR
 ui.btnFinishRoute.onclick = async () => {
   if(state.watchId) navigator.geolocation.clearWatch(state.watchId);
-  if(state.lastPos) addMarker(state.lastPos.lat, state.lastPos.lng, "#ef4444", "Fim");
-
-  if(navigator.onLine) await finishRoute(supabase);
   
+  // Verifica se tem ninhos
+  if (state.nestCount === 0) {
+    // Se não tem ninhos, descarta
+    const confirmDiscard = confirm("Nenhum ninho foi marcado. A trilha será descartada. Confirmar?");
+    if(confirmDiscard) {
+      await discardRoute(supabase);
+      toast(ui.routeHint, "Trilha vazia descartada.", "error");
+    } else {
+      // Se usuário cancelar o descarte, ele pode continuar gravando? 
+      // Por simplicidade aqui, vamos apenas parar o GPS mas manter o estado para ele decidir.
+      // Mas para seguir sua regra estrita: Trilha sem ninho = Lixo.
+      await discardRoute(supabase); // Força descarte
+    }
+  } else {
+    // Tem ninhos, salva normal
+    if(state.lastPos) addMarker(state.lastPos.lat, state.lastPos.lng, "#ef4444", "Fim");
+    if(navigator.onLine) await finishRoute(supabase);
+    toast(ui.routeHint, "Trilha salva com sucesso!", "ok");
+  }
+  
+  // Reseta UI
   ui.btnStartRoute.classList.remove("hidden");
   ui.btnFinishRoute.classList.add("hidden");
   ui.btnMarkNest.disabled = true;
-  
   ui.statusBadge.textContent = "PARADO";
   ui.statusBadge.classList.remove("active");
-  ui.gpsStatus.textContent = "GPS: Parado";
   
   await renderTrails();
-  toast(ui.routeHint, "Trilha salva!", "ok");
 };
 
 ui.btnMarkNest.onclick = () => {
@@ -148,21 +178,18 @@ ui.btnConfirmNest.onclick = async () => {
       route_id: state.currentRoute?.id,
       photoFile: file
     });
+    
     addMarker(state.lastPos.lat, state.lastPos.lng, "#fbbf24", "Ninho");
     
-    // Atualiza contador visual
-    let current = parseInt(ui.nestsCountText.textContent) || 0;
-    ui.nestsCountText.textContent = current + 1;
-
-    // CORREÇÃO: Fecha o modal após salvar
+    // Incrementa contadores
+    state.nestCount = (state.nestCount || 0) + 1;
+    ui.nestsCountText.textContent = state.nestCount;
+    
     closeNestModal();
-    toast(ui.routeHint, "Ninho salvo!");
-
-  } catch(e) { alert("Erro: " + e.message); }
+  } catch(e) { alert("Erro ao salvar: " + e.message); }
   finally { ui.btnConfirmNest.textContent = "Salvar"; }
 };
 
-// CORREÇÃO: Renderiza histórico com evento de clique e número de ninhos (estimado)
 async function renderTrails() {
   const trails = await loadMyTrails(supabase);
   const list = ui.trailsList;
@@ -176,15 +203,16 @@ async function renderTrails() {
   ui.trailsEmpty.classList.add("hidden");
 
   list.innerHTML = trails.map(t => {
-    // Estimativa simples de ninhos baseada no JSON (se existir) ou 0
-    // Idealmente faríamos uma query count, mas vamos manter simples por agora
-    const ninhos = t.nests_count || 0; 
-    
+    // Se o banco retornar ninhos, usa o count, senão usa 0
+    // O select 'nests(count)' retorna array [{count: N}]
+    let ninhosCount = 0;
+    if(t.nests && t.nests[0]) ninhosCount = t.nests[0].count;
+
     return `
-    <div class="route-card" onclick="confirmGoToNests('${t.id}')">
+    <div class="route-card">
       <div style="display:flex; justify-content:space-between;">
         <strong style="color:white;">${t.name}</strong>
-        <span style="font-size:12px; color:#10b981;">${ninhos} ninhos</span>
+        <span style="font-size:12px; color:#10b981;">${ninhosCount} ninhos</span>
       </div>
       <div style="font-size:12px; color:#9ca3af; margin-top:5px;">
         ${new Date(t.created_at).toLocaleDateString()} • ${t.path?.length || 0} pts
@@ -193,20 +221,13 @@ async function renderTrails() {
   `}).join("");
 }
 
-// Função global para o clique na trilha
-window.confirmGoToNests = (routeId) => {
-  if(confirm("Ir para 'Minhas Capturas' ver detalhes desta trilha?")) {
-    switchTab("view-captures");
-    // Futuramente: filtrar capturas por routeId
-  }
-};
-
 bindAuth(supabase, async () => {
   setupListeners();
   initMap();
   setOnlineUI(navigator.onLine);
   if(state.user) {
     switchTab("view-home");
+    // Pré-carrega
     loadMyTrails(supabase);
   }
 });
