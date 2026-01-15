@@ -6,6 +6,7 @@ export const ui = {
   
   // Views
   views: {
+    home: document.querySelector("#view-home"), // HOME
     traps: document.querySelector("#view-traps"),
     meliponaries: document.querySelector("#view-meliponaries"),
     captures: document.querySelector("#view-captures"),
@@ -20,18 +21,17 @@ export const ui = {
   btnGoogle: document.querySelector("#btnGoogle"),
   authMsg: document.querySelector("#authMsg"),
 
-  // Menu Lateral
+  // Menu
   sideMenu: document.querySelector("#side-menu"),
   openMenu: document.querySelector("#open-menu"),
   closeMenu: document.querySelector("#close-menu"),
   menuItems: document.querySelectorAll(".menu-item"),
   btnLogout: document.querySelector("#btnLogout"),
-  
-  // Perfil no Menu
   menuEmail: document.querySelector("#menu-email-display"),
   menuAvatar: document.querySelector("#menu-avatar-char"),
 
-  // Trilha (BeeTrack IDs)
+  // Trilha e Dashboard
+  dashCards: document.querySelectorAll(".dash-card"),
   btnStartRoute: document.querySelector("#btnStartRoute"),
   btnFinishRoute: document.querySelector("#btnFinishRoute"),
   btnMarkNest: document.querySelector("#btnMarkNest"),
@@ -57,29 +57,16 @@ export const ui = {
 };
 
 export function switchTab(targetId) {
-  // Esconde todas
   Object.values(ui.views).forEach(el => { if(el) el.classList.add("hidden"); });
-  
-  // Mostra alvo
   const target = document.querySelector("#" + targetId);
   if(target) target.classList.remove("hidden");
-
-  // Atualiza menu lateral (visual)
-  if(ui.menuItems) {
-    ui.menuItems.forEach(item => {
-      if(item.dataset.target === targetId) item.classList.add("active");
-      else item.classList.remove("active");
-    });
-  }
 }
 
 export function toast(el, msg, type="ok") {
   if(!el) return;
   el.textContent = msg;
   el.classList.remove("hidden");
-  if(type === 'error') el.style.border = '1px solid #ef4444';
-  else el.style.border = '1px solid #10b981';
-  
+  el.style.border = (type === 'error') ? '1px solid #ef4444' : '1px solid #10b981';
   setTimeout(() => el.classList.add("hidden"), 3500);
 }
 
@@ -93,14 +80,22 @@ export function showScreen(name) {
   }
 }
 
+// CORREÇÃO VISUAL OFFLINE
 export function setOnlineUI(isOnline) {
-  if(!ui.onlineDot) return;
+  if(!ui.statusPill) return;
+  
   if(isOnline) {
-    ui.onlineDot.classList.remove("offline");
+    ui.statusPill.style.borderColor = "#10b981"; // Verde
+    ui.statusPill.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+    ui.onlineDot.style.backgroundColor = "#10b981";
     ui.onlineText.textContent = "Conectado";
+    ui.onlineText.style.color = "#10b981";
   } else {
-    ui.onlineDot.classList.add("offline");
-    ui.onlineText.textContent = "Offline";
+    ui.statusPill.style.borderColor = "#ef4444"; // Vermelho
+    ui.statusPill.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+    ui.onlineDot.style.backgroundColor = "#ef4444";
+    ui.onlineText.textContent = "Offline (Local)";
+    ui.onlineText.style.color = "#ef4444";
   }
 }
 

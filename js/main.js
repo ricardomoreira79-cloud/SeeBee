@@ -12,8 +12,7 @@ const supabase = getSupabase();
 function calcDist(p1, p2) {
   const R = 6371e3;
   const φ1 = p1.lat * Math.PI/180, φ2 = p2.lat * Math.PI/180;
-  const Δφ = (p2.lat-p1.lat) * Math.PI/180, Δλ = (p2.lng-p1.lng) * Math.PI/180;
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const a = Math.sin(((p2.lat-p1.lat)*Math.PI/180)/2)**2 + Math.cos(φ1)*Math.cos(φ2) * Math.sin(((p2.lng-p1.lng)*Math.PI/180)/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
@@ -28,18 +27,33 @@ function setupListeners() {
         if(target) {
           switchTab(target);
           ui.sideMenu.classList.remove("open");
-          if(target === "view-traps") {
-            setTimeout(() => state.map && state.map.invalidateSize(), 200);
-            renderTrails();
-          }
+          // Se for para trilhas, ajusta o mapa
+          if(target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
         }
       };
     });
   }
 
+  // Dashboard Cards
+  const dashCards = document.querySelectorAll(".dash-card");
+  dashCards.forEach(card => {
+    card.onclick = () => {
+      if(card.classList.contains("disabled")) return;
+      const target = card.dataset.target;
+      if(target) {
+        switchTab(target);
+        if(target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
+      }
+    };
+  });
+
   ui.btnLogout.onclick = async () => {
     if(confirm("Sair?")) await supabase.auth.signOut();
   };
+
+  // DETECÇÃO OFFLINE/ONLINE ROBUSTA
+  window.addEventListener('online', () => setOnlineUI(true));
+  window.addEventListener('offline', () => setOnlineUI(false));
 }
 
 // --- TRILHA ---
@@ -53,7 +67,6 @@ ui.btnStartRoute.onclick = async () => {
   try {
     await createRoute(supabase, customName);
     
-    // UI Update
     ui.btnStartRoute.classList.add("hidden");
     ui.btnFinishRoute.classList.remove("hidden");
     ui.btnMarkNest.disabled = false;
@@ -84,13 +97,15 @@ function startGPS() {
 
     if (state.routePoints.length === 0) {
       setMapCenter(p.lat, p.lng, 18);
-      addMarker(p.lat, p.lng, "#10b981", "Início"); // Verde BeeTrack
+      addMarker(p.lat, p.lng, "#10b981", "Início");
     } else {
       const last = state.routePoints[state.routePoints.length - 1];
       state._dist += calcDist(last, p);
       ui.distanceText.textContent = Math.round(state._dist) + " m";
     }
-    await appendRoutePoint(supabase, p);
+    
+    // Se estiver online, salva. Se não, (futuramente) guarda local.
+    if(navigator.onLine) await appendRoutePoint(supabase, p);
 
   }, (err) => ui.gpsStatus.textContent = "GPS: Erro", { enableHighAccuracy: true });
 }
@@ -99,7 +114,8 @@ ui.btnFinishRoute.onclick = async () => {
   if(state.watchId) navigator.geolocation.clearWatch(state.watchId);
   if(state.lastPos) addMarker(state.lastPos.lat, state.lastPos.lng, "#ef4444", "Fim");
 
-  await finishRoute(supabase);
+  if(navigator.onLine) await finishRoute(supabase);
+  else alert("Aviso: Sem internet. A finalização será sincronizada depois (Futuro).");
   
   ui.btnStartRoute.classList.remove("hidden");
   ui.btnFinishRoute.classList.add("hidden");
@@ -157,12 +173,18 @@ async function renderTrails() {
   `).join("");
 }
 
+// --- INICIALIZAÇÃO ---
 bindAuth(supabase, async () => {
   setupListeners();
   initMap();
+  
+  // Atualiza UI Offline/Online imediatamente
   setOnlineUI(navigator.onLine);
+
   if(state.user) {
-    switchTab("view-traps");
+    // CORREÇÃO: Vai para a HOME (Dashboard) ao invés das trilhas
+    switchTab("view-home");
+    // Carrega trilhas em background para quando o usuário clicar
     loadMyTrails(supabase);
   }
 });
