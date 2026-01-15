@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SeeBee - Meliponicultura</title>
+  <title>SeeBee</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="./css/main.css">
@@ -17,7 +17,8 @@
       <div class="brand-name">SeeBee</div>
     </div>
     <div id="auth-card">
-      <h2>Entrar</h2>
+      <h2>Bem-vindo</h2>
+      <p style="color:#94a3b8; font-size:14px; margin-bottom:20px">Gestão profissional de meliponários.</p>
       <div class="auth-field">
         <label>E-mail</label>
         <input id="email" type="email" placeholder="seu@email.com">
@@ -39,18 +40,18 @@
       <div class="drawer-header">
         <div class="profile-mini">
           <div class="avatar-circle" id="menu-avatar-char">U</div>
-          <span id="menu-email-display">...</span>
+          <span id="menu-email-display">usuario</span>
         </div>
         <button id="close-menu">✕</button>
       </div>
       <nav class="drawer-nav">
         <button class="menu-item" data-target="view-home">🏠 Início</button>
-        <button class="menu-item" data-target="view-traps">🗺️ Trilhas</button>
-        <button class="menu-item" data-target="view-meliponaries">📦 Colônias</button>
-        <button class="menu-item" data-target="view-captures">🍯 Capturas</button>
-        <button class="menu-item" data-target="view-profile">👤 Perfil</button>
+        <button class="menu-item" data-target="view-traps">🗺️ Trilhas & Iscas</button>
+        <button class="menu-item" data-target="view-meliponaries">📦 Minhas Colônias</button>
+        <button class="menu-item" data-target="view-captures">🍯 Minhas Capturas</button>
+        <button class="menu-item" data-target="view-profile">👤 Meus Dados</button>
         <hr>
-        <button id="btnLogout" class="menu-item danger">Sair</button>
+        <button id="btnLogout" class="menu-item danger">Sair da Conta</button>
       </nav>
     </div>
 
@@ -65,7 +66,7 @@
     <main class="content-area">
       
       <section id="view-home" class="view-section active">
-        <h1 style="margin-bottom:20px;">Painel Principal</h1>
+        <h2 style="margin-bottom:20px;">Painel Principal</h2>
         <div class="dashboard-grid">
           <div class="dash-card" data-target="view-traps">
             <div class="dash-icon">🗺️</div>
@@ -75,35 +76,45 @@
           <div class="dash-card" data-target="view-meliponaries">
             <div class="dash-icon">📦</div>
             <h3>Colônias</h3>
-            <p>Gestão</p>
+            <p>Gestão do Meliponário</p>
           </div>
           <div class="dash-card" data-target="view-captures">
             <div class="dash-icon">🍯</div>
             <h3>Capturas</h3>
-            <p>Maturação</p>
+            <p>Maturação (35 dias)</p>
           </div>
           <div class="dash-card" data-target="view-profile">
             <div class="dash-icon">👤</div>
             <h3>Perfil</h3>
-            <p>Meus dados</p>
+            <p>Meus Dados</p>
+          </div>
+          <div class="dash-card disabled">
+            <div class="dash-icon">🌳</div>
+            <h3>Vi na Mata</h3>
+            <p>Em breve</p>
+          </div>
+          <div class="dash-card disabled">
+            <div class="dash-icon">🛒</div>
+            <h3>Loja</h3>
+            <p>Em breve</p>
           </div>
         </div>
       </section>
 
       <section id="view-traps" class="view-section hidden">
-        <button class="btn-outline" style="margin-bottom:15px; padding:8px;" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button>
+        <button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button>
         
         <div class="tracking-card">
           <div class="card-header">
-            <h3>Trajeto</h3>
+            <h3>Trajeto em andamento</h3>
             <span id="statusBadge" class="badge-status">Parado</span>
           </div>
-          <p class="sub-text">Caminhe instalando ninhos e registre cada ponto.</p>
+          <p class="sub-text">Registre o trajeto e marque ninhos.</p>
           
           <div class="action-buttons-row">
-            <button id="btnStartRoute" class="btn-action-start">▶ Iniciar</button>
-            <button id="btnFinishRoute" class="btn-action-stop hidden">■ Parar</button>
-            <button id="btnMarkNest" class="btn-action-nest" disabled>🐝 Marcar</button>
+            <button id="btnStartRoute" class="btn-action-start">▶ Iniciar trajeto</button>
+            <button id="btnFinishRoute" class="btn-action-stop hidden">■ Parar e Salvar</button>
+            <button id="btnMarkNest" class="btn-action-nest" disabled>🐝 Marcar ninho</button>
           </div>
 
           <div class="stats-row">
@@ -113,10 +124,10 @@
           </div>
         </div>
 
+        <h3 class="map-label">Mapa</h3>
         <div id="map"></div>
-        <div id="routeHint" class="hint-toast hidden"></div>
-        
-        <h3 class="list-label" style="margin-top:20px;">Histórico</h3>
+
+        <h3 class="list-label">Histórico</h3>
         <div id="trailsList"></div>
       </section>
 
@@ -125,17 +136,26 @@
       <section id="view-profile" class="view-section hidden"><h2>Meus Dados</h2></section>
     </main>
 
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-target="view-home"><span>🏠</span><small>Início</small></button>
+      <button class="nav-item" data-target="view-traps"><span>🗺️</span><small>Trilhas</small></button>
+      <button class="nav-item" data-target="view-captures"><span>🍯</span><small>Capturas</small></button>
+      <button class="nav-item" data-target="view-profile"><span>👤</span><small>Perfil</small></button>
+    </nav>
+
     <div id="nest-modal" class="modal-backdrop" style="display:none">
       <div class="modal-card">
         <h3>Novo Ninho</h3>
         <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
-        <label class="btn-outline-photo">📷 Foto <input id="nestPhoto" type="file" style="display:none"></label>
+        <label class="btn-outline-photo">📷 Foto <input id="nestPhoto" type="file" accept="image/*" style="display:none"></label>
         <div class="modal-actions">
           <button id="nestCancel" class="btn-ghost">Cancelar</button>
           <button id="btnConfirmNest" class="btn-solid">Salvar</button>
         </div>
       </div>
     </div>
+
+    <div id="routeHint" class="hint-toast hidden"></div>
 
   </div>
   <script type="module" src="./js/main.js"></script>

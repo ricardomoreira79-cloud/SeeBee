@@ -1,8 +1,7 @@
 // js/main.js
 import { getSupabase } from "./supabaseClient.js";
 import { state } from "./state.js";
-// REMOVIDO switchSubTab DA IMPORTAÇÃO PARA CORRIGIR O CRASH
-import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js"; 
+import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js"; // IMPORTAÇÃO CORRIGIDA
 import { bindAuth } from "./auth.js";
 import { initMap, setMapCenter, addRoutePoint, addMarker, clearMapLayers } from "./map.js";
 import { createRoute, appendRoutePoint, finishRoute, loadMyTrails } from "./routes.js";
@@ -20,11 +19,10 @@ function calcDist(p1, p2) {
 function setupListeners() {
   ui.openMenu.onclick = () => ui.sideMenu.classList.add("open");
   ui.closeMenu.onclick = () => ui.sideMenu.classList.remove("open");
-
-  // CORREÇÃO: Botão Cancelar agora funciona
+  
   if(ui.nestCancel) ui.nestCancel.onclick = closeNestModal;
 
-  // Cliques no Menu
+  // MENU LATERAL
   document.querySelectorAll(".menu-item").forEach(item => {
     item.addEventListener("click", () => {
       const target = item.dataset.target;
@@ -36,14 +34,23 @@ function setupListeners() {
     });
   });
 
-  // Cliques na Home (Cards)
+  // CARDS DO DASHBOARD (HOME)
   document.querySelectorAll(".dash-card").forEach(card => {
     card.addEventListener("click", () => {
+      if(card.classList.contains("disabled")) return;
       const target = card.dataset.target;
       if(target) {
         switchTab(target);
         if(target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
       }
+    });
+  });
+
+  // NAV BOTTOM
+  ui.navItems.forEach(item => {
+    item.addEventListener("click", () => {
+      switchTab(item.dataset.target);
+      if(item.dataset.target === "view-traps") setTimeout(() => state.map && state.map.invalidateSize(), 200);
     });
   });
 
@@ -65,6 +72,7 @@ ui.btnStartRoute.onclick = async () => {
 
   try {
     await createRoute(supabase, customName);
+    
     ui.btnStartRoute.classList.add("hidden");
     ui.btnFinishRoute.classList.remove("hidden");
     ui.btnMarkNest.disabled = false;
@@ -76,7 +84,7 @@ ui.btnStartRoute.onclick = async () => {
     state._dist = 0;
     ui.distanceText.textContent = "0 m";
     ui.nestsCountText.textContent = "0";
-    ui.gpsStatus.textContent = "Buscando...";
+    ui.gpsStatus.textContent = "Buscando GPS...";
     
     startGPS();
   } catch(e) { alert(e.message); }
@@ -115,8 +123,10 @@ ui.btnFinishRoute.onclick = async () => {
   ui.btnStartRoute.classList.remove("hidden");
   ui.btnFinishRoute.classList.add("hidden");
   ui.btnMarkNest.disabled = true;
+  
   ui.statusBadge.textContent = "PARADO";
   ui.statusBadge.classList.remove("active");
+  ui.gpsStatus.textContent = "GPS: Parado";
   
   await renderTrails();
   toast(ui.routeHint, "Trilha salva!", "ok");
@@ -139,33 +149,63 @@ ui.btnConfirmNest.onclick = async () => {
       photoFile: file
     });
     addMarker(state.lastPos.lat, state.lastPos.lng, "#fbbf24", "Ninho");
-    ui.nestsCountText.textContent = (parseInt(ui.nestsCountText.textContent)||0) + 1;
+    
+    // Atualiza contador visual
+    let current = parseInt(ui.nestsCountText.textContent) || 0;
+    ui.nestsCountText.textContent = current + 1;
+
+    // CORREÇÃO: Fecha o modal após salvar
     closeNestModal();
-  } catch(e) { alert(e.message); }
+    toast(ui.routeHint, "Ninho salvo!");
+
+  } catch(e) { alert("Erro: " + e.message); }
   finally { ui.btnConfirmNest.textContent = "Salvar"; }
 };
 
+// CORREÇÃO: Renderiza histórico com evento de clique e número de ninhos (estimado)
 async function renderTrails() {
   const trails = await loadMyTrails(supabase);
   const list = ui.trailsList;
   if(!list) return;
-  list.innerHTML = trails.map(t => `
-    <div class="route-card">
-      <strong style="color:white; display:block;">${t.name}</strong>
-      <div style="font-size:12px; color:#9ca3af;">
+  
+  if(trails.length === 0) {
+    list.innerHTML = "";
+    ui.trailsEmpty.classList.remove("hidden");
+    return;
+  }
+  ui.trailsEmpty.classList.add("hidden");
+
+  list.innerHTML = trails.map(t => {
+    // Estimativa simples de ninhos baseada no JSON (se existir) ou 0
+    // Idealmente faríamos uma query count, mas vamos manter simples por agora
+    const ninhos = t.nests_count || 0; 
+    
+    return `
+    <div class="route-card" onclick="confirmGoToNests('${t.id}')">
+      <div style="display:flex; justify-content:space-between;">
+        <strong style="color:white;">${t.name}</strong>
+        <span style="font-size:12px; color:#10b981;">${ninhos} ninhos</span>
+      </div>
+      <div style="font-size:12px; color:#9ca3af; margin-top:5px;">
         ${new Date(t.created_at).toLocaleDateString()} • ${t.path?.length || 0} pts
       </div>
     </div>
-  `).join("");
+  `}).join("");
 }
 
-// BOOT
+// Função global para o clique na trilha
+window.confirmGoToNests = (routeId) => {
+  if(confirm("Ir para 'Minhas Capturas' ver detalhes desta trilha?")) {
+    switchTab("view-captures");
+    // Futuramente: filtrar capturas por routeId
+  }
+};
+
 bindAuth(supabase, async () => {
   setupListeners();
   initMap();
   setOnlineUI(navigator.onLine);
   if(state.user) {
-    // CORREÇÃO: Abre a Home ao logar
     switchTab("view-home");
     loadMyTrails(supabase);
   }
