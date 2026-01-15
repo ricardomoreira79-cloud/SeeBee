@@ -25,100 +25,102 @@
   </div>
 
   <div id="app-screen" class="hidden">
-    
     <div id="side-menu" class="side-drawer">
-      <div class="drawer-header">
-        <div class="profile-mini"><div class="avatar-circle" id="menu-avatar-char">U</div><span id="menu-email-display">...</span></div>
-        <button id="close-menu">✕</button>
-      </div>
+      <div class="drawer-header"><div class="profile-mini"><div class="avatar-circle" id="menu-avatar-char">U</div><span id="menu-email-display">...</span></div><button id="close-menu">✕</button></div>
       <nav class="drawer-nav">
         <button class="menu-item" data-target="view-home">🏠 Início</button>
-        <button class="menu-item" data-target="view-traps">🗺️ Gravar Trilha</button>
+        <button class="menu-item" data-target="view-traps">🗺️ Instalar Ninhos</button>
         <button class="menu-item" data-target="view-meliponaries">📦 Minhas Colônias</button>
-        <button class="menu-item" data-target="view-captures">🍯 Capturas</button>
+        <button class="menu-item" data-target="view-captures">🐝 Capturas <span id="menuBadgeCaptures" class="menu-badge hidden">0</span></button>
         <button class="menu-item" data-target="view-profile">👤 Perfil</button>
-        <hr>
-        <button id="btnLogout" class="menu-item danger">Sair</button>
+        <hr><button id="btnLogout" class="menu-item danger">Sair</button>
       </nav>
     </div>
-
-    <header class="app-header">
-      <button id="open-menu" class="btn-icon">☰</button>
-      <div class="brand-mini">SEEBEE</div>
-      <div style="width: 24px;"></div>
-    </header>
+    <header class="app-header"><button id="open-menu" class="btn-icon">☰</button><div class="brand-mini">SEEBEE</div><div style="width:24px;"></div></header>
 
     <main class="content-area">
-      
       <section id="view-home" class="view-section active">
         <h2 style="margin-bottom:20px;">Painel Principal</h2>
         <div class="dashboard-grid">
-          <div class="dash-card" data-target="view-traps"><div class="dash-icon">🗺️</div><h3>Nova Trilha</h3><p>Ir para mata</p></div>
-          <div class="dash-card" data-target="view-meliponaries"><div class="dash-icon">📦</div><h3>Gerenciar</h3><p>Matrizes e Histórico</p></div>
-          <div class="dash-card" data-target="view-captures"><div class="dash-icon">🍯</div><h3>Capturas</h3><p>Maturação</p></div>
+          <div class="dash-card" data-target="view-traps"><div class="dash-icon">🗺️</div><h3>Nova Instalação</h3><p>Ir para mata</p></div>
+          <div class="dash-card" data-target="view-meliponaries"><div class="dash-icon">📦</div><h3>Colônias</h3><p>Gestão</p></div>
+          <div class="dash-card" data-target="view-captures"><div class="dash-icon">🐝</div><h3>Capturas</h3><p>Maturação</p></div>
           <div class="dash-card" data-target="view-profile"><div class="dash-icon">👤</div><h3>Perfil</h3><p>Dados</p></div>
+          <div class="dash-card disabled"><div class="dash-icon">🌳</div><h3>Vi na Mata</h3><p>Em breve</p></div>
+          <div class="dash-card disabled"><div class="dash-icon">🛒</div><h3>Loja</h3><p>Em breve</p></div>
         </div>
       </section>
 
       <section id="view-traps" class="view-section hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-          <button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button>
-          <div id="statusPill" class="status-pill"><span id="onlineDot" class="status-dot"></span><span id="onlineText">Online</span></div>
-        </div>
-        
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;"><button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button><div id="statusPill" class="status-pill"><span id="onlineDot" class="status-dot"></span><span id="onlineText">Online</span></div></div>
         <div class="tracking-card">
-          <div class="card-header"><h3>Gravador</h3><span id="statusBadge" class="badge-status">Parado</span></div>
-          <div class="action-buttons-row">
-            <button id="btnStartRoute" class="btn-action-start">▶ Iniciar</button>
-            <button id="btnFinishRoute" class="btn-action-stop hidden">■ Parar</button>
-            <button id="btnMarkNest" class="btn-action-nest" disabled>🐝 Ninho</button>
-          </div>
-          <div class="stats-row">
-            <div class="stat-pill">Dist: <b id="distanceText">0 m</b></div>
-            <div class="stat-pill">Ninhos: <b id="nestsCountText">0</b></div>
-            <div class="stat-pill" id="gpsStatus">GPS...</div>
-          </div>
+          <div class="card-header"><h3>Instalação</h3><span id="statusBadge" class="badge-status">Parado</span></div>
+          <div class="action-buttons-row"><button id="btnStartRoute" class="btn-action-start">▶ Iniciar</button><button id="btnFinishRoute" class="btn-action-stop hidden">■ Parar</button><button id="btnMarkNest" class="btn-action-nest" disabled>+ Ninho</button></div>
+          <div class="stats-row"><div class="stat-pill">Dist: <b id="distanceText">0 m</b></div><div class="stat-pill">Ninhos: <b id="nestsCountText">0</b></div><div class="stat-pill" id="gpsStatus">GPS...</div></div>
         </div>
         <div id="map"></div>
+        <div class="mini-history-section"><h3 class="list-label" style="margin-top:0;">Últimas Instalações</h3><div id="trailsListRecent"></div><button id="btnSeeAllTrails" class="btn-see-all">Ver Histórico Completo</button></div>
       </section>
 
       <section id="view-meliponaries" class="view-section hidden">
-        <div style="display:flex; align-items:center; margin-bottom:15px;">
-           <button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button>
-        </div>
-
-        <div class="segment-control">
-          <button class="segment-btn active" data-sub="tab-matrices">Minhas Matrizes</button>
-          <button class="segment-btn" data-sub="tab-history">Histórico Trilhas</button>
-        </div>
-
-        <div id="tab-matrices" class="tab-content">
-          <button id="btnAddColony" class="btn-primary-sm" style="margin-bottom:15px;">+ Nova Matriz</button>
-          <div id="coloniesList"></div>
-        </div>
-
-        <div id="tab-history" class="tab-content hidden">
-          <div class="filter-bar">
-            <span style="font-size:12px; color:#9ca3af;">Filtrar data:</span>
-            <input type="date" id="historyDateFilter" style="background:#020617; border:1px solid #374151; color:white; padding:5px; border-radius:6px;">
-          </div>
-          <div id="trailsListHistory"></div>
-        </div>
+        <div style="margin-bottom:15px;"><button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button></div>
+        <div class="segment-control"><button class="segment-btn active" data-sub="tab-matrices">Minhas Matrizes</button><button class="segment-btn" data-sub="tab-history">Histórico Instalações</button></div>
+        <div id="tab-matrices" class="tab-content"><button id="btnAddColony" class="btn-primary-sm" style="margin-bottom:15px;">+ Nova Matriz</button><div id="coloniesList"></div></div>
+        <div id="tab-history" class="tab-content hidden"><div class="filter-bar"><span style="font-size:12px; color:#9ca3af;">Filtrar data:</span><input type="date" id="historyDateFilter" style="background:#020617; border:1px solid #374151; color:white; padding:5px; border-radius:6px;"></div><div id="trailsListHistory"></div></div>
       </section>
 
-      <section id="view-captures" class="view-section hidden"><h2>Minhas Capturas</h2></section>
-      <section id="view-profile" class="view-section hidden"><h2>Meus Dados</h2></section>
+      <section id="view-captures" class="view-section hidden">
+        <div style="margin-bottom:15px;"><button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button></div>
+        <h2 style="margin-bottom:10px;">Minhas Capturas</h2>
+        <p style="color:#94a3b8; font-size:13px; margin-bottom:20px;">Acompanhe a maturação dos ninhos capturados.</p>
+        <div id="capturesList"></div>
+      </section>
+
+      <section id="view-profile" class="view-section hidden"><h2>Perfil</h2></section>
     </main>
 
     <div id="nest-modal" class="modal-backdrop" style="display:none">
       <div class="modal-card">
-        <h3>Registrar Isca</h3>
-        <p style="color:#94a3b8; font-size:12px;">Status: CATALOGADO</p>
+        <h3>Registrar Ninho</h3><p style="color:#94a3b8; font-size:12px;">Status: CATALOGADO</p>
         <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
         <label class="btn-outline-photo">📷 Foto <input id="nestPhoto" type="file" accept="image/*" style="display:none"></label>
+        <div class="modal-actions"><button id="nestCancel" class="btn-ghost">Cancelar</button><button id="btnConfirmNest" class="btn-solid">Salvar</button></div>
+      </div>
+    </div>
+
+    <div id="nest-edit-modal" class="modal-backdrop" style="display:none; z-index:8000;">
+      <div class="modal-card">
+        <h3>Editar Ninho</h3>
+        <input type="hidden" id="editNestId">
+        
+        <label class="field-label">Status Atual</label>
+        <select id="editNestStatus" class="input-dark">
+          <option value="CATALOGADO">Catalogado (Isca na mata)</option>
+          <option value="CAPTURADO">Capturado (Sucesso!)</option>
+          <option value="REMOVIDO">Removido / Perdido</option>
+        </select>
+        
+        <div id="editCaptureContainer" class="hidden" style="background:#111827; padding:15px; border-radius:12px; border:1px solid #374151; margin-bottom:15px;">
+           <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+             <img id="captureSpeciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #374151;">
+             <p style="font-size:13px; color:#10b981; font-weight:bold; margin:0;">Captura Confirmada</p>
+           </div>
+           
+           <label class="field-label">Espécie (Popular)</label>
+           <select id="editCapturePopular" class="input-dark"><option value="">Não identificada</option></select>
+           
+           <label class="field-label">Nome Científico</label>
+           <select id="editCaptureScientific" class="input-dark" disabled><option value="Sem identificação">Sem identificação</option></select>
+
+           <label class="btn-outline-photo" style="margin:10px 0; padding:15px; border-color:var(--primary);">📷 Atualizar Foto do Ninho <input id="editNestPhoto" type="file" accept="image/*" style="display:none"></label>
+        </div>
+
+        <label class="field-label">Observações</label>
+        <textarea id="editNestNote" rows="3" class="input-dark"></textarea>
+
         <div class="modal-actions">
-          <button id="nestCancel" class="btn-ghost">Cancelar</button>
-          <button id="btnConfirmNest" class="btn-solid">Salvar</button>
+          <button id="btnCancelEditNest" class="btn-ghost">Cancelar</button>
+          <button id="btnSaveEditNest" class="btn-solid">Atualizar</button>
         </div>
       </div>
     </div>
@@ -127,52 +129,48 @@
       <div class="modal-card">
         <h3>Nova Matriz</h3>
         
-        <label class="field-label">Espécie (Busca Inteligente)</label>
-        <input type="text" id="colonySpeciesInput" list="speciesList" placeholder="Digite para buscar..." class="input-dark">
-        <datalist id="speciesList"></datalist>
-
-        <label class="field-label">Nome / Identificação</label>
-        <input type="text" id="colonyName" placeholder="Ex: CX-01, Jataí da varanda" class="input-dark">
-
-        <label class="field-label">Data Instalação</label>
-        <input type="date" id="colonyDate" class="input-dark">
-
-        <label class="field-label">Status</label>
-        <select id="colonyStatus" class="input-dark">
-          <option value="ATIVA">Ativa</option>
-          <option value="DEFINHADA">Definhada</option>
-          <option value="VENDIDA">Vendida</option>
-        </select>
-
-        <div id="removalDateGroup" class="hidden">
-          <label class="field-label">Data Remoção/Venda</label>
-          <input type="date" id="colonyRemovalDate" class="input-dark">
+        <div style="text-align:center; margin-bottom:15px;">
+          <div style="width:80px; height:80px; background:#1f2937; border-radius:50%; margin:0 auto; overflow:hidden; border:2px solid #374151;">
+            <img id="speciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:100%; height:100%; object-fit:cover;">
+          </div>
+          <small style="color:#94a3b8; display:block; margin-top:5px;">Espécie</small>
         </div>
 
-        <div class="modal-actions" style="margin-top:20px;">
-          <button id="colonyCancel" class="btn-ghost">Cancelar</button>
-          <button id="colonySave" class="btn-solid">Salvar</button>
-        </div>
+        <label class="field-label">Espécie (Popular)</label><select id="colonyPopularName" class="input-dark"><option value="">Selecione...</option></select>
+        <label class="field-label">Nome Científico</label><select id="colonyScientificName" class="input-dark" disabled><option value="Sem identificação">Sem identificação</option></select>
+        <label class="field-label">Nome / ID</label><input type="text" id="colonyName" class="input-dark">
+        <label class="field-label">Data Instalação</label><input type="date" id="colonyDate" class="input-dark">
+        <label class="field-label">Status</label><select id="colonyStatus" class="input-dark"><option value="ATIVA">Ativa</option><option value="DEFINHADA">Definhada</option><option value="VENDIDA">Vendida</option></select>
+        <div id="removalDateGroup" class="hidden"><label class="field-label">Data Remoção</label><input type="date" id="colonyRemovalDate" class="input-dark"></div>
+        <div class="modal-actions" style="margin-top:20px;"><button id="colonyCancel" class="btn-ghost">Cancelar</button><button id="colonySave" class="btn-solid">Salvar</button></div>
       </div>
     </div>
 
     <div id="trail-detail-modal" class="modal-backdrop" style="display:none; z-index:7000;">
       <div class="modal-card" style="max-width:95%; height:90vh; display:flex; flex-direction:column;">
         <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-          <h3>Detalhes da Trilha</h3>
+          <h3 id="detailTrailTitle">Detalhes</h3>
           <button id="closeDetailTrail" style="background:none; border:none; color:white; font-size:24px;">✕</button>
         </div>
-        <div id="mapDetail" style="flex:1; border-radius:12px; border:1px solid #374151; margin-bottom:10px;"></div>
+        
+        <div class="detail-meta-grid">
+           <div class="detail-item"><strong>Data</strong> <span id="metaDate">-</span></div>
+           <div class="detail-item"><strong>Distância</strong> <span id="metaDist">-</span></div>
+           <div class="detail-item"><strong>Ninhos</strong> <span id="metaNests">-</span></div>
+           <div class="detail-item"><strong>Início</strong> <span id="metaTime">-</span></div>
+        </div>
+
+        <div id="mapDetail" style="flex:1; border-radius:12px; border:1px solid #374151; margin-bottom:10px; min-height: 200px;"></div>
         <div id="detailNestsList" style="height:150px; overflow-y:auto;"></div>
       </div>
     </div>
 
     <div id="routeHint" class="hint-toast hidden"></div>
-
     <nav class="bottom-nav">
       <button class="nav-item active" data-target="view-home"><span>🏠</span><small>Início</small></button>
-      <button class="nav-item" data-target="view-traps"><span>🗺️</span><small>Gravar</small></button>
+      <button class="nav-item" data-target="view-traps"><span>🗺️</span><small>Instalar</small></button>
       <button class="nav-item" data-target="view-meliponaries"><span>📦</span><small>Gestão</small></button>
+      <button class="nav-item" data-target="view-captures"><span>🐝</span><small>Capturas</small></button>
       <button class="nav-item" data-target="view-profile"><span>👤</span><small>Perfil</small></button>
     </nav>
   </div>
