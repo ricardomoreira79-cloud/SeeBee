@@ -1,23 +1,19 @@
 // js/routes.js
 import { state } from "./state.js";
-import { persistLocalRoutes, loadLocalRoutes } from "./storage.js";
 
-/**
- * Cria uma trilha nova com nome definido no INÍCIO
- */
 export async function createRoute(supabase, customName) {
   const user = state.user;
   if (!user) throw new Error("Usuário não autenticado.");
 
-  // Se o usuário não digitou nada, usa o padrão com data/hora
-  const finalName = customName || `Trilha ${new Date().toLocaleString("pt-BR")}`;
+  const name = customName || `Trilha ${new Date().toLocaleString("pt-BR")}`;
 
+  // Payload simplificado para evitar erros de colunas extras
   const payload = {
     user_id: user.id,
-    name: finalName,
+    name: name,
     status: "recording",
     path: [],
-    traps: [] 
+    // traps: [] // Removido temporariamente para testar se é isso que está travando o insert. Se seu banco exigir, descomente.
   };
 
   const { data, error } = await supabase
@@ -26,12 +22,15 @@ export async function createRoute(supabase, customName) {
     .select("*")
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("Erro CreateRoute:", error);
+    throw new Error(error.message);
+  }
 
   state.currentRoute = data;
   state.routePoints = [];
   state.nestsThisRoute = [];
-  state._dist = 0; // Reseta distância
+  state._dist = 0;
   return data;
 }
 
@@ -39,13 +38,9 @@ export async function appendRoutePoint(supabase, point) {
   if (!state.currentRoute) return;
 
   state.routePoints.push(point);
-
-  // Atualiza objeto local e visual
-  const currentPath = state.currentRoute.path || [];
-  const newPath = [...currentPath, point];
+  const newPath = [...(state.currentRoute.path || []), point];
   state.currentRoute.path = newPath;
 
-  // Atualiza no banco silenciosamente
   const { error } = await supabase
     .from("routes")
     .update({ path: newPath })
@@ -76,11 +71,14 @@ export async function finishRoute(supabase) {
 export async function loadMyTrails(supabase) {
   const { data, error } = await supabase
     .from("routes")
-    .select("id,name,created_at,status,path,ended_at")
+    .select("*") // Traz tudo para garantir
     .eq("user_id", state.user.id)
     .order("created_at", { ascending: false });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("Erro LoadTrails:", error);
+    return [];
+  }
 
   state.allTrails = data || [];
   return state.allTrails;

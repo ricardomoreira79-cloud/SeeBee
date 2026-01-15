@@ -34,9 +34,6 @@ export const ui = {
     "sub-captured": document.querySelector("#sub-captured")
   },
 
-  // dashboard
-  dashCards: document.querySelectorAll(".dash-card"),
-
   // map controls
   btnStartRoute: document.querySelector("#btnStartRoute"),
   btnFinishRoute: document.querySelector("#btnFinishRoute"),
@@ -73,25 +70,18 @@ export const ui = {
 export function toast(el, msg, type="ok") {
   if(!el) return;
   el.textContent = msg;
-  el.className = "hint-box"; // Reseta classes
-  // Adiciona cor baseada no tipo
+  el.className = "hint-box"; 
   if (type === 'error') el.style.color = '#ef4444'; 
   else el.style.color = '#22c55e';
-  
   el.classList.remove("hidden");
   setTimeout(() => el.classList.add("hidden"), 3000);
 }
 
 export function switchTab(targetId) {
-  // Atualiza botões
   ui.navItems.forEach(btn => btn.classList.toggle("active", btn.dataset.target === targetId));
-  
-  // Esconde todas as views
   Object.values(ui.views).forEach(el => {
     if (el) el.classList.add("hidden");
   });
-  
-  // Mostra a view alvo
   const target = document.getElementById(targetId);
   if(target) target.classList.remove("hidden");
 }
@@ -129,7 +119,6 @@ export function closeNestModal() {
   clearNestForm(); 
 }
 
-// --- A FUNÇÃO QUE FALTAVA ---
 export function showScreen(screenName) {
   if(screenName === "login") {
     ui.screenLogin.classList.remove("hidden");
