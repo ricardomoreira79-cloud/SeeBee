@@ -4,170 +4,208 @@
   <meta charset="UTF-8">
   <title>SeeBee</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="./css/main.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
-  <style>
-    /* LAYOUT ORIGINAL "BONITO" RESTAURADO */
-    :root { --primary: #10b981; --bg-dark: #020617; --card-bg: #0f172a; --text: #f8fafc; --text-muted: #94a3b8; --border: #1e293b; --danger: #ef4444; }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg-dark) 60%); color: var(--text); min-height: 100vh; padding-bottom: 90px; overflow-x: hidden; }
-    .hidden { display: none !important; }
-
-    /* LOGIN */
-    #auth-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #064e3b, #020617); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    .brand-logo { font-size: 70px; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(16,185,129,0.4)); }
-    .brand-name { font-size: 36px; font-weight: 800; letter-spacing: 2px; margin-bottom: 30px; }
-    #auth-card { width: 100%; max-width: 350px; background: rgba(15,23,42,0.95); padding: 30px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    .auth-input { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 14px; border-radius: 12px; margin-bottom: 15px; outline: none; font-size: 16px; }
-    .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: #022c22; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 16px; margin-top: 10px; }
-    .btn-google { width: 100%; padding: 12px; background: #1e293b; border: 1px solid var(--border); color: white; border-radius: 12px; margin-top: 15px; cursor: pointer; display:flex; justify-content:center; gap:10px; }
-
-    /* APP HEADER */
-    .app-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(2,6,23,0.95); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); backdrop-filter: blur(10px); }
-    
-    /* MENU LATERAL */
-    .side-drawer { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--card-bg); z-index: 5000; transition: 0.3s; border-right: 1px solid var(--border); padding: 20px; box-shadow: 10px 0 50px rgba(0,0,0,0.7); }
-    .side-drawer.open { left: 0; }
-    .menu-item { display: block; width: 100%; padding: 15px; text-align: left; background: none; border: none; color: white; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-
-    /* CARDS DA HOME */
-    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-    .dash-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 25px 15px; text-align: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s; }
-    .dash-card:active { transform: scale(0.96); border-color: var(--primary); }
-    .dash-icon { font-size: 36px; margin-bottom: 15px; display: block; }
-
-    /* TELA DE MAPA (ESTILO ORIGINAL) */
-    .tracking-card { background: #111827; margin: 20px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    .status-pill { background: rgba(16,185,129,0.1); border: 1px solid var(--primary); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; }
-    .action-row { display: flex; gap: 10px; margin: 20px 0; }
-    #map { height: 400px; width: 100%; background: #0f172a; border-radius: 20px; border: 1px solid var(--border); }
-    
-    /* MODAL */
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 6000; display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-card { width: 100%; max-width: 400px; background: var(--card-bg); padding: 25px; border-radius: 24px; border: 1px solid var(--border); }
-    textarea { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 15px; border-radius: 12px; resize: none; font-family: inherit; }
-    .btn-photo { display: block; padding: 20px; border: 2px dashed #334155; text-align: center; border-radius: 16px; margin: 15px 0; color: #94a3b8; cursor: pointer; }
-
-    /* NAV INFERIOR */
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(15,23,42,0.95); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 2000; backdrop-filter: blur(10px); }
-    .nav-btn { background: none; border: none; color: #64748b; font-size: 24px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-    .nav-btn small { font-size: 10px; margin-top: 4px; font-weight: bold; }
-    
-    /* CUSTOM PIN */
-    .custom-pin div { box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-  </style>
 </head>
 <body>
 
   <div id="auth-screen">
     <div class="brand-hero"><div class="brand-logo">🐝</div><div class="brand-name">SeeBee</div></div>
     <div id="auth-card">
-      <h2 style="margin-top:0;">Entrar</h2>
-      <input id="email" type="email" class="auth-input" placeholder="E-mail">
-      <input id="password" type="password" class="auth-input" placeholder="Senha">
+      <h2>Entrar</h2>
+      <div class="auth-field"><label>E-mail</label><input id="email" type="email"></div>
+      <div class="auth-field"><label>Senha</label><input id="password" type="password"></div>
       <button id="btnLogin" class="btn-primary">Entrar</button>
-      <button id="btnSignup" class="btn-google">Criar Conta</button>
+      <button id="btnSignup" class="btn-outline">Criar Conta</button>
       <button id="btnGoogle" class="btn-google">Entrar com Google</button>
+      <div id="authMsg"></div>
     </div>
   </div>
 
   <div id="app-screen" class="hidden">
     
     <div id="side-menu" class="side-drawer">
-      <div style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="margin:0;">Menu</h2>
-        <button id="close-menu" style="background:none; border:none; color:white; font-size:24px;">✕</button>
+      <div class="drawer-header">
+        <div class="profile-mini">
+          <div class="avatar-circle" id="menu-avatar-char">U</div>
+          <img id="menu-avatar-img" src="" class="hidden" style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">
+          <div style="margin-left:10px;">
+             <span id="menu-name-display" style="display:block; font-weight:bold; font-size:16px;">Usuário</span>
+             <span id="menu-user-role" style="display:block; font-size:12px; color:var(--primary); text-transform:uppercase; margin-top:2px;">Carregando...</span>
+          </div>
+        </div>
+        <button id="close-menu">✕</button>
       </div>
-      <div style="padding:0 20px 20px;">
-         <div style="font-weight:bold; font-size:18px;" id="menuUser">Usuário</div>
-         <div style="font-size:12px; color:var(--primary);">ADMINISTRADOR</div>
-      </div>
-      <button class="menu-item" onclick="app.nav('home')">🏠 Início</button>
-      <button class="menu-item" onclick="app.nav('map')">🗺️ Instalar Ninhos</button>
-      <button class="menu-item" onclick="app.nav('profile')">👤 Perfil</button>
-      <hr style="border-color:#333; margin:10px 0;">
-      <button class="menu-item" style="color:var(--danger);" onclick="app.logout()">Sair</button>
+      <nav class="drawer-nav">
+        <button class="menu-item" data-target="view-home">🏠 Início</button>
+        <button class="menu-item" data-target="view-traps">🗺️ Instalar Ninhos</button>
+        <button class="menu-item" data-target="view-meliponaries">📦 Minhas Colônias</button>
+        <button class="menu-item" data-target="view-captures">🐝 Capturas <span id="menuBadgeCaptures" class="menu-badge hidden">0</span></button>
+        <button class="menu-item" data-target="view-profile">👤 Perfil</button>
+        <hr><button id="btnLogout" class="menu-item danger">Sair</button>
+      </nav>
     </div>
 
     <header class="app-header">
-      <button id="open-menu" style="background:none; border:none; color:white; font-size:24px;">☰</button>
+      <button id="open-menu" class="btn-icon">☰</button>
       <div class="brand-mini">SeeBee</div>
       <div style="width:24px;"></div>
     </header>
 
-    <main>
-      <section id="view-home" class="active">
-        <h2 style="padding:20px 20px 0;">Painel Principal</h2>
+    <main class="content-area">
+      <section id="view-home" class="view-section active">
+        <h2 style="margin-bottom:20px;">Painel Principal</h2>
         <div class="dashboard-grid">
-          <div class="dash-card" onclick="app.nav('map')"><div class="dash-icon">🗺️</div><h3>Instalar</h3><p>Ir para mata</p></div>
-          <div class="dash-card" onclick="app.nav('meliponario')"><div class="dash-icon">📦</div><h3>Colônias</h3><p>Gestão</p></div>
-          <div class="dash-card" onclick="app.nav('capturas')"><div class="dash-icon">🐝</div><h3>Capturas</h3><p>Monitorar</p></div>
-          <div class="dash-card" onclick="app.nav('profile')"><div class="dash-icon">👤</div><h3>Perfil</h3><p>Dados</p></div>
+          <div class="dash-card" data-target="view-traps"><div class="dash-icon">🗺️</div><h3>Nova Instalação</h3><p>Ir para mata</p></div>
+          <div class="dash-card" data-target="view-meliponaries"><div class="dash-icon">📦</div><h3>Colônias</h3><p>Gestão</p></div>
+          <div class="dash-card" data-target="view-captures"><div class="dash-icon">🐝</div><h3>Capturas</h3><p>Maturação</p></div>
+          <div class="dash-card" data-target="view-profile"><div class="dash-icon">👤</div><h3>Perfil</h3><p>Dados</p></div>
+          <div class="dash-card disabled"><div class="dash-icon">🌳</div><h3>Vi na Mata</h3><p>Em breve</p></div>
+          <div class="dash-card disabled"><div class="dash-icon">🛒</div><h3>Loja</h3><p>Em breve</p></div>
         </div>
       </section>
 
-      <section id="view-map" class="hidden">
+      <section id="view-traps" class="view-section hidden">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+          <button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button>
+          <div id="statusPill" class="status-pill"><span id="onlineDot" class="status-dot"></span><span id="onlineText">Online</span></div>
+        </div>
         <div class="tracking-card">
-          <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-             <h3>Instalação</h3> <span id="statusBadge" class="status-pill" style="color:#aaa; border-color:#555;">PARADO</span>
+          <div class="card-header"><h3>Instalação</h3><span id="statusBadge" class="badge-status">Parado</span></div>
+          <div class="action-buttons-row">
+            <button id="btnStartRoute" class="btn-action-start">▶ Iniciar</button>
+            <button id="btnFinishRoute" class="btn-action-stop hidden">■ Parar</button>
+            <button id="btnMarkNest" class="btn-action-nest" disabled>+ Ninho</button>
           </div>
-          <div class="action-row">
-            <button id="btnStart" class="btn-primary" onclick="app.startRecording()">▶ Iniciar</button>
-            <button id="btnStop" class="btn-primary" style="background:var(--danger); display:none;" onclick="app.stopRecording()">■ Parar</button>
-            <button id="btnNest" style="flex:1; background:#1f2937; color:white; border:1px solid #333; border-radius:12px; font-weight:bold;" onclick="app.openNestModal()" disabled>+ Ninho</button>
-          </div>
-          <div style="display:flex; justify-content:space-between; color:#94a3b8; font-size:13px;">
-             <span>Dist: <b id="distText" style="color:white;">0 m</b></span>
-             <span>Ninhos: <b id="nestCountText" style="color:white;">0</b></span>
-             <span id="gpsStatus">GPS OFF</span>
+          <div class="stats-row">
+            <div class="stat-pill">Dist: <b id="distanceText">0 m</b></div>
+            <div class="stat-pill">Ninhos: <b id="nestsCountText">0</b></div>
+            <div class="stat-pill" id="gpsStatus">GPS...</div>
           </div>
         </div>
         <div id="map"></div>
+        <div class="mini-history-section">
+          <h3 class="list-label" style="margin-top:0;">Últimas Instalações</h3>
+          <div id="trailsListRecent"></div>
+          <button id="btnSeeAllTrails" class="btn-see-all">Ver Histórico Completo</button>
+        </div>
       </section>
 
-      <section id="view-profile" class="hidden">
-        <div style="padding:20px;">
-          <h2>Meu Perfil</h2>
-          <div style="text-align:center; margin-bottom:20px;">
-             <img id="profileImg" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">
-             <br>
-             <label style="color:var(--primary); font-size:14px; cursor:pointer;">
-                Alterar Foto <input type="file" id="profileFile" hidden onchange="app.previewProfile(this)">
-             </label>
-          </div>
-          <input id="profName" class="auth-input" placeholder="Nome Completo">
-          <input id="profPhone" class="auth-input" placeholder="Telefone">
-          <input id="profCPF" class="auth-input" placeholder="CPF">
-          <button class="btn-primary" onclick="app.saveProfile()">Salvar Dados</button>
+      <section id="view-meliponaries" class="view-section hidden">
+        <div style="margin-bottom:15px;"><button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button></div>
+        <div class="segment-control"><button class="segment-btn active" data-sub="tab-matrices">Minhas Matrizes</button><button class="segment-btn" data-sub="tab-history">Histórico Instalações</button></div>
+        <div id="tab-matrices" class="tab-content">
+          <button id="btnAddColony" class="btn-primary-sm" style="margin-bottom:15px;">+ Nova Matriz</button>
+          <div id="coloniesList"></div>
+        </div>
+        <div id="tab-history" class="tab-content hidden">
+          <div class="filter-bar"><span style="font-size:12px; color:#9ca3af;">Filtrar data:</span><input type="date" id="historyDateFilter" style="background:#020617; border:1px solid #374151; color:white; padding:5px; border-radius:6px;"></div>
+          <div id="trailsListHistory"></div>
+        </div>
+      </section>
+
+      <section id="view-captures" class="view-section hidden">
+        <div style="margin-bottom:15px;"><button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button></div>
+        <h2 style="margin-bottom:10px;">Minhas Capturas</h2>
+        <p style="color:#94a3b8; font-size:13px; margin-bottom:20px;">Acompanhe a maturação dos ninhos capturados.</p>
+        <div id="capturesList"></div>
+      </section>
+
+      <section id="view-profile" class="view-section hidden">
+        <h2 style="margin-bottom:20px;">Meu Perfil</h2>
+        <div style="text-align:center; margin-bottom:30px;">
+          <label style="position:relative; display:inline-block; cursor:pointer;">
+            <img id="profileImageDisplay" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--primary); background:#1f2937;">
+            <div style="position:absolute; bottom:0; right:0; background:var(--primary); color:#022c22; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid #020617;">📷</div>
+            <input type="file" id="profileAvatarInput" accept="image/*" style="display:none">
+          </label>
+          <p id="profileEmailDisplay" style="color:#9ca3af; margin-top:15px; font-size:14px;">carregando...</p>
+        </div>
+        <div class="card-profile-settings" style="background:#111827; padding:20px; border-radius:16px; border:1px solid #374151;">
+          <label class="field-label">Nome Completo</label><input type="text" id="profileFullName" class="input-dark">
+          <label class="field-label">CPF</label><input type="text" id="profileCPF" class="input-dark">
+          <label class="field-label">Telefone</label><input type="text" id="profilePhone" class="input-dark">
+          <label class="field-label" style="color:var(--primary);">Meu Perfil</label>
+          <select id="profileType" class="input-dark" style="border-color:var(--primary);">
+            <option value="ADM">Administrador</option><option value="MELIPONICULTOR">Meliponicultor</option><option value="ENTUSIASTA">Entusiasta</option>
+          </select>
+          <button id="btnSaveProfile" class="btn-primary" style="width:100%; margin-top:15px;">Salvar Alterações</button>
         </div>
       </section>
     </main>
 
-    <nav class="bottom-nav">
-      <button class="nav-btn" onclick="app.nav('home')"><span>🏠</span><small>Início</small></button>
-      <button class="nav-btn" onclick="app.nav('map')"><span>🗺️</span><small>Mapa</small></button>
-      <button class="nav-btn" onclick="app.nav('profile')"><span>👤</span><small>Perfil</small></button>
-    </nav>
-
-    <div id="nestModal" class="modal-backdrop">
+    <div id="nest-modal" class="modal-backdrop" style="display:none">
       <div class="modal-card">
-        <h3>Registrar Ninho</h3>
+        <h3>Registrar Ninho</h3><p style="color:#94a3b8; font-size:12px;">Status: CATALOGADO</p>
         <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
-        <label id="lblPhoto" class="btn-photo">
-           📷 Tirar Foto <input type="file" id="nestPhoto" hidden onchange="app.photoCheck(this)">
+        <label id="btnNestPhotoLabel" class="btn-outline-photo" style="margin-top:15px;">
+          📷 Foto
+          <input id="nestPhoto" type="file" accept="image/*" style="display:none">
         </label>
-        <div style="display:flex; gap:10px;">
-           <button style="flex:1; padding:12px; background:transparent; border:1px solid #555; color:white; border-radius:10px;" onclick="document.getElementById('nestModal').style.display='none'">Cancelar</button>
-           <button style="flex:1; padding:12px; background:var(--primary); border:none; color:black; font-weight:bold; border-radius:10px;" id="btnConfirm" onclick="app.confirmNest()">Salvar</button>
+        <div class="modal-actions" style="margin-top:20px;">
+          <button id="nestCancel" class="btn-ghost">Cancelar</button>
+          <button id="btnConfirmNest" class="btn-solid">Salvar</button>
         </div>
       </div>
     </div>
 
-  </div>
+    <div id="nest-edit-modal" class="modal-backdrop" style="display:none; z-index:8000;">
+      <div class="modal-card">
+        <h3>Editar Ninho</h3><input type="hidden" id="editNestId">
+        <label class="field-label">Status Atual</label>
+        <select id="editNestStatus" class="input-dark"><option value="CATALOGADO">Catalogado</option><option value="CAPTURADO">Capturado</option><option value="REMOVIDO">Removido</option></select>
+        <div id="editCaptureContainer" class="hidden" style="background:#111827; padding:15px; border-radius:12px; border:1px solid #374151; margin-bottom:15px;">
+           <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><img id="captureSpeciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #374151;"><p style="font-size:13px; color:#10b981; font-weight:bold; margin:0;">Captura Confirmada</p></div>
+           <label class="field-label">Espécie</label><select id="editCapturePopular" class="input-dark"><option value="">Não identificada</option></select>
+           <select id="editCaptureScientific" class="input-dark" disabled><option value="Sem identificação">Sem identificação</option></select>
+           <label id="btnEditPhotoLabel" class="btn-outline-photo" style="margin:10px 0; padding:15px; border-color:var(--primary);">
+             📷 Atualizar Foto <input id="editNestPhoto" type="file" accept="image/*" style="display:none">
+           </label>
+        </div>
+        <label class="field-label">Observações</label><textarea id="editNestNote" rows="3" class="input-dark"></textarea>
+        <div class="modal-actions"><button id="btnCancelEditNest" class="btn-ghost">Cancelar</button><button id="btnSaveEditNest" class="btn-solid">Atualizar</button></div>
+      </div>
+    </div>
 
-  <script type="module" src="./js/app.js"></script>
+    <div id="colony-modal" class="modal-backdrop" style="display:none">
+      <div class="modal-card">
+        <h3>Nova Matriz</h3>
+        <div style="text-align:center; margin-bottom:15px;"><div style="width:80px; height:80px; background:#1f2937; border-radius:50%; margin:0 auto; overflow:hidden; border:2px solid #374151;"><img id="speciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:100%; height:100%; object-fit:cover;"></div></div>
+        <label class="field-label">Espécie</label><select id="colonyPopularName" class="input-dark"><option value="">Selecione...</option></select>
+        <select id="colonyScientificName" class="input-dark" disabled><option value="Sem identificação">Sem identificação</option></select>
+        <label class="field-label">Nome</label><input type="text" id="colonyName" class="input-dark">
+        <label class="field-label">Data</label><input type="date" id="colonyDate" class="input-dark">
+        <label class="field-label">Status</label><select id="colonyStatus" class="input-dark"><option value="ATIVA">Ativa</option><option value="DEFINHADA">Definhada</option><option value="VENDIDA">Vendida</option></select>
+        <div id="removalDateGroup" class="hidden"><label class="field-label">Data Remoção</label><input type="date" id="colonyRemovalDate" class="input-dark"></div>
+        <div class="modal-actions" style="margin-top:20px;"><button id="colonyCancel" class="btn-ghost">Cancelar</button><button id="colonySave" class="btn-solid">Salvar</button></div>
+      </div>
+    </div>
+
+    <div id="trail-detail-modal" class="modal-backdrop" style="display:none; z-index:7000;">
+      <div class="modal-card" style="max-width:95%; height:90vh; display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+          <h3 id="detailTrailTitle">Detalhes</h3><button id="closeDetailTrail" style="background:none; border:none; color:white; font-size:24px;">✕</button>
+        </div>
+        <div class="detail-meta-grid">
+           <div class="detail-item"><strong>Data</strong> <span id="metaDate">-</span></div><div class="detail-item"><strong>Distância</strong> <span id="metaDist">-</span></div>
+           <div class="detail-item"><strong>Ninhos</strong> <span id="metaNests">-</span></div><div class="detail-item"><strong>Início</strong> <span id="metaTime">-</span></div>
+        </div>
+        <div id="mapDetail" style="flex:1; border-radius:12px; border:1px solid #374151; margin-bottom:10px; min-height: 200px;"></div>
+        <div id="detailNestsList" style="height:150px; overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <div id="countdown-modal" class="modal-backdrop" style="display:none; z-index:9999; background:rgba(2,6,23,0.95);">
+      <div style="text-align:center;">
+        <div id="countdown-number" style="font-size:120px; font-weight:900; color:var(--primary); text-shadow:0 0 30px var(--primary);">3</div>
+        <p style="color:white; font-size:18px; margin-top:20px;">Preparando GPS...</p>
+      </div>
+    </div>
+
+    <div id="routeHint" class="hint-toast hidden"></div>
+  </div>
+  <script type="module" src="./js/main.js"></script>
 </body>
 </html>
