@@ -19,7 +19,12 @@
       <h2>Entrar</h2>
       <div class="auth-field"><label>E-mail</label><input id="email" type="email"></div>
       <div class="auth-field"><label>Senha</label><input id="password" type="password"></div>
+      
       <button id="btnLogin" class="btn-primary">Entrar</button>
+      <button id="btnSignup" class="btn-outline">Criar Conta</button>
+      <button id="btnGoogle" class="btn-google">Entrar com Google</button>
+      
+      <div id="authMsg" style="margin-top:10px; color:#ef4444; font-size:13px; text-align:center;"></div>
     </div>
   </div>
 
@@ -28,10 +33,11 @@
     <div id="side-menu" class="side-drawer">
       <div class="drawer-header">
         <div class="profile-mini">
-          <div class="avatar-circle">A</div>
+          <div class="avatar-circle" id="menu-avatar-char">A</div>
+          <img id="menu-avatar-img" src="" class="hidden" style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">
           <div style="margin-left:10px;">
              <span id="menu-name-display" style="font-weight:bold;">Usuário</span>
-             <span style="font-size:12px; display:block; color:#10b981;">ADMINISTRADOR</span>
+             <span id="menu-role-display" style="font-size:12px; display:block; color:#10b981;">CARREGANDO...</span>
           </div>
         </div>
         <button id="close-menu">✕</button>
@@ -39,6 +45,8 @@
       <nav class="drawer-nav">
         <button class="menu-item" onclick="app.nav('view-home')">🏠 Início</button>
         <button class="menu-item" onclick="app.nav('view-traps')">🗺️ Instalar Ninhos</button>
+        <button class="menu-item" onclick="app.nav('view-meliponaries')">📦 Minhas Colônias</button>
+        <button class="menu-item" onclick="app.nav('view-captures')">🐝 Capturas</button>
         <button class="menu-item" onclick="app.nav('view-profile')">👤 Perfil</button>
         <hr><button id="btnLogout" class="menu-item danger">Sair</button>
       </nav>
@@ -52,13 +60,25 @@
 
     <main class="content-area">
       <section id="view-home" class="view-section active">
+        <h2 style="margin-bottom:20px;">Painel</h2>
         <div class="dashboard-grid">
           <div class="dash-card" onclick="app.nav('view-traps')">
             <div class="dash-icon">🗺️</div><h3>Nova Instalação</h3>
           </div>
+          <div class="dash-card" onclick="app.nav('view-meliponaries')">
+            <div class="dash-icon">📦</div><h3>Colônias</h3>
+          </div>
+          <div class="dash-card" onclick="app.nav('view-captures')">
+            <div class="dash-icon">🐝</div><h3>Capturas</h3>
+          </div>
           <div class="dash-card" onclick="app.nav('view-profile')">
             <div class="dash-icon">👤</div><h3>Perfil</h3>
           </div>
+        </div>
+        
+        <div style="margin-top:30px;">
+            <h3 style="font-size:16px; margin-bottom:10px; color:#94a3b8;">Últimas Instalações</h3>
+            <div id="homeRecentTrails"></div>
         </div>
       </section>
 
@@ -79,13 +99,39 @@
         <div id="map"></div>
       </section>
 
+      <section id="view-meliponaries" class="view-section hidden">
+        <h3>Minhas Colônias</h3>
+        <button class="btn-primary-sm" onclick="document.getElementById('colony-modal').style.display='flex'">+ Nova Matriz</button>
+        <div id="coloniesList" style="margin-top:15px;"></div>
+      </section>
+
+      <section id="view-captures" class="view-section hidden">
+        <h3>Capturas</h3>
+        <div id="capturesList"></div>
+      </section>
+
       <section id="view-profile" class="view-section hidden">
         <h3>Meu Perfil</h3>
+        <div style="text-align:center; margin-bottom:20px;">
+             <img id="profileImageDisplay" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">
+             <br>
+             <label class="btn-outline-photo" style="display:inline-block; padding:8px 15px; margin-top:10px; font-size:12px;">
+                Alterar Foto <input id="profileAvatarInput" type="file" accept="image/*" style="display:none">
+             </label>
+        </div>
         <div class="card-profile-settings">
             <label class="field-label">Nome Completo</label>
             <input type="text" id="profName" class="input-dark">
+            
+            <label class="field-label">CPF</label>
+            <input type="text" id="profCPF" class="input-dark">
+            
             <label class="field-label">Telefone</label>
             <input type="text" id="profPhone" class="input-dark">
+            
+            <label class="field-label" style="color:var(--primary);">Cargo</label>
+            <input type="text" id="profRole" class="input-dark" disabled style="opacity:0.7;">
+            
             <button class="btn-primary" onclick="app.saveProfile()">Salvar Dados</button>
         </div>
       </section>
@@ -105,9 +151,28 @@
       </div>
     </div>
 
-    <div id="routeHint" class="hint-toast hidden"></div>
+    <div id="colony-modal" class="modal-backdrop" style="display:none">
+      <div class="modal-card">
+        <h3>Nova Matriz</h3>
+        <label class="field-label">Nome/ID</label><input type="text" id="colonyName" class="input-dark">
+        <label class="field-label">Espécie</label><input type="text" id="colonySpecie" class="input-dark">
+        <div class="modal-actions">
+            <button class="btn-ghost" onclick="document.getElementById('colony-modal').style.display='none'">Cancelar</button>
+            <button class="btn-solid" onclick="app.saveColony()">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="countdown-modal" class="modal-backdrop" style="display:none; z-index:9999; background:rgba(2,6,23,0.95);">
+      <div style="text-align:center;">
+        <div id="countdown-number" style="font-size:120px; font-weight:900; color:var(--primary); text-shadow:0 0 30px var(--primary);">3</div>
+        <p style="color:white; font-size:18px; margin-top:20px;">Preparando GPS...</p>
+      </div>
+    </div>
+
+    <div id="toast" class="hint-toast hidden"></div>
   </div>
 
-  <script src="./js/app.js"></script>
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
