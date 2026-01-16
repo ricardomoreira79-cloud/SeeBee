@@ -2,62 +2,52 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SeeBee</title>
+  <title>SeeBee App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  
+
   <style>
-    /* CSS RESTAURADO E COMPLETÃO */
+    /* CSS EMBUTIDO - VISUAL GARANTIDO */
     :root { --primary: #10b981; --bg: #020617; --card: #0f172a; --text: #f8fafc; --border: #1e293b; --danger: #ef4444; }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg) 60%); color: var(--text); padding-bottom: 80px; overflow-x: hidden; height: 100vh; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg) 60%); color: var(--text); min-height: 100vh; padding-bottom: 80px; overflow-x: hidden; }
     .hidden { display: none !important; }
 
     /* LOGIN */
     #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    .logo { font-size: 60px; margin-bottom: 10px; }
-    .brand { font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: 2px; }
+    .brand { font-size: 40px; font-weight: 800; margin-bottom: 30px; letter-spacing: 2px; }
     .card { width: 100%; max-width: 350px; background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); }
     input { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; outline: none; }
-    input:focus { border-color: var(--primary); }
     button { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 10px; }
     .btn-primary { background: var(--primary); color: #022c22; }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: white; }
     
-    /* APP LAYOUT */
-    .app-header { position: sticky; top: 0; background: rgba(2,6,23,0.95); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 1000; backdrop-filter: blur(10px); }
+    /* APP */
+    .app-header { position: sticky; top: 0; background: rgba(2,6,23,0.95); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 1000; }
     
-    /* MENU LATERAL */
+    /* MENU */
     .drawer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 5000; display: none; }
     .drawer.open { display: block; }
-    .drawer-content { width: 280px; height: 100%; background: var(--card); padding: 20px; animation: slideIn 0.3s; border-right: 1px solid var(--border); }
-    @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-    .menu-item { display: block; width: 100%; padding: 15px; text-align: left; background: none; border: none; color: white; border-bottom: 1px solid #1e293b; font-size: 16px; }
-    
-    /* DASHBOARD */
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-    .dash-btn { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 16px; text-align: center; cursor: pointer; }
-    .dash-btn:active { border-color: var(--primary); transform: scale(0.98); }
-    
+    .drawer-content { width: 280px; height: 100%; background: var(--card); padding: 20px; border-right: 1px solid var(--border); }
+    .menu-item { display: block; width: 100%; padding: 15px; text-align: left; background: none; border: none; color: white; border-bottom: 1px solid #1e293b; font-size: 16px; cursor: pointer; }
+
     /* MAPA */
     .track-card { background: #111827; margin: 15px; padding: 15px; border-radius: 16px; border: 1px solid var(--border); }
-    #map { height: 60vh; width: 100%; background: #0f172a; }
-    .stats { display: flex; justify-content: space-between; margin-top: 10px; }
-    .pill { background: #000; padding: 5px 10px; border-radius: 6px; font-size: 12px; border: 1px solid #333; }
+    #map { height: 50vh; width: 100%; background: #0f172a; border-radius: 12px; }
+    .btn-start { background: var(--primary); color: #022c22; flex:1; }
+    .btn-stop { background: var(--danger); color: white; flex:1; }
     
-    /* BOTTOM NAV */
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(15,23,42,0.95); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px; z-index: 2000; }
-    .nav-btn { background: none; border: none; color: #64748b; font-size: 24px; display: flex; flex-direction: column; align-items: center; }
-    .nav-btn span { font-size: 10px; margin-top: 2px; font-weight: bold; }
-    .nav-btn.active { color: var(--primary); }
-
     /* MODAL */
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; align-items: center; justify-content: center; padding: 20px; }
     .modal-content { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid var(--border); }
     textarea { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; resize: none; }
-    .photo-btn { display: block; border: 2px dashed #334155; padding: 20px; text-align: center; border-radius: 10px; margin: 10px 0; color: #94a3b8; }
+    
+    /* NAV */
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(15,23,42,0.95); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px; z-index: 2000; }
+    .nav-btn { background: none; border: none; color: #64748b; font-size: 24px; display: flex; flex-direction: column; align-items: center; }
     
     /* PINO */
     .custom-pin div { box-shadow: 0 0 5px rgba(0,0,0,0.5); }
@@ -66,65 +56,60 @@
 <body>
 
   <div id="auth-screen">
-    <div class="logo">🐝</div><div class="brand">SeeBee</div>
+    <div class="brand">SeeBee</div>
     <div class="card">
-      <div class="auth-field"><label>Email</label><input id="email" type="email"></div>
-      <div class="auth-field"><label>Senha</label><input id="password" type="password"></div>
-      <button class="btn-primary" onclick="app.login()">Entrar</button>
-      <button class="btn-outline" onclick="app.signup()">Criar Conta</button>
-      <button style="background:#222; color:white; border:1px solid #333;" onclick="app.loginGoogle()">Entrar com Google</button>
+      <div style="margin-bottom:10px;"><label>Email</label><input id="email" type="email"></div>
+      <div style="margin-bottom:10px;"><label>Senha</label><input id="password" type="password"></div>
+      <button class="btn-primary" id="btnLogin">Entrar</button>
+      <button class="btn-outline" id="btnSignup">Criar Conta</button>
+      <button style="background:#333; color:white;" id="btnGoogle">Google</button>
     </div>
   </div>
 
   <div id="app-screen" class="hidden">
     
-    <div id="drawer" class="drawer" onclick="if(event.target===this) app.toggleMenu()">
+    <div id="drawer" class="drawer">
       <div class="drawer-content">
         <h2 style="margin-top:0;">Menu</h2>
-        <div style="margin-bottom:20px; display:flex; align-items:center; gap:10px;">
-           <div style="width:40px; height:40px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:black;">U</div>
-           <div>
-             <div id="menuUser" style="font-weight:bold;">Usuário</div>
-             <div style="font-size:11px; color:var(--primary);">ADMINISTRADOR</div>
-           </div>
-        </div>
         <button class="menu-item" onclick="app.nav('home')">🏠 Início</button>
         <button class="menu-item" onclick="app.nav('map')">🗺️ Instalar</button>
         <button class="menu-item" onclick="app.nav('profile')">👤 Perfil</button>
         <button class="menu-item" style="color:var(--danger);" onclick="app.logout()">Sair</button>
+        <button class="btn-outline" style="margin-top:20px;" onclick="document.getElementById('drawer').classList.remove('open')">Fechar</button>
       </div>
     </div>
 
     <header class="app-header">
-      <button style="background:none; border:none; color:white; font-size:24px;" onclick="app.toggleMenu()">☰</button>
+      <button style="background:none; border:none; color:white; font-size:24px;" onclick="document.getElementById('drawer').classList.add('open')">☰</button>
       <div class="brand-mini" style="font-weight:bold; font-size:18px;">SeeBee</div>
       <div style="width:24px;"></div>
     </header>
 
     <main>
       <section id="view-home">
-        <h2 style="padding: 20px 20px 0;">Painel</h2>
-        <div class="grid">
-          <div class="dash-btn" onclick="app.nav('map')"><div style="font-size:30px; margin-bottom:5px;">🗺️</div>Instalar</div>
-          <div class="dash-btn" onclick="app.nav('profile')"><div style="font-size:30px; margin-bottom:5px;">👤</div>Perfil</div>
+        <div style="padding:20px;">
+          <h2>Bem vindo</h2>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+             <div onclick="app.nav('map')" style="background:#1e293b; padding:20px; border-radius:10px; text-align:center;">🗺️ Instalar</div>
+             <div onclick="app.nav('profile')" style="background:#1e293b; padding:20px; border-radius:10px; text-align:center;">👤 Perfil</div>
+          </div>
         </div>
       </section>
 
       <section id="view-map" class="hidden">
         <div class="track-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3 style="margin:0;">Instalação</h3>
-            <span id="statusBadge" style="font-size:12px; background:#333; padding:2px 8px; border-radius:4px;">PARADO</span>
+          <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+             <h3>Instalação</h3> <span id="statusBadge" style="background:#333; padding:5px; border-radius:5px; font-size:12px;">PARADO</span>
           </div>
           <div style="display:flex; gap:10px;">
-            <button id="btnStart" class="btn-primary" onclick="app.startTracking()">▶ Iniciar</button>
-            <button id="btnStop" class="btn-primary" style="background:var(--danger); display:none;" onclick="app.stopTracking()">■ Parar</button>
+            <button id="btnStart" class="btn-start" onclick="app.startTracking()">▶ Iniciar</button>
+            <button id="btnStop" class="btn-stop hidden" onclick="app.stopTracking()">■ Parar</button>
             <button id="btnNest" class="btn-outline" onclick="app.openNestModal()" disabled>+ Ninho</button>
           </div>
-          <div class="stats">
-            <div class="pill">Dist: <span id="distVal">0</span>m</div>
-            <div class="pill">Ninhos: <span id="nestVal">0</span></div>
-            <div class="pill" id="gpsVal">GPS OFF</div>
+          <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#aaa;">
+             <span>Dist: <b id="distText" style="color:white;">0 m</b></span>
+             <span>Ninhos: <b id="nestCountText" style="color:white;">0</b></span>
+             <span id="gpsStatus">GPS OFF</span>
           </div>
         </div>
         <div id="map"></div>
@@ -132,36 +117,36 @@
 
       <section id="view-profile" class="hidden">
         <div style="padding:20px;">
-          <h2>Perfil</h2>
-          <div class="auth-field"><label>Nome</label><input id="profName"></div>
-          <div class="auth-field"><label>Telefone</label><input id="profPhone"></div>
+          <h3>Meu Perfil</h3>
+          <div style="margin-bottom:10px;"><label>Nome</label><input id="profName"></div>
+          <div style="margin-bottom:10px;"><label>Telefone</label><input id="profPhone"></div>
           <button class="btn-primary" onclick="app.saveProfile()">Salvar</button>
         </div>
       </section>
     </main>
 
     <nav class="bottom-nav">
-      <button class="nav-btn" onclick="app.nav('home')"><span>🏠</span><span>Início</span></button>
-      <button class="nav-btn" onclick="app.nav('map')"><span>🗺️</span><span>Mapa</span></button>
-      <button class="nav-btn" onclick="app.nav('profile')"><span>👤</span><span>Perfil</span></button>
+      <button class="nav-btn" onclick="app.nav('home')">🏠</button>
+      <button class="nav-btn" onclick="app.nav('map')">🗺️</button>
+      <button class="nav-btn" onclick="app.nav('profile')">👤</button>
     </nav>
 
     <div id="nestModal" class="modal">
       <div class="modal-content">
         <h3>Novo Ninho</h3>
-        <textarea id="nestObs" rows="3" placeholder="Observações..."></textarea>
-        <label class="photo-btn" id="lblPhoto">
-          📷 Foto <input type="file" id="nestPhoto" hidden onchange="app.photoChanged(this)">
-        </label>
+        <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
+        <div style="margin:10px 0; border:1px dashed #333; padding:10px; text-align:center;">
+           📷 Foto <input type="file" id="nestPhoto">
+        </div>
         <div style="display:flex; gap:10px;">
-          <button class="btn-outline" onclick="document.getElementById('nestModal').style.display='none'">Cancelar</button>
-          <button class="btn-primary" onclick="app.confirmNest()">Salvar</button>
+           <button class="btn-outline" onclick="document.getElementById('nestModal').style.display='none'">Cancelar</button>
+           <button class="btn-primary" id="btnConfirmNest" onclick="app.confirmNest()">Salvar</button>
         </div>
       </div>
     </div>
 
   </div>
 
-  <script src="./js/app.js"></script>
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
