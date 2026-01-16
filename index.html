@@ -124,9 +124,9 @@
           <p id="profileEmailDisplay" style="color:#9ca3af; margin-top:15px; font-size:14px;">carregando...</p>
         </div>
         <div class="card-profile-settings" style="background:#111827; padding:20px; border-radius:16px; border:1px solid #374151;">
-          <label class="field-label">Nome Completo</label><input type="text" id="profileFullName" class="input-dark">
-          <label class="field-label">CPF</label><input type="text" id="profileCPF" class="input-dark">
-          <label class="field-label">Telefone</label><input type="text" id="profilePhone" class="input-dark">
+          <label class="field-label">Nome Completo</label><input type="text" id="profileFullName" class="input-dark" placeholder="Seu nome">
+          <label class="field-label">CPF</label><input type="text" id="profileCPF" class="input-dark" placeholder="000.000.000-00">
+          <label class="field-label">Telefone</label><input type="text" id="profilePhone" class="input-dark" placeholder="(00) 00000-0000">
           <label class="field-label" style="color:var(--primary);">Meu Perfil</label>
           <select id="profileType" class="input-dark" style="border-color:var(--primary);">
             <option value="ADM">Administrador</option><option value="MELIPONICULTOR">Meliponicultor</option><option value="ENTUSIASTA">Entusiasta</option>
@@ -141,8 +141,7 @@
         <h3>Registrar Ninho</h3><p style="color:#94a3b8; font-size:12px;">Status: CATALOGADO</p>
         <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
         <label id="btnNestPhotoLabel" class="btn-outline-photo" style="margin-top:15px;">
-          📷 Foto
-          <input id="nestPhoto" type="file" accept="image/*" style="display:none">
+          📷 Foto <input id="nestPhoto" type="file" accept="image/*" style="display:none">
         </label>
         <div class="modal-actions" style="margin-top:20px;">
           <button id="nestCancel" class="btn-ghost">Cancelar</button>

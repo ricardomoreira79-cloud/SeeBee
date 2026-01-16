@@ -1,4 +1,4 @@
-// js/main.js - ARQUIVO COMPLETO v16 (SEM LIMITES + FOTO UX)
+// js/main.js - ARQUIVO COMPLETO v19
 import { getSupabase } from "./supabaseClient.js";
 import { state } from "./state.js";
 import { ui, toast, switchTab, closeNestModal, setOnlineUI } from "./ui.js";
@@ -29,8 +29,8 @@ async function uploadFile(file, bucket) {
 // UX: Feedback visual ao selecionar foto
 function setupPhotoInputFeedback(labelId, inputId) {
     const input = document.getElementById(inputId);
-    const label = document.getElementById(labelId); // Busca pelo ID do label (ex: btnNestPhotoLabel)
-    if(!input || !label) return; // Segurança caso ID mude
+    const label = document.getElementById(labelId);
+    if(!input || !label) return;
     
     input.onchange = (e) => {
         const file = e.target.files[0];
@@ -38,9 +38,7 @@ function setupPhotoInputFeedback(labelId, inputId) {
             label.style.borderColor = "var(--primary)";
             label.style.color = "var(--primary)";
             label.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
-            // Salva o texto original se não tiver salvo
             if(!label.getAttribute("data-original")) label.setAttribute("data-original", label.innerHTML);
-            // Atualiza texto, mas MANTÉM o input filho lá dentro
             label.innerHTML = `✅ ${file.name.substring(0, 15)}...`; 
             label.appendChild(input); 
         }
@@ -82,28 +80,19 @@ function setupListeners() {
   const popCapture = document.getElementById("editCapturePopular"); if(popCapture) popCapture.onchange = (e) => updateSpeciesPreview(e.target.value, "editCaptureScientific", "captureSpeciesPreview");
   document.getElementById("btnSaveEditNest").onclick = saveNestEdit;
   
-  // Ninho Isca & Feedback Foto
+  // Ninho Isca
   ui.btnMarkNest.onclick = () => { 
       if(!state.lastPos) return alert("Aguarde GPS"); 
       document.getElementById("nestNote").value = ""; 
-      
-      // Reset visual do botão
-      const input = document.getElementById("nestPhoto");
-      input.value = "";
+      const pInput = document.getElementById("nestPhoto"); pInput.value = ""; 
       const label = document.getElementById("btnNestPhotoLabel");
-      if(label.getAttribute("data-original")) label.innerHTML = label.getAttribute("data-original");
-      else label.innerHTML = "📷 Foto";
-      label.style = "";
-      label.appendChild(input);
-
+      if(label) { label.style = ""; label.innerHTML = "📷 Foto"; label.appendChild(pInput); }
       document.getElementById("nest-modal").style.display="flex"; 
   };
   
-  // Ativa feedback visual (IDs devem bater com o HTML novo)
   setupPhotoInputFeedback("btnNestPhotoLabel", "nestPhoto");
   setupPhotoInputFeedback("btnEditPhotoLabel", "editNestPhoto");
 
-  // Perfil
   document.getElementById("btnSaveProfile").onclick = saveProfile;
   const avatarInput = document.getElementById("profileAvatarInput");
   if(avatarInput) avatarInput.onchange = (e) => { const file = e.target.files[0]; if(file) document.getElementById("profileImageDisplay").src = URL.createObjectURL(file); };
@@ -125,11 +114,11 @@ function updateSpeciesPreview(popularName, scientificSelectId, imgId) {
 async function loadProfile() {
     document.getElementById("profileEmailDisplay").textContent = state.user.email;
     const { data: userProfile, error } = await supabase.from('profiles').select('*').eq('id', state.user.id).maybeSingle();
-    if (!userProfile) { await supabase.from('profiles').insert({ id: state.user.id, full_name: 'Usuário', user_type: 'ENTUSIASTA' }); return loadProfile(); }
+    if (!userProfile) { await supabase.from('profiles').insert({ id: state.user.id, full_name: 'Usuário', user_type: 'ADM' }); return loadProfile(); }
     document.getElementById("profileFullName").value = userProfile.full_name || "";
     document.getElementById("profileCPF").value = userProfile.cpf || "";
     document.getElementById("profilePhone").value = userProfile.phone || "";
-    document.getElementById("profileType").value = userProfile.user_type || "ENTUSIASTA";
+    document.getElementById("profileType").value = userProfile.user_type || "ADM";
     if(userProfile.avatar_url) document.getElementById("profileImageDisplay").src = userProfile.avatar_url;
     updateMenuUI(userProfile);
 }
@@ -153,95 +142,62 @@ function updateMenuUI(profile) {
     else if (charElement) { if(imgElement) imgElement.classList.add("hidden"); charElement.textContent = name.charAt(0).toUpperCase(); charElement.classList.remove("hidden"); }
 }
 
-// --- NEGÓCIO: NINHOS (ZERO LIMITES) ---
+// --- NEGÓCIO (ZERO LIMITES) ---
 async function createNestFull(note, lat, lng, routeId, photoFile) {
-    const publicUrl = await uploadFile(photoFile, 'ninhos-fotos');
-    // Insere direto, sem checar quantidade
+    let publicUrl = null;
+    if (photoFile) publicUrl = await uploadFile(photoFile, 'ninhos-fotos');
     const { error } = await supabase.from("nests").insert({ user_id: state.user.id, route_id: routeId, lat, lng, note, status: "CATALOGADO", photo_url: publicUrl });
     if (error) throw new Error(error.message);
 }
 
-async function loadSpeciesData() {
-  if (allSpeciesData.length > 0) return;
-  const { data } = await supabase.from("species").select("*").order("popular_name");
-  if(data) { allSpeciesData = data; const uniques = [...new Set(data.map(i => i.popular_name))]; const options = '<option value="">Selecione...</option>' + uniques.map(u => `<option value="${u}">${u}</option>`).join(""); document.getElementById("colonyPopularName").innerHTML = options; const editSel = document.getElementById("editCapturePopular"); if(editSel) editSel.innerHTML = '<option value="">Não identificada</option>' + uniques.map(u => `<option value="${u}">${u}</option>`).join(""); }
-}
+async function loadSpeciesData() { if (allSpeciesData.length > 0) return; const { data } = await supabase.from("species").select("*").order("popular_name"); if(data) { allSpeciesData = data; const uniques = [...new Set(data.map(i => i.popular_name))]; const options = '<option value="">Selecione...</option>' + uniques.map(u => `<option value="${u}">${u}</option>`).join(""); document.getElementById("colonyPopularName").innerHTML = options; const editSel = document.getElementById("editCapturePopular"); if(editSel) editSel.innerHTML = '<option value="">Não identificada</option>' + uniques.map(u => `<option value="${u}">${u}</option>`).join(""); } }
+async function saveColony() { const name=document.getElementById("colonyName").value, popular=document.getElementById("colonyPopularName").value, scientific=document.getElementById("colonyScientificName").value, date=document.getElementById("colonyDate").value, status=document.getElementById("colonyStatus").value, removal=document.getElementById("colonyRemovalDate").value; if(!name||!date) return alert("Preencha nome e data."); if(status!=="ATIVA"&&!removal) return alert("Preencha remoção."); const { error } = await supabase.from("colonies").insert({ user_id:state.user.id, name, species_name: popular?`${popular} (${scientific})`:"Não identificada", installation_date:date, status, removal_date:removal||null }); if(error) alert("Erro: "+error.message); else { document.getElementById("colony-modal").style.display="none"; loadColoniesData(); } }
 
-async function saveColony() {
-  const name=document.getElementById("colonyName").value, popular=document.getElementById("colonyPopularName").value, scientific=document.getElementById("colonyScientificName").value, date=document.getElementById("colonyDate").value, status=document.getElementById("colonyStatus").value, removal=document.getElementById("colonyRemovalDate").value;
-  if(!name||!date) return alert("Preencha nome e data."); if(status!=="ATIVA"&&!removal) return alert("Preencha remoção.");
-  const { error } = await supabase.from("colonies").insert({ user_id:state.user.id, name, species_name: popular?`${popular} (${scientific})`:"Não identificada", installation_date:date, status, removal_date:removal||null });
-  if(error) alert("Erro: "+error.message); else { document.getElementById("colony-modal").style.display="none"; loadColoniesData(); }
-}
-
-// --- GRAVAÇÃO (LÓGICA CORRIGIDA E LIMPA) ---
+// --- GRAVAÇÃO ---
 ui.btnStartRoute.onclick=async()=>{
     const name=prompt("Nome da Instalação:",`Instalação ${new Date().toLocaleDateString()}`); if(!name)return;
     const modal = document.getElementById("countdown-modal"); const num = document.getElementById("countdown-number");
-    if(modal) {
-        modal.style.display = "flex"; let count = 3; num.textContent = count;
-        const timer = setInterval(async () => {
-            count--; if(count > 0) num.textContent = count;
-            else { clearInterval(timer); modal.style.display = "none"; startRouteLogic(name); }
-        }, 1000);
-    } else startRouteLogic(name);
+    if(modal) { modal.style.display = "flex"; let count = 3; num.textContent = count; const timer = setInterval(async () => { count--; if(count > 0) num.textContent = count; else { clearInterval(timer); modal.style.display = "none"; startRouteLogic(name); } }, 1000); } else startRouteLogic(name);
 };
 
 async function startRouteLogic(name) {
     await createRoute(supabase,name);
     ui.btnStartRoute.classList.add("hidden");ui.btnFinishRoute.classList.remove("hidden");ui.btnMarkNest.disabled=false;
     ui.statusBadge.textContent="GRAVANDO";ui.statusBadge.classList.add("active");
-    
-    clearMapLayers(); // Limpa mapa (tira bolinhas antigas)
-    state._dist=0;state.nestCount=0;state.routePoints=[]; // Reseta lista
-    ui.distanceText.textContent="0 m";ui.nestsCountText.textContent="0";
-    
+    clearMapLayers(); state._dist=0;state.nestCount=0;state.routePoints = []; ui.distanceText.textContent="0 m";ui.nestsCountText.textContent="0";
     startGPS();
 }
 
 function startGPS(){
     if(!navigator.geolocation)return alert("Sem GPS");
-    
     state.watchId=navigator.geolocation.watchPosition(async(pos)=>{
         const p={lat:pos.coords.latitude,lng:pos.coords.longitude,t:new Date().toISOString()};
         const isFirstPoint = state.routePoints.length === 0;
-
         if (!isFirstPoint) {
             const last = state.routePoints[state.routePoints.length-1];
             const dist = calcDist(last, p);
-            if (dist > 500) return; // Filtro de pulo
+            if (dist > 500) return; 
             state._dist += dist; ui.distanceText.textContent = Math.round(state._dist) + " m";
         }
-        
-        state.lastPos=p;ui.gpsStatus.textContent="GPS: OK";
+        state.lastPos = p; ui.gpsStatus.textContent = "GPS: OK";
         state.routePoints.push(p); 
-        addRoutePoint(p.lat,p.lng); // Só adiciona linha, não marcador
-        
-        if(isFirstPoint) {
-            setMapCenter(p.lat,p.lng);
-            addMarker(p.lat,p.lng,"#10b981","Início"); // Marcador verde SÓ no inicio
-        }
-        
-        if(navigator.onLine)await appendRoutePoint(supabase,p);
+        addRoutePoint(p.lat, p.lng); 
+        if(isFirstPoint) { setMapCenter(p.lat, p.lng); addMarker(p.lat, p.lng, "#10b981", "Início"); }
+        if(navigator.onLine) await appendRoutePoint(supabase, p);
     },(e)=>ui.gpsStatus.textContent="Erro GPS",{enableHighAccuracy:true});
 }
 
-// CANCELAR SEM PERDER
+// CANCELAR = CONTINUAR
 ui.btnFinishRoute.onclick=async()=>{
     if(state.watchId)navigator.geolocation.clearWatch(state.watchId);
-    
     if(state.nestCount===0){
-        if(!confirm("Sem ninhos. Descartar e finalizar?")) {
-            startGPS(); // Retoma se cancelar
-            return;
-        }
+        if(!confirm("Sem ninhos. Descartar e finalizar?")) { startGPS(); return; }
         await discardRoute(supabase); toast(ui.routeHint,"Descartado","error");
     }else{
         if(state.lastPos) addMarker(state.lastPos.lat,state.lastPos.lng,"#ef4444","Fim");
         if(navigator.onLine)await finishRoute(supabase);
         toast(ui.routeHint,"Salvo!","ok");
     }
-    // Só reseta a tela aqui
     ui.btnStartRoute.classList.remove("hidden");ui.btnFinishRoute.classList.add("hidden");ui.btnMarkNest.disabled=true;
     ui.statusBadge.textContent="PARADO";ui.statusBadge.classList.remove("active");
     loadRecentTrails();
@@ -249,11 +205,10 @@ ui.btnFinishRoute.onclick=async()=>{
 
 ui.btnMarkNest.onclick=()=>{ 
     if(!state.lastPos) return alert("Aguarde GPS"); 
-    // Reseta form
     document.getElementById("nestNote").value = ""; 
     const pInput = document.getElementById("nestPhoto"); pInput.value = ""; 
     const label = document.getElementById("btnNestPhotoLabel");
-    label.style = ""; label.innerHTML = "📷 Foto"; label.appendChild(pInput);
+    if(label) { label.style = ""; label.innerHTML = "📷 Foto"; label.appendChild(pInput); }
     document.getElementById("nest-modal").style.display="flex"; 
 };
 
