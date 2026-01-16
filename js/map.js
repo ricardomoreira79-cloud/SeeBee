@@ -1,4 +1,4 @@
-// js/map.js - ARQUIVO COMPLETO v19
+// js/map.js - ARQUIVO COMPLETO
 import { state } from "./state.js";
 
 export function initMap() {
@@ -15,7 +15,7 @@ export function setMapCenter(lat, lng, zoom = 18) {
   if (state.mapReady) state.map.setView([lat, lng], zoom);
 }
 
-// SÓ A LINHA, SEM BOLINHAS
+// SÓ A LINHA
 export function addRoutePoint(lat, lng) {
   if (state.polyline) {
     state.polyline.addLatLng([lat, lng]);
@@ -39,7 +39,7 @@ export function addMarker(lat, lng, color = "#10b981", label = "") {
 export function clearMapLayers() {
   if (state.polyline) state.polyline.setLatLngs([]);
   state.map.eachLayer((layer) => {
-    // Remove tudo que não for o TileLayer nem a linha
+    // Remove tudo que não for o mapa base nem a linha
     if (layer !== state.polyline && !(layer instanceof L.TileLayer)) {
       state.map.removeLayer(layer);
     }
