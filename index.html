@@ -2,163 +2,166 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SeeBee - Meliponicultura</title>
+  <title>SeeBee</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
+  
   <style>
-    /* CSS EMBUTIDO PARA GARANTIR O VISUAL "LINDO" */
-    :root { --primary: #10b981; --bg-dark: #020617; --card-bg: #0f172a; --text: #f8fafc; --border: #1e293b; --danger: #ef4444; }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg-dark) 60%); color: var(--text); min-height: 100vh; padding-bottom: 90px; overflow-x: hidden; }
+    /* CSS RESTAURADO E COMPLETÃO */
+    :root { --primary: #10b981; --bg: #020617; --card: #0f172a; --text: #f8fafc; --border: #1e293b; --danger: #ef4444; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg) 60%); color: var(--text); padding-bottom: 80px; overflow-x: hidden; height: 100vh; }
     .hidden { display: none !important; }
-    
-    /* LOGIN */
-    #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: #020617; z-index: 9999; position: absolute; top:0; left:0; width:100%; }
-    .brand-logo { font-size: 70px; margin-bottom: 10px; }
-    .brand-name { font-size: 36px; font-weight: 800; letter-spacing: 2px; margin-bottom:30px; }
-    #auth-card { width: 100%; max-width: 350px; background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border); }
-    .auth-field { margin-bottom: 15px; }
-    .auth-field label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
-    .auth-field input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #020617; color: white; outline: none; }
-    .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: #022c22; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 10px; }
-    .btn-outline { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border); color: white; border-radius: 12px; margin-top: 10px; cursor: pointer; }
-    .btn-google { width: 100%; padding: 12px; background: #1e293b; border: 1px solid var(--border); color: white; border-radius: 12px; margin-top: 15px; cursor: pointer; }
 
-    /* APP */
-    .app-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(2,6,23,0.95); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
-    .brand-mini { font-weight: 900; letter-spacing: 1px; font-size: 18px; }
-    .side-drawer { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--card-bg); z-index: 5000; transition: 0.3s; border-right: 1px solid var(--border); padding: 20px; box-shadow: 10px 0 50px rgba(0,0,0,0.7); }
-    .side-drawer.open { left: 0; }
-    .menu-item { display: block; width: 100%; padding: 15px; text-align: left; background: none; border: none; color: white; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+    /* LOGIN */
+    #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    .logo { font-size: 60px; margin-bottom: 10px; }
+    .brand { font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: 2px; }
+    .card { width: 100%; max-width: 350px; background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); }
+    input { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; outline: none; }
+    input:focus { border-color: var(--primary); }
+    button { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 10px; }
+    .btn-primary { background: var(--primary); color: #022c22; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: white; }
+    
+    /* APP LAYOUT */
+    .app-header { position: sticky; top: 0; background: rgba(2,6,23,0.95); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 1000; backdrop-filter: blur(10px); }
+    
+    /* MENU LATERAL */
+    .drawer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 5000; display: none; }
+    .drawer.open { display: block; }
+    .drawer-content { width: 280px; height: 100%; background: var(--card); padding: 20px; animation: slideIn 0.3s; border-right: 1px solid var(--border); }
+    @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    .menu-item { display: block; width: 100%; padding: 15px; text-align: left; background: none; border: none; color: white; border-bottom: 1px solid #1e293b; font-size: 16px; }
     
     /* DASHBOARD */
-    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-    .dash-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 25px 15px; text-align: center; cursor: pointer; }
-    .dash-icon { font-size: 30px; display: block; margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+    .dash-btn { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 16px; text-align: center; cursor: pointer; }
+    .dash-btn:active { border-color: var(--primary); transform: scale(0.98); }
     
     /* MAPA */
-    .tracking-card { background: #111827; margin: 20px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); }
-    .stats-row { display: flex; gap: 10px; margin-top: 15px; justify-content: space-between; }
-    .stat-pill { background: #020617; padding: 8px 12px; border-radius: 8px; font-size: 12px; border: 1px solid var(--border); color:#94a3b8; }
-    .stat-pill b { color: white; margin-left: 5px; }
-    #map { height: 400px; width: 100%; background: #0f172a; }
-    .btn-action-start { background: var(--primary); color: #022c22; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; flex: 1; cursor: pointer; }
-    .btn-action-stop { background: var(--danger); color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; flex: 1; cursor: pointer; }
-    .btn-action-nest { background: #1f2937; color: white; border: 1px solid var(--border); padding: 12px 25px; border-radius: 12px; font-weight: bold; flex: 1; cursor: pointer; }
+    .track-card { background: #111827; margin: 15px; padding: 15px; border-radius: 16px; border: 1px solid var(--border); }
+    #map { height: 60vh; width: 100%; background: #0f172a; }
+    .stats { display: flex; justify-content: space-between; margin-top: 10px; }
+    .pill { background: #000; padding: 5px 10px; border-radius: 6px; font-size: 12px; border: 1px solid #333; }
     
-    /* NAV BOTTOM */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15,23,42,0.95); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 2000; }
-    .nav-item { background: none; border: none; color: #64748b; font-size: 22px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-    .nav-item small { font-size: 10px; margin-top: 4px; }
-    
+    /* BOTTOM NAV */
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(15,23,42,0.95); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px; z-index: 2000; }
+    .nav-btn { background: none; border: none; color: #64748b; font-size: 24px; display: flex; flex-direction: column; align-items: center; }
+    .nav-btn span { font-size: 10px; margin-top: 2px; font-weight: bold; }
+    .nav-btn.active { color: var(--primary); }
+
     /* MODAL */
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 6000; padding: 20px; }
-    .modal-card { width: 100%; max-width: 400px; background: var(--card-bg); padding: 25px; border-radius: 24px; border: 1px solid var(--border); }
-    .input-dark, textarea { width: 100%; background: #020617; border: 1px solid #374151; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
-    .btn-outline-photo { display: block; padding: 20px; border: 2px dashed #374151; text-align: center; border-radius: 12px; margin-bottom: 15px; color: #94a3b8; cursor: pointer; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-content { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid var(--border); }
+    textarea { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; resize: none; }
+    .photo-btn { display: block; border: 2px dashed #334155; padding: 20px; text-align: center; border-radius: 10px; margin: 10px 0; color: #94a3b8; }
     
-    /* MARCADOR */
-    .custom-pin { display: flex; align-items: center; justify-content: center; }
+    /* PINO */
+    .custom-pin div { box-shadow: 0 0 5px rgba(0,0,0,0.5); }
   </style>
 </head>
 <body>
 
   <div id="auth-screen">
-    <div class="brand-hero"><div class="brand-logo">🐝</div><div class="brand-name">SeeBee</div></div>
-    <div id="auth-card">
-      <h2 style="margin-top:0;">Entrar</h2>
-      <div class="auth-field"><label>E-mail</label><input id="email" type="email"></div>
+    <div class="logo">🐝</div><div class="brand">SeeBee</div>
+    <div class="card">
+      <div class="auth-field"><label>Email</label><input id="email" type="email"></div>
       <div class="auth-field"><label>Senha</label><input id="password" type="password"></div>
-      <button id="btnLogin" class="btn-primary">Entrar</button>
-      <button id="btnSignup" class="btn-outline">Criar Conta</button>
-      <button id="btnGoogle" class="btn-google">Entrar com Google</button>
-      <div id="authMsg" style="color: #ef4444; margin-top: 10px; font-size: 13px; text-align: center;"></div>
+      <button class="btn-primary" onclick="app.login()">Entrar</button>
+      <button class="btn-outline" onclick="app.signup()">Criar Conta</button>
+      <button style="background:#222; color:white; border:1px solid #333;" onclick="app.loginGoogle()">Entrar com Google</button>
     </div>
   </div>
 
   <div id="app-screen" class="hidden">
-    <div id="side-menu" class="side-drawer">
-      <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
-        <span style="font-weight:bold; font-size:18px;">Menu</span>
-        <button id="close-menu" style="background:none; border:none; color:white; font-size:24px;">✕</button>
+    
+    <div id="drawer" class="drawer" onclick="if(event.target===this) app.toggleMenu()">
+      <div class="drawer-content">
+        <h2 style="margin-top:0;">Menu</h2>
+        <div style="margin-bottom:20px; display:flex; align-items:center; gap:10px;">
+           <div style="width:40px; height:40px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:black;">U</div>
+           <div>
+             <div id="menuUser" style="font-weight:bold;">Usuário</div>
+             <div style="font-size:11px; color:var(--primary);">ADMINISTRADOR</div>
+           </div>
+        </div>
+        <button class="menu-item" onclick="app.nav('home')">🏠 Início</button>
+        <button class="menu-item" onclick="app.nav('map')">🗺️ Instalar</button>
+        <button class="menu-item" onclick="app.nav('profile')">👤 Perfil</button>
+        <button class="menu-item" style="color:var(--danger);" onclick="app.logout()">Sair</button>
       </div>
-      <button class="menu-item" onclick="app.nav('view-home')">🏠 Início</button>
-      <button class="menu-item" onclick="app.nav('view-traps')">🗺️ Instalar</button>
-      <button class="menu-item" onclick="app.nav('view-profile')">👤 Perfil</button>
-      <hr style="border-color:#334155; margin:20px 0;">
-      <button class="menu-item" style="color:#ef4444;" onclick="app.logout()">Sair</button>
     </div>
 
     <header class="app-header">
-      <button id="open-menu" style="background:none; border:none; color:white; font-size:24px;">☰</button>
-      <div class="brand-mini">SeeBee</div>
+      <button style="background:none; border:none; color:white; font-size:24px;" onclick="app.toggleMenu()">☰</button>
+      <div class="brand-mini" style="font-weight:bold; font-size:18px;">SeeBee</div>
       <div style="width:24px;"></div>
     </header>
 
     <main>
-      <section id="view-home" class="view-section active">
-        <h2 style="padding:20px 20px 0;">Painel</h2>
-        <div class="dashboard-grid">
-          <div class="dash-card" onclick="app.nav('view-traps')"><div class="dash-icon">🗺️</div><h3>Instalar</h3></div>
-          <div class="dash-card" onclick="app.nav('view-profile')"><div class="dash-icon">👤</div><h3>Perfil</h3></div>
+      <section id="view-home">
+        <h2 style="padding: 20px 20px 0;">Painel</h2>
+        <div class="grid">
+          <div class="dash-btn" onclick="app.nav('map')"><div style="font-size:30px; margin-bottom:5px;">🗺️</div>Instalar</div>
+          <div class="dash-btn" onclick="app.nav('profile')"><div style="font-size:30px; margin-bottom:5px;">👤</div>Perfil</div>
         </div>
       </section>
 
-      <section id="view-traps" class="view-section hidden">
-        <div class="tracking-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-             <h3>Instalação</h3> <span id="statusBadge" style="background:#334155; padding:4px 10px; border-radius:10px; font-size:12px;">PARADO</span>
+      <section id="view-map" class="hidden">
+        <div class="track-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0;">Instalação</h3>
+            <span id="statusBadge" style="font-size:12px; background:#333; padding:2px 8px; border-radius:4px;">PARADO</span>
           </div>
           <div style="display:flex; gap:10px;">
-            <button id="btnStart" class="btn-action-start" onclick="app.startRecording()">▶ Iniciar</button>
-            <button id="btnStop" class="btn-action-stop hidden" onclick="app.stopRecording()">■ Parar</button>
-            <button id="btnNest" class="btn-action-nest" onclick="app.openNestModal()" disabled>+ Ninho</button>
+            <button id="btnStart" class="btn-primary" onclick="app.startTracking()">▶ Iniciar</button>
+            <button id="btnStop" class="btn-primary" style="background:var(--danger); display:none;" onclick="app.stopTracking()">■ Parar</button>
+            <button id="btnNest" class="btn-outline" onclick="app.openNestModal()" disabled>+ Ninho</button>
           </div>
-          <div class="stats-row">
-            <div class="stat-pill">Dist: <b id="distText">0 m</b></div>
-            <div class="stat-pill">Ninhos: <b id="nestCountText">0</b></div>
-            <div class="stat-pill" id="gpsStatus">GPS OFF</div>
+          <div class="stats">
+            <div class="pill">Dist: <span id="distVal">0</span>m</div>
+            <div class="pill">Ninhos: <span id="nestVal">0</span></div>
+            <div class="pill" id="gpsVal">GPS OFF</div>
           </div>
         </div>
         <div id="map"></div>
       </section>
 
-      <section id="view-profile" class="view-section hidden">
+      <section id="view-profile" class="hidden">
         <div style="padding:20px;">
-            <h2>Meu Perfil</h2>
-            <div class="auth-field"><label>Nome</label><input type="text" id="profName" class="input-dark"></div>
-            <div class="auth-field"><label>Telefone</label><input type="text" id="profPhone" class="input-dark"></div>
-            <button class="btn-primary" onclick="app.saveProfile()">Salvar</button>
+          <h2>Perfil</h2>
+          <div class="auth-field"><label>Nome</label><input id="profName"></div>
+          <div class="auth-field"><label>Telefone</label><input id="profPhone"></div>
+          <button class="btn-primary" onclick="app.saveProfile()">Salvar</button>
         </div>
       </section>
     </main>
 
     <nav class="bottom-nav">
-      <button class="nav-item" onclick="app.nav('view-home')"><span>🏠</span><small>Início</small></button>
-      <button class="nav-item" onclick="app.nav('view-traps')"><span>🗺️</span><small>Mapa</small></button>
-      <button class="nav-item" onclick="app.nav('view-profile')"><span>👤</span><small>Perfil</small></button>
+      <button class="nav-btn" onclick="app.nav('home')"><span>🏠</span><span>Início</span></button>
+      <button class="nav-btn" onclick="app.nav('map')"><span>🗺️</span><span>Mapa</span></button>
+      <button class="nav-btn" onclick="app.nav('profile')"><span>👤</span><span>Perfil</span></button>
     </nav>
 
-    <div id="nest-modal" class="modal-backdrop">
-      <div class="modal-card">
-        <h3>Registrar Ninho</h3>
-        <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
-        <label id="lblPhoto" class="btn-outline-photo">
-            📷 Foto <input id="nestPhoto" type="file" accept="image/*" style="display:none">
+    <div id="nestModal" class="modal">
+      <div class="modal-content">
+        <h3>Novo Ninho</h3>
+        <textarea id="nestObs" rows="3" placeholder="Observações..."></textarea>
+        <label class="photo-btn" id="lblPhoto">
+          📷 Foto <input type="file" id="nestPhoto" hidden onchange="app.photoChanged(this)">
         </label>
         <div style="display:flex; gap:10px;">
-            <button class="btn-outline" onclick="document.getElementById('nest-modal').style.display='none'">Cancelar</button>
-            <button id="btnConfirmNest" class="btn-primary" onclick="app.confirmNest()">Salvar</button>
+          <button class="btn-outline" onclick="document.getElementById('nestModal').style.display='none'">Cancelar</button>
+          <button class="btn-primary" onclick="app.confirmNest()">Salvar</button>
         </div>
       </div>
     </div>
+
   </div>
 
-  <script type="module" src="./js/app.js"></script>
+  <script src="./js/app.js"></script>
 </body>
 </html>
