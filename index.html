@@ -2,90 +2,119 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SeeBee App</title>
+  <title>SeeBee - Meliponicultura</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
-  <link rel="stylesheet" href="./css/main.css">
+  <style>
+    /* CSS EMBUTIDO PARA GARANTIR O VISUAL "LINDO" */
+    :root { --primary: #10b981; --bg-dark: #020617; --card-bg: #0f172a; --text: #f8fafc; --border: #1e293b; --danger: #ef4444; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg-dark) 60%); color: var(--text); min-height: 100vh; padding-bottom: 90px; overflow-x: hidden; }
+    .hidden { display: none !important; }
+    
+    /* LOGIN */
+    #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: #020617; z-index: 9999; position: absolute; top:0; left:0; width:100%; }
+    .brand-logo { font-size: 70px; margin-bottom: 10px; }
+    .brand-name { font-size: 36px; font-weight: 800; letter-spacing: 2px; margin-bottom:30px; }
+    #auth-card { width: 100%; max-width: 350px; background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border); }
+    .auth-field { margin-bottom: 15px; }
+    .auth-field label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
+    .auth-field input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #020617; color: white; outline: none; }
+    .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: #022c22; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 10px; }
+    .btn-outline { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--border); color: white; border-radius: 12px; margin-top: 10px; cursor: pointer; }
+    .btn-google { width: 100%; padding: 12px; background: #1e293b; border: 1px solid var(--border); color: white; border-radius: 12px; margin-top: 15px; cursor: pointer; }
+
+    /* APP */
+    .app-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(2,6,23,0.95); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
+    .brand-mini { font-weight: 900; letter-spacing: 1px; font-size: 18px; }
+    .side-drawer { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--card-bg); z-index: 5000; transition: 0.3s; border-right: 1px solid var(--border); padding: 20px; box-shadow: 10px 0 50px rgba(0,0,0,0.7); }
+    .side-drawer.open { left: 0; }
+    .menu-item { display: block; width: 100%; padding: 15px; text-align: left; background: none; border: none; color: white; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+    
+    /* DASHBOARD */
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+    .dash-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 25px 15px; text-align: center; cursor: pointer; }
+    .dash-icon { font-size: 30px; display: block; margin-bottom: 10px; }
+    
+    /* MAPA */
+    .tracking-card { background: #111827; margin: 20px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); }
+    .stats-row { display: flex; gap: 10px; margin-top: 15px; justify-content: space-between; }
+    .stat-pill { background: #020617; padding: 8px 12px; border-radius: 8px; font-size: 12px; border: 1px solid var(--border); color:#94a3b8; }
+    .stat-pill b { color: white; margin-left: 5px; }
+    #map { height: 400px; width: 100%; background: #0f172a; }
+    .btn-action-start { background: var(--primary); color: #022c22; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; flex: 1; cursor: pointer; }
+    .btn-action-stop { background: var(--danger); color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; flex: 1; cursor: pointer; }
+    .btn-action-nest { background: #1f2937; color: white; border: 1px solid var(--border); padding: 12px 25px; border-radius: 12px; font-weight: bold; flex: 1; cursor: pointer; }
+    
+    /* NAV BOTTOM */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15,23,42,0.95); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 2000; }
+    .nav-item { background: none; border: none; color: #64748b; font-size: 22px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+    .nav-item small { font-size: 10px; margin-top: 4px; }
+    
+    /* MODAL */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 6000; padding: 20px; }
+    .modal-card { width: 100%; max-width: 400px; background: var(--card-bg); padding: 25px; border-radius: 24px; border: 1px solid var(--border); }
+    .input-dark, textarea { width: 100%; background: #020617; border: 1px solid #374151; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; }
+    .btn-outline-photo { display: block; padding: 20px; border: 2px dashed #374151; text-align: center; border-radius: 12px; margin-bottom: 15px; color: #94a3b8; cursor: pointer; }
+    
+    /* MARCADOR */
+    .custom-pin { display: flex; align-items: center; justify-content: center; }
+  </style>
 </head>
 <body>
 
   <div id="auth-screen">
     <div class="brand-hero"><div class="brand-logo">🐝</div><div class="brand-name">SeeBee</div></div>
     <div id="auth-card">
-      <h2>Entrar</h2>
+      <h2 style="margin-top:0;">Entrar</h2>
       <div class="auth-field"><label>E-mail</label><input id="email" type="email"></div>
       <div class="auth-field"><label>Senha</label><input id="password" type="password"></div>
-      
       <button id="btnLogin" class="btn-primary">Entrar</button>
       <button id="btnSignup" class="btn-outline">Criar Conta</button>
       <button id="btnGoogle" class="btn-google">Entrar com Google</button>
-      
-      <div id="authMsg" style="margin-top:10px; color:#ef4444; font-size:13px; text-align:center;"></div>
+      <div id="authMsg" style="color: #ef4444; margin-top: 10px; font-size: 13px; text-align: center;"></div>
     </div>
   </div>
 
   <div id="app-screen" class="hidden">
-    
     <div id="side-menu" class="side-drawer">
-      <div class="drawer-header">
-        <div class="profile-mini">
-          <div class="avatar-circle" id="menu-avatar-char">A</div>
-          <img id="menu-avatar-img" src="" class="hidden" style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">
-          <div style="margin-left:10px;">
-             <span id="menu-name-display" style="font-weight:bold;">Usuário</span>
-             <span id="menu-role-display" style="font-size:12px; display:block; color:#10b981;">CARREGANDO...</span>
-          </div>
-        </div>
-        <button id="close-menu">✕</button>
+      <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
+        <span style="font-weight:bold; font-size:18px;">Menu</span>
+        <button id="close-menu" style="background:none; border:none; color:white; font-size:24px;">✕</button>
       </div>
-      <nav class="drawer-nav">
-        <button class="menu-item" onclick="app.nav('view-home')">🏠 Início</button>
-        <button class="menu-item" onclick="app.nav('view-traps')">🗺️ Instalar Ninhos</button>
-        <button class="menu-item" onclick="app.nav('view-meliponaries')">📦 Minhas Colônias</button>
-        <button class="menu-item" onclick="app.nav('view-captures')">🐝 Capturas</button>
-        <button class="menu-item" onclick="app.nav('view-profile')">👤 Perfil</button>
-        <hr><button id="btnLogout" class="menu-item danger">Sair</button>
-      </nav>
+      <button class="menu-item" onclick="app.nav('view-home')">🏠 Início</button>
+      <button class="menu-item" onclick="app.nav('view-traps')">🗺️ Instalar</button>
+      <button class="menu-item" onclick="app.nav('view-profile')">👤 Perfil</button>
+      <hr style="border-color:#334155; margin:20px 0;">
+      <button class="menu-item" style="color:#ef4444;" onclick="app.logout()">Sair</button>
     </div>
 
     <header class="app-header">
-      <button id="open-menu" class="btn-icon">☰</button>
+      <button id="open-menu" style="background:none; border:none; color:white; font-size:24px;">☰</button>
       <div class="brand-mini">SeeBee</div>
       <div style="width:24px;"></div>
     </header>
 
-    <main class="content-area">
+    <main>
       <section id="view-home" class="view-section active">
-        <h2 style="margin-bottom:20px;">Painel</h2>
+        <h2 style="padding:20px 20px 0;">Painel</h2>
         <div class="dashboard-grid">
-          <div class="dash-card" onclick="app.nav('view-traps')">
-            <div class="dash-icon">🗺️</div><h3>Nova Instalação</h3>
-          </div>
-          <div class="dash-card" onclick="app.nav('view-meliponaries')">
-            <div class="dash-icon">📦</div><h3>Colônias</h3>
-          </div>
-          <div class="dash-card" onclick="app.nav('view-captures')">
-            <div class="dash-icon">🐝</div><h3>Capturas</h3>
-          </div>
-          <div class="dash-card" onclick="app.nav('view-profile')">
-            <div class="dash-icon">👤</div><h3>Perfil</h3>
-          </div>
-        </div>
-        
-        <div style="margin-top:30px;">
-            <h3 style="font-size:16px; margin-bottom:10px; color:#94a3b8;">Últimas Instalações</h3>
-            <div id="homeRecentTrails"></div>
+          <div class="dash-card" onclick="app.nav('view-traps')"><div class="dash-icon">🗺️</div><h3>Instalar</h3></div>
+          <div class="dash-card" onclick="app.nav('view-profile')"><div class="dash-icon">👤</div><h3>Perfil</h3></div>
         </div>
       </section>
 
       <section id="view-traps" class="view-section hidden">
         <div class="tracking-card">
-          <div class="card-header"><h3>Instalação</h3><span id="statusBadge" class="badge-status">Parado</span></div>
-          <div class="action-buttons-row">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+             <h3>Instalação</h3> <span id="statusBadge" style="background:#334155; padding:4px 10px; border-radius:10px; font-size:12px;">PARADO</span>
+          </div>
+          <div style="display:flex; gap:10px;">
             <button id="btnStart" class="btn-action-start" onclick="app.startRecording()">▶ Iniciar</button>
             <button id="btnStop" class="btn-action-stop hidden" onclick="app.stopRecording()">■ Parar</button>
             <button id="btnNest" class="btn-action-nest" onclick="app.openNestModal()" disabled>+ Ninho</button>
@@ -99,78 +128,35 @@
         <div id="map"></div>
       </section>
 
-      <section id="view-meliponaries" class="view-section hidden">
-        <h3>Minhas Colônias</h3>
-        <button class="btn-primary-sm" onclick="document.getElementById('colony-modal').style.display='flex'">+ Nova Matriz</button>
-        <div id="coloniesList" style="margin-top:15px;"></div>
-      </section>
-
-      <section id="view-captures" class="view-section hidden">
-        <h3>Capturas</h3>
-        <div id="capturesList"></div>
-      </section>
-
       <section id="view-profile" class="view-section hidden">
-        <h3>Meu Perfil</h3>
-        <div style="text-align:center; margin-bottom:20px;">
-             <img id="profileImageDisplay" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">
-             <br>
-             <label class="btn-outline-photo" style="display:inline-block; padding:8px 15px; margin-top:10px; font-size:12px;">
-                Alterar Foto <input id="profileAvatarInput" type="file" accept="image/*" style="display:none">
-             </label>
-        </div>
-        <div class="card-profile-settings">
-            <label class="field-label">Nome Completo</label>
-            <input type="text" id="profName" class="input-dark">
-            
-            <label class="field-label">CPF</label>
-            <input type="text" id="profCPF" class="input-dark">
-            
-            <label class="field-label">Telefone</label>
-            <input type="text" id="profPhone" class="input-dark">
-            
-            <label class="field-label" style="color:var(--primary);">Cargo</label>
-            <input type="text" id="profRole" class="input-dark" disabled style="opacity:0.7;">
-            
-            <button class="btn-primary" onclick="app.saveProfile()">Salvar Dados</button>
+        <div style="padding:20px;">
+            <h2>Meu Perfil</h2>
+            <div class="auth-field"><label>Nome</label><input type="text" id="profName" class="input-dark"></div>
+            <div class="auth-field"><label>Telefone</label><input type="text" id="profPhone" class="input-dark"></div>
+            <button class="btn-primary" onclick="app.saveProfile()">Salvar</button>
         </div>
       </section>
     </main>
 
-    <div id="nest-modal" class="modal-backdrop" style="display:none">
+    <nav class="bottom-nav">
+      <button class="nav-item" onclick="app.nav('view-home')"><span>🏠</span><small>Início</small></button>
+      <button class="nav-item" onclick="app.nav('view-traps')"><span>🗺️</span><small>Mapa</small></button>
+      <button class="nav-item" onclick="app.nav('view-profile')"><span>👤</span><small>Perfil</small></button>
+    </nav>
+
+    <div id="nest-modal" class="modal-backdrop">
       <div class="modal-card">
         <h3>Registrar Ninho</h3>
         <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
-        <label class="btn-outline-photo" id="lblPhoto" style="margin-top:10px;">
+        <label id="lblPhoto" class="btn-outline-photo">
             📷 Foto <input id="nestPhoto" type="file" accept="image/*" style="display:none">
         </label>
-        <div class="modal-actions" style="margin-top:20px;">
-            <button class="btn-ghost" onclick="document.getElementById('nest-modal').style.display='none'">Cancelar</button>
-            <button class="btn-solid" onclick="app.confirmNest()">Salvar</button>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-outline" onclick="document.getElementById('nest-modal').style.display='none'">Cancelar</button>
+            <button id="btnConfirmNest" class="btn-primary" onclick="app.confirmNest()">Salvar</button>
         </div>
       </div>
     </div>
-
-    <div id="colony-modal" class="modal-backdrop" style="display:none">
-      <div class="modal-card">
-        <h3>Nova Matriz</h3>
-        <label class="field-label">Nome/ID</label><input type="text" id="colonyName" class="input-dark">
-        <label class="field-label">Espécie</label><input type="text" id="colonySpecie" class="input-dark">
-        <div class="modal-actions">
-            <button class="btn-ghost" onclick="document.getElementById('colony-modal').style.display='none'">Cancelar</button>
-            <button class="btn-solid" onclick="app.saveColony()">Salvar</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="countdown-modal" class="modal-backdrop" style="display:none; z-index:9999; background:rgba(2,6,23,0.95);">
-      <div style="text-align:center;">
-        <div id="countdown-number" style="font-size:120px; font-weight:900; color:var(--primary); text-shadow:0 0 30px var(--primary);">3</div>
-        <p style="color:white; font-size:18px; margin-top:20px;">Preparando GPS...</p>
-      </div>
-    </div>
-
-    <div id="toast" class="hint-toast hidden"></div>
   </div>
 
   <script type="module" src="./js/app.js"></script>
