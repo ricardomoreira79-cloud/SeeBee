@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>SeeBee App</title>
+  <title>SeeBee</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -10,103 +10,116 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
   <style>
-    /* CSS EMBUTIDO - VISUAL GARANTIDO */
-    :root { --primary: #10b981; --bg: #020617; --card: #0f172a; --text: #f8fafc; --border: #1e293b; --danger: #ef4444; }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg) 60%); color: var(--text); min-height: 100vh; padding-bottom: 80px; overflow-x: hidden; }
+    /* LAYOUT ORIGINAL "BONITO" RESTAURADO */
+    :root { --primary: #10b981; --bg-dark: #020617; --card-bg: #0f172a; --text: #f8fafc; --text-muted: #94a3b8; --border: #1e293b; --danger: #ef4444; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; font-family: 'Segoe UI', Roboto, sans-serif; background: radial-gradient(circle at top, #064e3b 0%, var(--bg-dark) 60%); color: var(--text); min-height: 100vh; padding-bottom: 90px; overflow-x: hidden; }
     .hidden { display: none !important; }
 
     /* LOGIN */
-    #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    .brand { font-size: 40px; font-weight: 800; margin-bottom: 30px; letter-spacing: 2px; }
-    .card { width: 100%; max-width: 350px; background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); }
-    input { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px; outline: none; }
-    button { width: 100%; padding: 14px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 10px; }
-    .btn-primary { background: var(--primary); color: #022c22; }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: white; }
-    
-    /* APP */
-    .app-header { position: sticky; top: 0; background: rgba(2,6,23,0.95); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 1000; }
-    
-    /* MENU */
-    .drawer { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 5000; display: none; }
-    .drawer.open { display: block; }
-    .drawer-content { width: 280px; height: 100%; background: var(--card); padding: 20px; border-right: 1px solid var(--border); }
-    .menu-item { display: block; width: 100%; padding: 15px; text-align: left; background: none; border: none; color: white; border-bottom: 1px solid #1e293b; font-size: 16px; cursor: pointer; }
+    #auth-screen { position: fixed; inset: 0; background: radial-gradient(circle at top, #064e3b, #020617); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    .brand-logo { font-size: 70px; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(16,185,129,0.4)); }
+    .brand-name { font-size: 36px; font-weight: 800; letter-spacing: 2px; margin-bottom: 30px; }
+    #auth-card { width: 100%; max-width: 350px; background: rgba(15,23,42,0.95); padding: 30px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+    .auth-input { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 14px; border-radius: 12px; margin-bottom: 15px; outline: none; font-size: 16px; }
+    .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: #022c22; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 16px; margin-top: 10px; }
+    .btn-google { width: 100%; padding: 12px; background: #1e293b; border: 1px solid var(--border); color: white; border-radius: 12px; margin-top: 15px; cursor: pointer; display:flex; justify-content:center; gap:10px; }
 
-    /* MAPA */
-    .track-card { background: #111827; margin: 15px; padding: 15px; border-radius: 16px; border: 1px solid var(--border); }
-    #map { height: 50vh; width: 100%; background: #0f172a; border-radius: 12px; }
-    .btn-start { background: var(--primary); color: #022c22; flex:1; }
-    .btn-stop { background: var(--danger); color: white; flex:1; }
+    /* APP HEADER */
+    .app-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(2,6,23,0.95); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); backdrop-filter: blur(10px); }
+    
+    /* MENU LATERAL */
+    .side-drawer { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: var(--card-bg); z-index: 5000; transition: 0.3s; border-right: 1px solid var(--border); padding: 20px; box-shadow: 10px 0 50px rgba(0,0,0,0.7); }
+    .side-drawer.open { left: 0; }
+    .menu-item { display: block; width: 100%; padding: 15px; text-align: left; background: none; border: none; color: white; font-size: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+
+    /* CARDS DA HOME */
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+    .dash-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 25px 15px; text-align: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s; }
+    .dash-card:active { transform: scale(0.96); border-color: var(--primary); }
+    .dash-icon { font-size: 36px; margin-bottom: 15px; display: block; }
+
+    /* TELA DE MAPA (ESTILO ORIGINAL) */
+    .tracking-card { background: #111827; margin: 20px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .status-pill { background: rgba(16,185,129,0.1); border: 1px solid var(--primary); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; }
+    .action-row { display: flex; gap: 10px; margin: 20px 0; }
+    #map { height: 400px; width: 100%; background: #0f172a; border-radius: 20px; border: 1px solid var(--border); }
     
     /* MODAL */
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-content { background: var(--card); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid var(--border); }
-    textarea { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; resize: none; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 6000; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-card { width: 100%; max-width: 400px; background: var(--card-bg); padding: 25px; border-radius: 24px; border: 1px solid var(--border); }
+    textarea { width: 100%; background: #020617; border: 1px solid #334155; color: white; padding: 15px; border-radius: 12px; resize: none; font-family: inherit; }
+    .btn-photo { display: block; padding: 20px; border: 2px dashed #334155; text-align: center; border-radius: 16px; margin: 15px 0; color: #94a3b8; cursor: pointer; }
+
+    /* NAV INFERIOR */
+    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(15,23,42,0.95); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px 0; z-index: 2000; backdrop-filter: blur(10px); }
+    .nav-btn { background: none; border: none; color: #64748b; font-size: 24px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+    .nav-btn small { font-size: 10px; margin-top: 4px; font-weight: bold; }
     
-    /* NAV */
-    .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(15,23,42,0.95); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px; z-index: 2000; }
-    .nav-btn { background: none; border: none; color: #64748b; font-size: 24px; display: flex; flex-direction: column; align-items: center; }
-    
-    /* PINO */
-    .custom-pin div { box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+    /* CUSTOM PIN */
+    .custom-pin div { box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
   </style>
 </head>
 <body>
 
   <div id="auth-screen">
-    <div class="brand">SeeBee</div>
-    <div class="card">
-      <div style="margin-bottom:10px;"><label>Email</label><input id="email" type="email"></div>
-      <div style="margin-bottom:10px;"><label>Senha</label><input id="password" type="password"></div>
-      <button class="btn-primary" id="btnLogin">Entrar</button>
-      <button class="btn-outline" id="btnSignup">Criar Conta</button>
-      <button style="background:#333; color:white;" id="btnGoogle">Google</button>
+    <div class="brand-hero"><div class="brand-logo">🐝</div><div class="brand-name">SeeBee</div></div>
+    <div id="auth-card">
+      <h2 style="margin-top:0;">Entrar</h2>
+      <input id="email" type="email" class="auth-input" placeholder="E-mail">
+      <input id="password" type="password" class="auth-input" placeholder="Senha">
+      <button id="btnLogin" class="btn-primary">Entrar</button>
+      <button id="btnSignup" class="btn-google">Criar Conta</button>
+      <button id="btnGoogle" class="btn-google">Entrar com Google</button>
     </div>
   </div>
 
   <div id="app-screen" class="hidden">
     
-    <div id="drawer" class="drawer">
-      <div class="drawer-content">
-        <h2 style="margin-top:0;">Menu</h2>
-        <button class="menu-item" onclick="app.nav('home')">🏠 Início</button>
-        <button class="menu-item" onclick="app.nav('map')">🗺️ Instalar</button>
-        <button class="menu-item" onclick="app.nav('profile')">👤 Perfil</button>
-        <button class="menu-item" style="color:var(--danger);" onclick="app.logout()">Sair</button>
-        <button class="btn-outline" style="margin-top:20px;" onclick="document.getElementById('drawer').classList.remove('open')">Fechar</button>
+    <div id="side-menu" class="side-drawer">
+      <div style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">Menu</h2>
+        <button id="close-menu" style="background:none; border:none; color:white; font-size:24px;">✕</button>
       </div>
+      <div style="padding:0 20px 20px;">
+         <div style="font-weight:bold; font-size:18px;" id="menuUser">Usuário</div>
+         <div style="font-size:12px; color:var(--primary);">ADMINISTRADOR</div>
+      </div>
+      <button class="menu-item" onclick="app.nav('home')">🏠 Início</button>
+      <button class="menu-item" onclick="app.nav('map')">🗺️ Instalar Ninhos</button>
+      <button class="menu-item" onclick="app.nav('profile')">👤 Perfil</button>
+      <hr style="border-color:#333; margin:10px 0;">
+      <button class="menu-item" style="color:var(--danger);" onclick="app.logout()">Sair</button>
     </div>
 
     <header class="app-header">
-      <button style="background:none; border:none; color:white; font-size:24px;" onclick="document.getElementById('drawer').classList.add('open')">☰</button>
-      <div class="brand-mini" style="font-weight:bold; font-size:18px;">SeeBee</div>
+      <button id="open-menu" style="background:none; border:none; color:white; font-size:24px;">☰</button>
+      <div class="brand-mini">SeeBee</div>
       <div style="width:24px;"></div>
     </header>
 
     <main>
-      <section id="view-home">
-        <div style="padding:20px;">
-          <h2>Bem vindo</h2>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-             <div onclick="app.nav('map')" style="background:#1e293b; padding:20px; border-radius:10px; text-align:center;">🗺️ Instalar</div>
-             <div onclick="app.nav('profile')" style="background:#1e293b; padding:20px; border-radius:10px; text-align:center;">👤 Perfil</div>
-          </div>
+      <section id="view-home" class="active">
+        <h2 style="padding:20px 20px 0;">Painel Principal</h2>
+        <div class="dashboard-grid">
+          <div class="dash-card" onclick="app.nav('map')"><div class="dash-icon">🗺️</div><h3>Instalar</h3><p>Ir para mata</p></div>
+          <div class="dash-card" onclick="app.nav('meliponario')"><div class="dash-icon">📦</div><h3>Colônias</h3><p>Gestão</p></div>
+          <div class="dash-card" onclick="app.nav('capturas')"><div class="dash-icon">🐝</div><h3>Capturas</h3><p>Monitorar</p></div>
+          <div class="dash-card" onclick="app.nav('profile')"><div class="dash-icon">👤</div><h3>Perfil</h3><p>Dados</p></div>
         </div>
       </section>
 
       <section id="view-map" class="hidden">
-        <div class="track-card">
-          <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-             <h3>Instalação</h3> <span id="statusBadge" style="background:#333; padding:5px; border-radius:5px; font-size:12px;">PARADO</span>
+        <div class="tracking-card">
+          <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+             <h3>Instalação</h3> <span id="statusBadge" class="status-pill" style="color:#aaa; border-color:#555;">PARADO</span>
           </div>
-          <div style="display:flex; gap:10px;">
-            <button id="btnStart" class="btn-start" onclick="app.startTracking()">▶ Iniciar</button>
-            <button id="btnStop" class="btn-stop hidden" onclick="app.stopTracking()">■ Parar</button>
-            <button id="btnNest" class="btn-outline" onclick="app.openNestModal()" disabled>+ Ninho</button>
+          <div class="action-row">
+            <button id="btnStart" class="btn-primary" onclick="app.startRecording()">▶ Iniciar</button>
+            <button id="btnStop" class="btn-primary" style="background:var(--danger); display:none;" onclick="app.stopRecording()">■ Parar</button>
+            <button id="btnNest" style="flex:1; background:#1f2937; color:white; border:1px solid #333; border-radius:12px; font-weight:bold;" onclick="app.openNestModal()" disabled>+ Ninho</button>
           </div>
-          <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px; color:#aaa;">
+          <div style="display:flex; justify-content:space-between; color:#94a3b8; font-size:13px;">
              <span>Dist: <b id="distText" style="color:white;">0 m</b></span>
              <span>Ninhos: <b id="nestCountText" style="color:white;">0</b></span>
              <span id="gpsStatus">GPS OFF</span>
@@ -117,30 +130,38 @@
 
       <section id="view-profile" class="hidden">
         <div style="padding:20px;">
-          <h3>Meu Perfil</h3>
-          <div style="margin-bottom:10px;"><label>Nome</label><input id="profName"></div>
-          <div style="margin-bottom:10px;"><label>Telefone</label><input id="profPhone"></div>
-          <button class="btn-primary" onclick="app.saveProfile()">Salvar</button>
+          <h2>Meu Perfil</h2>
+          <div style="text-align:center; margin-bottom:20px;">
+             <img id="profileImg" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:3px solid var(--primary);">
+             <br>
+             <label style="color:var(--primary); font-size:14px; cursor:pointer;">
+                Alterar Foto <input type="file" id="profileFile" hidden onchange="app.previewProfile(this)">
+             </label>
+          </div>
+          <input id="profName" class="auth-input" placeholder="Nome Completo">
+          <input id="profPhone" class="auth-input" placeholder="Telefone">
+          <input id="profCPF" class="auth-input" placeholder="CPF">
+          <button class="btn-primary" onclick="app.saveProfile()">Salvar Dados</button>
         </div>
       </section>
     </main>
 
     <nav class="bottom-nav">
-      <button class="nav-btn" onclick="app.nav('home')">🏠</button>
-      <button class="nav-btn" onclick="app.nav('map')">🗺️</button>
-      <button class="nav-btn" onclick="app.nav('profile')">👤</button>
+      <button class="nav-btn" onclick="app.nav('home')"><span>🏠</span><small>Início</small></button>
+      <button class="nav-btn" onclick="app.nav('map')"><span>🗺️</span><small>Mapa</small></button>
+      <button class="nav-btn" onclick="app.nav('profile')"><span>👤</span><small>Perfil</small></button>
     </nav>
 
-    <div id="nestModal" class="modal">
-      <div class="modal-content">
-        <h3>Novo Ninho</h3>
+    <div id="nestModal" class="modal-backdrop">
+      <div class="modal-card">
+        <h3>Registrar Ninho</h3>
         <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
-        <div style="margin:10px 0; border:1px dashed #333; padding:10px; text-align:center;">
-           📷 Foto <input type="file" id="nestPhoto">
-        </div>
+        <label id="lblPhoto" class="btn-photo">
+           📷 Tirar Foto <input type="file" id="nestPhoto" hidden onchange="app.photoCheck(this)">
+        </label>
         <div style="display:flex; gap:10px;">
-           <button class="btn-outline" onclick="document.getElementById('nestModal').style.display='none'">Cancelar</button>
-           <button class="btn-primary" id="btnConfirmNest" onclick="app.confirmNest()">Salvar</button>
+           <button style="flex:1; padding:12px; background:transparent; border:1px solid #555; color:white; border-radius:10px;" onclick="document.getElementById('nestModal').style.display='none'">Cancelar</button>
+           <button style="flex:1; padding:12px; background:var(--primary); border:none; color:black; font-weight:bold; border-radius:10px;" id="btnConfirm" onclick="app.confirmNest()">Salvar</button>
         </div>
       </div>
     </div>
