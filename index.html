@@ -2,15 +2,12 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>SeeBee – Instalador de Ninhos</title>
-  
+  <title>SeeBee – Gestão</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <meta name="theme-color" content="#0d1117" />
-  
   <link rel="manifest" href="manifest.webmanifest" />
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -29,31 +26,22 @@
       <div class="bee-icon">🐝</div>
       <h1>SeeBee</h1>
     </div>
-
     <div class="auth-card">
       <h2>Entrar</h2>
-      
       <div class="input-group">
         <label for="auth-email">E-mail</label>
         <input id="auth-email" type="email" placeholder="seu@email.com" autocomplete="email" />
       </div>
-
       <div class="input-group">
         <label for="auth-password">Senha</label>
         <input id="auth-password" type="password" placeholder="Sua senha" autocomplete="current-password" />
       </div>
-
       <button class="btn-primary-full" id="btn-signin">Entrar</button>
-      
       <div class="auth-divider">ou</div>
-      
       <button class="btn-outline-full" id="btn-signup">Criar Conta</button>
-      
       <button class="btn-google-full" id="btn-google">
-        <span class="g-icon"></span>
-        <span>Entrar com Google</span>
+        <span class="g-icon"></span> <span>Entrar com Google</span>
       </button>
-
       <div id="auth-msg" class="auth-msg"></div>
     </div>
   </div>
@@ -81,11 +69,11 @@
       <a href="#" class="nav-item" data-target="colonies">
         <span class="icon">📦</span> Minhas Colônias
       </a>
+      <a href="#" class="nav-item disabled" id="nav-capturas">
+        <span class="icon">🐝</span> Capturas
+        </a>
       <a href="#" class="nav-item disabled">
-        <span class="icon">🐝</span> Capturas <small>(Em breve)</small>
-      </a>
-      <a href="#" class="nav-item disabled">
-        <span class="icon">👤</span> Perfil <small>(Em breve)</small>
+        <span class="icon">👤</span> Perfil
       </a>
     </nav>
 
@@ -97,7 +85,6 @@
   </aside>
 
   <main class="main-content">
-    
     <header class="mobile-header mobile-only">
       <button id="btn-open-sidebar" class="hamburger-btn">☰</button>
       <h2>SeeBee</h2>
@@ -105,58 +92,26 @@
     </header>
 
     <div id="panel-dashboard" class="content-panel">
-      <div class="dashboard-head">
-        <h1>SeeBee</h1>
-      </div>
-
+      <div class="dashboard-head"><h1>SeeBee</h1></div>
       <div class="cards-grid">
         <div class="dashboard-card" id="card-goto-tracker">
-          <div class="card-icon">🗺️</div>
-          <h3>Nova Instalação</h3>
-          <p>Ir para mata</p>
+          <div class="card-icon">🗺️</div><h3>Nova Instalação</h3><p>Ir para mata</p>
         </div>
-
         <div class="dashboard-card" id="card-goto-colonies">
-          <div class="card-icon">📦</div>
-          <h3>Colônias</h3>
-          <p>Gestão</p>
+          <div class="card-icon">📦</div><h3>Colônias</h3><p>Gestão</p>
         </div>
-
         <div class="dashboard-card disabled">
-          <div class="card-icon">🐝</div>
-          <h3>Capturas</h3>
-          <p>Maturação</p>
+          <div class="card-icon">🐝</div><h3>Capturas</h3><p>Maturação</p>
         </div>
-
-        <div class="dashboard-card disabled">
-          <div class="card-icon">👤</div>
-          <h3>Perfil</h3>
-          <p>Dados</p>
-        </div>
-        
-        <div class="dashboard-card disabled">
-          <div class="card-icon">🌳</div>
-          <h3>Vi na Mata</h3>
-          <p>Em breve</p>
-        </div>
-        
-        <div class="dashboard-card disabled">
-          <div class="card-icon">🛒</div>
-          <h3>Loja</h3>
-          <p>Em breve</p>
-        </div>
+         <div class="dashboard-card disabled"><div class="card-icon">👤</div><h3>Perfil</h3><p>Dados</p></div>
       </div>
     </div>
 
     <div id="panel-tracker" class="content-panel hidden">
       <div class="panel-top-bar">
         <h2>Instalador de Ninhos</h2>
-        <div class="status-pill" id="status-pill">
-          <span class="status-dot"></span>
-          <span id="cloud-status">Online</span>
-        </div>
+        <div class="status-pill" id="status-pill"><span class="status-dot"></span><span id="cloud-status">Online</span></div>
       </div>
-
       <div class="tracker-layout">
         <div class="tracker-sidebar">
           <div class="control-box">
@@ -164,84 +119,90 @@
               <span class="badge" id="badge-status">Parado</span>
               <span id="info-gps" class="gps-status">GPS: aguardando...</span>
             </div>
-
             <div class="action-buttons">
-              <button class="btn-action start" id="btn-toggle-route">
-                <span id="btn-toggle-icon">▶</span>
-                <span id="btn-toggle-text">Iniciar trajeto</span>
-              </button>
-              
-              <button class="btn-action mark" id="btn-add-nest" disabled>
-                📍 Marcar Ninho
-              </button>
+              <button class="btn-action start" id="btn-toggle-route"><span id="btn-toggle-icon">▶</span><span id="btn-toggle-text">Iniciar trajeto</span></button>
+              <button class="btn-action mark" id="btn-add-nest" disabled>📍 Marcar Ninho</button>
             </div>
-
             <div class="stats-grid">
-              <div class="stat-box">
-                <span class="stat-label">Distância</span>
-                <strong class="stat-value" id="info-distance">0 m</strong>
-              </div>
-              <div class="stat-box">
-                <span class="stat-label">Ninhos</span>
-                <strong class="stat-value" id="info-nests">0</strong>
-              </div>
+              <div class="stat-box"><span class="stat-label">Distância</span><strong class="stat-value" id="info-distance">0 m</strong></div>
+              <div class="stat-box"><span class="stat-label">Ninhos</span><strong class="stat-value" id="info-nests">0</strong></div>
             </div>
-            
             <div id="info-route-name" class="route-name-label">Trajeto: —</div>
           </div>
         </div>
-
-        <div class="map-container">
-          <div id="map"></div>
-        </div>
+        <div class="map-container"><div id="map"></div></div>
       </div>
-
-      <div class="routes-history-section">
-        <div class="history-header">
-          <h3>Histórico de Instalações</h3>
-          <button class="btn-icon" id="btn-refresh" title="Atualizar">🔄</button>
+      <div class="tracker-footer-summary">
+        <div class="section-title-row">
+          <h3>Última Atividade</h3>
+          <button class="btn-link" id="btn-view-all-history">Ver Histórico Completo →</button>
         </div>
-        <div id="routes-list"></div>
+        <div id="latest-route-container"><div class="empty-placeholder">Nenhuma instalação recente.</div></div>
       </div>
     </div>
 
     <div id="panel-colonies" class="content-panel hidden">
-      <div class="panel-top-bar">
-        <h2>Minhas Colônias</h2>
-      </div>
-      
+      <div class="panel-top-bar"><h2>Minhas Colônias</h2></div>
       <div class="tabs-bar">
-        <button class="tab-btn active">Minhas Matrizes</button>
-        <button class="tab-btn">Histórico Instalações</button>
+        <button class="tab-btn active" id="tab-btn-matrices">Minhas Matrizes</button>
+        <button class="tab-btn" id="tab-btn-history">Histórico Instalações</button>
       </div>
-      
-      <button class="btn-primary-full margin-top">+ Nova Matriz</button>
-      
-      <div class="empty-state-box">
-        <p>Nenhuma matriz cadastrada.</p>
+      <div id="content-matrices">
+        <button class="btn-primary-full margin-top">+ Nova Matriz</button>
+        <div class="empty-state-box"><p>Nenhuma matriz cadastrada ainda.</p></div>
+      </div>
+      <div id="content-history" class="hidden">
+        <div class="history-controls">
+           <button class="btn-icon-refresh" id="btn-refresh-history">🔄 Atualizar Lista</button>
+        </div>
+        <div id="full-history-list"></div>
       </div>
     </div>
-
   </main>
 </div>
 
-<div id="photo-modal">
-  <button id="photo-modal-close">Fechar</button>
-  <img id="photo-modal-img" src="" alt="Foto ampliada" />
+<div id="photo-modal" class="modal-backdrop">
+  <div class="modal-card photo-card-layout">
+    <div class="modal-header photo-header">
+      <div class="photo-actions">
+        <button id="btn-edit-nest" class="btn-icon-action" title="Editar">✏️</button>
+        <button id="btn-delete-nest" class="btn-icon-action danger" title="Excluir">🗑️</button>
+      </div>
+      <button id="photo-modal-close" class="btn-icon-close">✕</button>
+    </div>
+    
+    <div class="photo-container">
+      <img id="photo-modal-img" src="" alt="Foto do ninho" />
+    </div>
+
+    <div id="edit-nest-form" class="edit-form hidden">
+      <div class="form-group">
+        <label>Status Atual</label>
+        <select id="edit-status-select">
+          <option value="catalogado">Catalogado</option>
+          <option value="capturado">Capturado 🐝</option>
+          </select>
+      </div>
+      <div class="form-group">
+        <label>Observações</label>
+        <textarea id="edit-notes"></textarea>
+      </div>
+      <div class="form-actions">
+        <button id="btn-cancel-edit" class="btn-secondary-sm">Cancelar</button>
+        <button id="btn-save-edit" class="btn-primary-sm">Salvar Alterações</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="nest-modal" class="modal-backdrop">
   <div class="modal-card">
-    <div class="modal-header">
-      <h4>Marcar Ninho</h4>
-    </div>
-    
+    <div class="modal-header"><h4>Marcar Ninho</h4></div>
     <div class="modal-body">
       <div class="form-group">
         <label>Observações</label>
-        <textarea id="nest-notes" placeholder="Ex: Árvore alta, perto da cerca..."></textarea>
+        <textarea id="nest-notes" placeholder="Ex: Árvore alta..."></textarea>
       </div>
-      
       <div class="form-group">
         <label class="file-upload-btn">
           📷 <span>Tirar foto ou escolher</span>
@@ -250,7 +211,6 @@
         <div id="nest-file-name" class="file-name-display"></div>
       </div>
     </div>
-
     <div class="modal-footer">
       <button class="btn-secondary-sm" id="nest-cancel">Cancelar</button>
       <button class="btn-primary-sm" id="nest-save">Salvar</button>
