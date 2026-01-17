@@ -1,16 +1,48 @@
+const CACHE_NAME = "seebee-cache-v1";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./css/main.css",
+  "./js/app.js",
+  "./js/config.js",
+  "./js/state.js",
+  "./js/storage.js",
+  "./js/ui.js",
+  "./js/auth.js",
+  "./js/map.js",
+  "./js/routes.js",
+  "./manifest.webmanifest"
+];
+
 self.addEventListener("install", (event) => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)))
+    ).then(() => self.clients.claim())
+  );
 });
 
-// Fetch mantido igual (pode copiar do anterior se quiser, mas o importante é o install/activate acima)
 self.addEventListener("fetch", (event) => {
   const req = event.request;
+
   if (req.url.includes("supabase.co")) return;
+
   event.respondWith(
-    caches.match(req).then((cached) => cached || fetch(req))
+    caches.match(req).then((cached) =>
+      cached ||
+      fetch(req)
+        .then((resp) => {
+          const copy = resp.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return resp;
+        })
+        .catch(() => cached)
+    )
   );
 });

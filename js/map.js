@@ -1,95 +1,91 @@
-// js/map.js - ARQUIVO COMPLETO v17 (compatível com main.js)
-// Mantém a linha do trajeto (SEM bolinhas) e adiciona exports que o main espera.
 import { state } from "./state.js";
+import { ui } from "./ui.js";
 
 export function initMap() {
-  if (state.mapReady) return;
-
-  state.map = L.map("map", { zoomControl: false }).setView([-15.6, -56.1], 15);
+  state.map = L.map("map");
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 20,
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap",
   }).addTo(state.map);
 
-  // Linha do trajeto
-  state.polyline = L.polyline([], { color: "#10b981", weight: 5 }).addTo(state.map);
+  state.nestsLayerGroup = L.layerGroup().addTo(state.map);
 
-  state.mapReady = true;
-
-  // Evita travar o app se geolocalização falhar/for negada
-  try {
-    state.map.locate({ setView: true, maxZoom: 18, watch: false, enableHighAccuracy: true });
-  } catch (e) {
-    console.warn("[map] locate() falhou:", e);
+  if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        state.map.setView([latitude, longitude], 17);
+        updateUserMarker(latitude, longitude);
+        ui.infoGps.textContent = "GPS: sinal ok";
+      },
+      () => {
+        state.map.setView([-15.601, -56.097], 13);
+        ui.infoGps.textContent = "GPS: não autorizado";
+      }
+    );
+  } else {
+    state.map.setView([-15.601, -56.097], 13);
+    ui.infoGps.textContent = "GPS: não disponível";
   }
-
-  // Logs úteis (não muda layout)
-  state.map.on("locationerror", (err) => {
-    console.warn("[map] Erro de localização:", err);
-  });
 }
 
-export function setMapCenter(lat, lng, zoom = 18) {
-  if (state.mapReady && state.map) state.map.setView([lat, lng], zoom);
+export function updateUserMarker(lat, lng) {
+  if (!state.map) return;
+
+  if (!state.userMarker) {
+    state.userMarker = L.circleMarker([lat, lng], {
+      radius: 7,
+      color: "#22c55e",
+      fillColor: "#22c55e",
+      fillOpacity: 0.9,
+    }).addTo(state.map);
+  } else {
+    state.userMarker.setLatLng([lat, lng]);
+  }
 }
 
-// Trajeto: adiciona ponto apenas na linha, sem marcador
-export function addRoutePoint(lat, lng) {
-  if (state.polyline) state.polyline.addLatLng([lat, lng]);
-}
-
-// Marcador genérico (usado para início/fim/ninho)
-export function addMarker(lat, lng, color = "#10b981", label = "") {
-  if (!state.mapReady || !state.map) return null;
-
-  const icon = L.divIcon({
-    className: "custom-pin",
-    html: `<div style="
-      background-color:${color};
-      width:20px; height:20px;
-      border-radius:50%;
-      border:3px solid white;
-      box-shadow:0 0 5px rgba(0,0,0,0.5);
-    "></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-    popupAnchor: [0, -15],
-  });
-
-  const marker = L.marker([lat, lng], { icon }).addTo(state.map);
-  if (label) marker.bindPopup(label);
-  return marker;
-}
-
-/**
- * ✅ COMPAT: o main.js da sua versão usa addNestMarker()
- * Mantemos como “apelido” de addMarker.
- */
-export function addNestMarker(lat, lng, label = "Ninho") {
-  // cor levemente diferente para ninho (mantém seu tema verde)
-  return addMarker(lat, lng, "#22c55e", label);
-}
-
-/**
- * Limpa tudo (trajeto e marcadores), preservando tile layer e polyline.
- */
 export function clearMapLayers() {
-  if (!state.mapReady || !state.map) return;
+  if (!state.map) return;
 
-  if (state.polyline) state.polyline.setLatLngs([]);
-
-  state.map.eachLayer((layer) => {
-    // remove tudo que não for mapa base nem a linha
-    if (layer !== state.polyline && !(layer instanceof L.TileLayer)) {
-      state.map.removeLayer(layer);
-    }
-  });
+  if (state.pathLayer) {
+    state.map.removeLayer(state.pathLayer);
+    state.pathLayer = null;
+  }
+  state.nestsLayerGroup?.clearLayers();
 }
 
-/**
- * ✅ COMPAT: algumas versões antigas chamavam resetMapOverlays()
- * Mantemos como alias.
- */
-export function resetMapOverlays() {
+export function drawRouteOnMap(route) {
+  if (!state.map) return;
   clearMapLayers();
+
+  if (!route?.path?.length) return;
+
+  state.pathLayer = L.polyline(
+    route.path.map((p) => [p.lat, p.lng]),
+    { color: "#22c55e", weight: 4 }
+  ).addTo(state.map);
+
+  const bounds = state.pathLayer.getBounds();
+  state.map.fitBounds(bounds.pad(0.2));
+
+  if (route.nests?.length) {
+    route.nests.forEach((nest) => {
+      const marker = L.marker([nest.lat, nest.lng]).addTo(state.nestsLayerGroup);
+
+      if (nest.photoUrl) {
+        marker.bindPopup(
+          `<div style="font-size:12px">
+            <strong>Ninho</strong><br>
+            <img src="${nest.photoUrl}" style="max-width:120px;border-radius:6px;margin-top:6px;display:block"/>
+            <div style="margin-top:6px">${nest.description || ""}</div>
+          </div>`
+        );
+      } else {
+        marker.bindPopup(
+          `<div style="font-size:12px"><strong>Ninho</strong><br>${nest.description || "Sem observações."}</div>`
+        );
+      }
+    });
+  }
 }

@@ -1,211 +1,176 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>SeeBee</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="./css/main.css">
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <meta charset="UTF-8" />
+  <title>SeeBee – Rastreador de ninhos</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#14532d" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest" />
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="./css/main.css" />
 </head>
 <body>
 
-  <div id="auth-screen">
-    <div class="brand-hero"><div class="brand-logo">🐝</div><div class="brand-name">SeeBee</div></div>
-    <div id="auth-card">
-      <h2>Entrar</h2>
-      <div class="auth-field"><label>E-mail</label><input id="email" type="email"></div>
-      <div class="auth-field"><label>Senha</label><input id="password" type="password"></div>
-      <button id="btnLogin" class="btn-primary">Entrar</button>
-      <button id="btnSignup" class="btn-outline">Criar Conta</button>
-      <button id="btnGoogle" class="btn-google">Entrar com Google</button>
-      <div id="authMsg"></div>
+<!-- ============ TELA DE AUTENTICAÇÃO ============ -->
+<div id="auth-screen">
+  <header class="auth-header">
+    <div class="brand-hero">
+      <div class="brand-logo" aria-hidden="true">🐝</div>
+      <div class="brand-name">SeeBee</div>
     </div>
+  </header>
+
+  <div id="auth-card">
+    <h2>Entrar ou criar conta</h2>
+    <p>Use e-mail e senha ou conecte com Google.</p>
+
+    <div class="auth-field">
+      <label for="auth-email">E-mail</label>
+      <input id="auth-email" type="email" autocomplete="email" />
+    </div>
+
+    <div class="auth-field">
+      <label for="auth-password">Senha</label>
+      <input id="auth-password" type="password" autocomplete="current-password" />
+    </div>
+
+    <div class="auth-buttons">
+      <button class="btn-primary" id="btn-signin">Entrar</button>
+      <button class="btn-outline" id="btn-signup">Criar conta</button>
+    </div>
+
+    <button class="btn-google" id="btn-google">
+      <span class="btn-google-icon"></span>
+      <span>Entrar com Google</span>
+    </button>
+
+    <div id="auth-msg" class="auth-msg"></div>
+  </div>
+</div>
+
+<!-- ============ TELA DO APP ============ -->
+<div id="app-screen" class="hidden">
+  <header class="app-header">
+    <div class="title-block">
+      <h1>Rastreador de ninhos</h1>
+      <p class="subtle">Registre trajetos e marque ninhos.</p>
+    </div>
+
+    <div class="header-right">
+      <div class="status-pill" id="status-pill">
+        <span class="status-dot"></span>
+        <span id="cloud-status">Trabalhando online</span>
+      </div>
+
+      <div class="brand-mini">
+        <div class="brand-mini-logo" aria-hidden="true">🐝</div>
+        <div class="brand-mini-name">SeeBee</div>
+      </div>
+
+      <div class="user-info">
+        <span class="user-email" id="user-email-label"></span>
+        <button class="btn-ghost" id="btn-logout">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-grid">
+    <section class="card">
+      <h3>Trajeto em andamento <span class="badge" id="badge-status">Parado</span></h3>
+      <p class="card-subtitle">
+        Inicie o trajeto e marque ninhos com observação e foto.
+      </p>
+
+      <div class="controls-grid">
+        <button class="btn-lg btn-start" id="btn-toggle-route">
+          <span id="btn-toggle-icon">▶</span>
+          <span id="btn-toggle-text">Iniciar trajeto</span>
+        </button>
+
+        <button class="btn-lg btn-secondary" id="btn-add-nest" disabled>
+          🐝 Marcar ninho
+        </button>
+      </div>
+
+      <div class="info-row">
+        <span class="info-pill" id="info-route-name">Trajeto: —</span>
+        <span class="info-pill" id="info-distance">Distância: 0 m</span>
+        <span class="info-pill" id="info-nests">Ninhos: 0</span>
+        <span class="info-pill" id="info-gps">GPS: aguardando...</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="map-head">
+        <div>
+          <h3>Mapa</h3>
+          <p class="card-subtitle">O mapa acompanha seu caminho e mostra os ninhos.</p>
+        </div>
+      </div>
+      <div id="map"></div>
+    </section>
   </div>
 
-  <div id="app-screen" class="hidden">
-    
-    <div id="side-menu" class="side-drawer">
-      <div class="drawer-header">
-        <div class="profile-mini">
-          <div class="avatar-circle" id="menu-avatar-char">U</div>
-          <img id="menu-avatar-img" src="" class="hidden" style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid var(--primary);">
-          <div style="margin-left:10px;">
-             <span id="menu-name-display" style="display:block; font-weight:bold; font-size:16px;">Usuário</span>
-             <span id="menu-user-role" style="display:block; font-size:12px; color:var(--primary); text-transform:uppercase; margin-top:2px;">Carregando...</span>
-          </div>
-        </div>
-        <button id="close-menu">✕</button>
-      </div>
-      <nav class="drawer-nav">
-        <button class="menu-item" data-target="view-home">🏠 Início</button>
-        <button class="menu-item" data-target="view-traps">🗺️ Instalar Ninhos</button>
-        <button class="menu-item" data-target="view-meliponaries">📦 Minhas Colônias</button>
-        <button class="menu-item" data-target="view-captures">🐝 Capturas <span id="menuBadgeCaptures" class="menu-badge hidden">0</span></button>
-        <button class="menu-item" data-target="view-profile">👤 Perfil</button>
-        <hr><button id="btnLogout" class="menu-item danger">Sair</button>
-      </nav>
+  <section class="routes-section">
+    <div class="routes-header">
+      <h3>Trajetos salvos</h3>
+      <button class="btn-xs" id="btn-refresh">Atualizar</button>
+    </div>
+    <div id="routes-list"></div>
+  </section>
+</div>
+
+<div id="photo-modal">
+  <button id="photo-modal-close">Fechar</button>
+  <img id="photo-modal-img" src="" alt="Foto do ninho" />
+</div>
+
+<div id="nest-modal" class="modal-backdrop">
+  <div class="modal-card">
+    <h4>Marcar ninho</h4>
+    <p>Adicione observação e (opcional) uma foto.</p>
+
+    <div class="modal-field">
+      <label for="nest-notes">Observações (opcional)</label>
+      <textarea id="nest-notes" placeholder="Ex.: árvore grande perto da rua 14..."></textarea>
     </div>
 
-    <header class="app-header">
-      <button id="open-menu" class="btn-icon">☰</button>
-      <div class="brand-mini">SeeBee</div>
-      <div style="width:24px;"></div>
-    </header>
-
-    <main class="content-area">
-      <section id="view-home" class="view-section active">
-        <h2 style="margin-bottom:20px;">Painel Principal</h2>
-        <div class="dashboard-grid">
-          <div class="dash-card" data-target="view-traps"><div class="dash-icon">🗺️</div><h3>Nova Instalação</h3><p>Ir para mata</p></div>
-          <div class="dash-card" data-target="view-meliponaries"><div class="dash-icon">📦</div><h3>Colônias</h3><p>Gestão</p></div>
-          <div class="dash-card" data-target="view-captures"><div class="dash-icon">🐝</div><h3>Capturas</h3><p>Maturação</p></div>
-          <div class="dash-card" data-target="view-profile"><div class="dash-icon">👤</div><h3>Perfil</h3><p>Dados</p></div>
-          <div class="dash-card disabled"><div class="dash-icon">🌳</div><h3>Vi na Mata</h3><p>Em breve</p></div>
-          <div class="dash-card disabled"><div class="dash-icon">🛒</div><h3>Loja</h3><p>Em breve</p></div>
-        </div>
-      </section>
-
-      <section id="view-traps" class="view-section hidden">
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-          <button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button>
-          <div id="statusPill" class="status-pill"><span id="onlineDot" class="status-dot"></span><span id="onlineText">Online</span></div>
-        </div>
-        <div class="tracking-card">
-          <div class="card-header"><h3>Instalação</h3><span id="statusBadge" class="badge-status">Parado</span></div>
-          <div class="action-buttons-row">
-            <button id="btnStartRoute" class="btn-action-start">▶ Iniciar</button>
-            <button id="btnFinishRoute" class="btn-action-stop hidden">■ Parar</button>
-            <button id="btnMarkNest" class="btn-action-nest" disabled>+ Ninho</button>
-          </div>
-          <div class="stats-row">
-            <div class="stat-pill">Dist: <b id="distanceText">0 m</b></div>
-            <div class="stat-pill">Ninhos: <b id="nestsCountText">0</b></div>
-            <div class="stat-pill" id="gpsStatus">GPS...</div>
-          </div>
-        </div>
-        <div id="map"></div>
-        <div class="mini-history-section">
-          <h3 class="list-label" style="margin-top:0;">Últimas Instalações</h3>
-          <div id="trailsListRecent"></div>
-          <button id="btnSeeAllTrails" class="btn-see-all">Ver Histórico Completo</button>
-        </div>
-      </section>
-
-      <section id="view-meliponaries" class="view-section hidden">
-        <div style="margin-bottom:15px;"><button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button></div>
-        <div class="segment-control"><button class="segment-btn active" data-sub="tab-matrices">Minhas Matrizes</button><button class="segment-btn" data-sub="tab-history">Histórico Instalações</button></div>
-        <div id="tab-matrices" class="tab-content">
-          <button id="btnAddColony" class="btn-primary-sm" style="margin-bottom:15px;">+ Nova Matriz</button>
-          <div id="coloniesList"></div>
-        </div>
-        <div id="tab-history" class="tab-content hidden">
-          <div class="filter-bar"><span style="font-size:12px; color:#9ca3af;">Filtrar data:</span><input type="date" id="historyDateFilter" style="background:#020617; border:1px solid #374151; color:white; padding:5px; border-radius:6px;"></div>
-          <div id="trailsListHistory"></div>
-        </div>
-      </section>
-
-      <section id="view-captures" class="view-section hidden">
-        <div style="margin-bottom:15px;"><button class="btn-back" onclick="document.querySelector('[data-target=view-home]').click()">← Voltar</button></div>
-        <h2 style="margin-bottom:10px;">Minhas Capturas</h2>
-        <p style="color:#94a3b8; font-size:13px; margin-bottom:20px;">Acompanhe a maturação dos ninhos capturados.</p>
-        <div id="capturesList"></div>
-      </section>
-
-      <section id="view-profile" class="view-section hidden">
-        <h2 style="margin-bottom:20px;">Meu Perfil</h2>
-        <div style="text-align:center; margin-bottom:30px;">
-          <label style="position:relative; display:inline-block; cursor:pointer;">
-            <img id="profileImageDisplay" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--primary); background:#1f2937;">
-            <div style="position:absolute; bottom:0; right:0; background:var(--primary); color:#022c22; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; border:2px solid #020617;">📷</div>
-            <input type="file" id="profileAvatarInput" accept="image/*" style="display:none">
-          </label>
-          <p id="profileEmailDisplay" style="color:#9ca3af; margin-top:15px; font-size:14px;">carregando...</p>
-        </div>
-        <div class="card-profile-settings" style="background:#111827; padding:20px; border-radius:16px; border:1px solid #374151;">
-          <label class="field-label">Nome Completo</label><input type="text" id="profileFullName" class="input-dark">
-          <label class="field-label">CPF</label><input type="text" id="profileCPF" class="input-dark">
-          <label class="field-label">Telefone</label><input type="text" id="profilePhone" class="input-dark">
-          <label class="field-label" style="color:var(--primary);">Meu Perfil</label>
-          <select id="profileType" class="input-dark" style="border-color:var(--primary);">
-            <option value="ADM">Administrador</option><option value="MELIPONICULTOR">Meliponicultor</option><option value="ENTUSIASTA">Entusiasta</option>
-          </select>
-          <button id="btnSaveProfile" class="btn-primary" style="width:100%; margin-top:15px;">Salvar Alterações</button>
-        </div>
-      </section>
-    </main>
-
-    <div id="nest-modal" class="modal-backdrop" style="display:none">
-      <div class="modal-card">
-        <h3>Registrar Ninho</h3><p style="color:#94a3b8; font-size:12px;">Status: CATALOGADO</p>
-        <textarea id="nestNote" rows="3" placeholder="Observações..."></textarea>
-        <label id="btnNestPhotoLabel" class="btn-outline-photo" style="margin-top:15px;">
-          📷 Foto
-          <input id="nestPhoto" type="file" accept="image/*" style="display:none">
-        </label>
-        <div class="modal-actions" style="margin-top:20px;">
-          <button id="nestCancel" class="btn-ghost">Cancelar</button>
-          <button id="btnConfirmNest" class="btn-solid">Salvar</button>
-        </div>
-      </div>
+    <div class="modal-field">
+      <label>Foto do ninho (opcional)</label>
+      <label class="modal-file-label">
+        📷 <span>Selecionar ou tirar foto</span>
+        <input id="nest-file-input" type="file" accept="image/*" capture="environment" />
+      </label>
+      <span id="nest-file-name" class="modal-file-name"></span>
     </div>
 
-    <div id="nest-edit-modal" class="modal-backdrop" style="display:none; z-index:8000;">
-      <div class="modal-card">
-        <h3>Editar Ninho</h3><input type="hidden" id="editNestId">
-        <label class="field-label">Status Atual</label>
-        <select id="editNestStatus" class="input-dark"><option value="CATALOGADO">Catalogado</option><option value="CAPTURADO">Capturado</option><option value="REMOVIDO">Removido</option></select>
-        <div id="editCaptureContainer" class="hidden" style="background:#111827; padding:15px; border-radius:12px; border:1px solid #374151; margin-bottom:15px;">
-           <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;"><img id="captureSpeciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #374151;"><p style="font-size:13px; color:#10b981; font-weight:bold; margin:0;">Captura Confirmada</p></div>
-           <label class="field-label">Espécie</label><select id="editCapturePopular" class="input-dark"><option value="">Não identificada</option></select>
-           <select id="editCaptureScientific" class="input-dark" disabled><option value="Sem identificação">Sem identificação</option></select>
-           <label id="btnEditPhotoLabel" class="btn-outline-photo" style="margin:10px 0; padding:15px; border-color:var(--primary);">
-             📷 Atualizar Foto <input id="editNestPhoto" type="file" accept="image/*" style="display:none">
-           </label>
-        </div>
-        <label class="field-label">Observações</label><textarea id="editNestNote" rows="3" class="input-dark"></textarea>
-        <div class="modal-actions"><button id="btnCancelEditNest" class="btn-ghost">Cancelar</button><button id="btnSaveEditNest" class="btn-solid">Atualizar</button></div>
-      </div>
+    <div class="modal-actions">
+      <button class="btn-sm" id="nest-cancel">Cancelar</button>
+      <button class="btn-sm btn-sm-primary" id="nest-save">Salvar ninho</button>
     </div>
-
-    <div id="colony-modal" class="modal-backdrop" style="display:none">
-      <div class="modal-card">
-        <h3>Nova Matriz</h3>
-        <div style="text-align:center; margin-bottom:15px;"><div style="width:80px; height:80px; background:#1f2937; border-radius:50%; margin:0 auto; overflow:hidden; border:2px solid #374151;"><img id="speciesPreview" src="https://cdn-icons-png.flaticon.com/512/3069/3069186.png" style="width:100%; height:100%; object-fit:cover;"></div></div>
-        <label class="field-label">Espécie</label><select id="colonyPopularName" class="input-dark"><option value="">Selecione...</option></select>
-        <select id="colonyScientificName" class="input-dark" disabled><option value="Sem identificação">Sem identificação</option></select>
-        <label class="field-label">Nome</label><input type="text" id="colonyName" class="input-dark">
-        <label class="field-label">Data</label><input type="date" id="colonyDate" class="input-dark">
-        <label class="field-label">Status</label><select id="colonyStatus" class="input-dark"><option value="ATIVA">Ativa</option><option value="DEFINHADA">Definhada</option><option value="VENDIDA">Vendida</option></select>
-        <div id="removalDateGroup" class="hidden"><label class="field-label">Data Remoção</label><input type="date" id="colonyRemovalDate" class="input-dark"></div>
-        <div class="modal-actions" style="margin-top:20px;"><button id="colonyCancel" class="btn-ghost">Cancelar</button><button id="colonySave" class="btn-solid">Salvar</button></div>
-      </div>
-    </div>
-
-    <div id="trail-detail-modal" class="modal-backdrop" style="display:none; z-index:7000;">
-      <div class="modal-card" style="max-width:95%; height:90vh; display:flex; flex-direction:column;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-          <h3 id="detailTrailTitle">Detalhes</h3><button id="closeDetailTrail" style="background:none; border:none; color:white; font-size:24px;">✕</button>
-        </div>
-        <div class="detail-meta-grid">
-           <div class="detail-item"><strong>Data</strong> <span id="metaDate">-</span></div><div class="detail-item"><strong>Distância</strong> <span id="metaDist">-</span></div>
-           <div class="detail-item"><strong>Ninhos</strong> <span id="metaNests">-</span></div><div class="detail-item"><strong>Início</strong> <span id="metaTime">-</span></div>
-        </div>
-        <div id="mapDetail" style="flex:1; border-radius:12px; border:1px solid #374151; margin-bottom:10px; min-height: 200px;"></div>
-        <div id="detailNestsList" style="height:150px; overflow-y:auto;"></div>
-      </div>
-    </div>
-
-    <div id="countdown-modal" class="modal-backdrop" style="display:none; z-index:9999; background:rgba(2,6,23,0.95);">
-      <div style="text-align:center;">
-        <div id="countdown-number" style="font-size:120px; font-weight:900; color:var(--primary); text-shadow:0 0 30px var(--primary);">3</div>
-        <p style="color:white; font-size:18px; margin-top:20px;">Preparando GPS...</p>
-      </div>
-    </div>
-
-    <div id="routeHint" class="hint-toast hidden"></div>
   </div>
-  <script type="module" src="./js/main.js"></script>
+</div>
+
+<script type="module" src="./js/app.js"></script>
 </body>
 </html>
