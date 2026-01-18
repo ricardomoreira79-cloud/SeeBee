@@ -122,42 +122,29 @@
   </main>
 
   <nav class="bottom-nav mobile-only">
-    <a href="#" class="nav-item bottom-item active" data-target="dashboard">
-      <span class="icon">🏠</span>
-      <span class="label">Início</span>
-    </a>
-    <a href="#" class="nav-item bottom-item" data-target="tracker">
-      <span class="icon">🗺️</span>
-      <span class="label">Instalar</span>
-    </a>
-    <a href="#" class="nav-item bottom-item" data-target="colonies">
-      <span class="icon">📦</span>
-      <span class="label">Colônias</span>
-    </a>
-    <a href="#" class="nav-item bottom-item" data-target="captures">
-      <span class="icon">🐝</span>
-      <span class="label">Capturas</span>
-      <span id="badge-capturas-bottom" class="nav-badge hidden">0</span>
-    </a>
-    <a href="#" class="nav-item bottom-item disabled" data-target="profile">
-      <span class="icon">👤</span>
-      <span class="label">Perfil</span>
-    </a>
+    <a href="#" class="nav-item bottom-item active" data-target="dashboard"><span class="icon">🏠</span><span class="label">Início</span></a>
+    <a href="#" class="nav-item bottom-item" data-target="tracker"><span class="icon">🗺️</span><span class="label">Instalar</span></a>
+    <a href="#" class="nav-item bottom-item" data-target="colonies"><span class="icon">📦</span><span class="label">Colônias</span></a>
+    <a href="#" class="nav-item bottom-item" data-target="captures"><span class="icon">🐝</span><span class="label">Capturas</span><span id="badge-capturas-bottom" class="nav-badge hidden">0</span></a>
+    <a href="#" class="nav-item bottom-item disabled" data-target="profile"><span class="icon">👤</span><span class="label">Perfil</span></a>
   </nav>
-
 </div>
 
 <div id="photo-modal" class="modal-backdrop">
   <div class="modal-card photo-card-layout">
     <div class="modal-header photo-header">
-      <div class="photo-actions">
-        <button id="btn-edit-nest" class="btn-icon-action" title="Editar">✏️</button>
-        <button id="btn-delete-nest" class="btn-icon-action danger" title="Excluir">🗑️</button>
-      </div>
+      <h4 style="margin:0; font-size: 0.9rem; opacity: 0.7; font-weight: normal;">Detalhes do Ninho</h4>
       <button id="photo-modal-close" class="btn-icon-close">✕</button>
     </div>
     
-    <div class="photo-container"><img id="photo-modal-img" src="" alt="Foto do ninho" /></div>
+    <div class="photo-container">
+        <img id="photo-modal-img" src="" alt="Foto do ninho" title="Clique para ampliar" />
+    </div>
+
+    <div class="photo-actions-centered">
+        <button id="btn-edit-nest" class="btn-icon-action" title="Editar">✏️ Editar</button>
+        <button id="btn-delete-nest" class="btn-icon-action danger" title="Excluir">🗑️ Excluir</button>
+    </div>
     
     <div id="edit-nest-form" class="edit-form hidden">
       <div class="form-group">
@@ -168,11 +155,16 @@
         </select>
       </div>
       
-      <div class="form-group hidden" id="species-group">
-         <label>Espécie Identificada</label>
-         <input type="text" id="edit-species-input" list="species-list" placeholder="Busque ou digite..." />
-         <datalist id="species-list">
-             </datalist>
+      <div class="form-group hidden" id="group-common">
+         <label>Nome Popular (ex: Borá)</label>
+         <input type="text" id="edit-common-input" list="common-list" placeholder="Digite o nome comum..." />
+         <datalist id="common-list"></datalist>
+      </div>
+
+      <div class="form-group hidden" id="group-scientific">
+         <label>Nome Científico (Específico)</label>
+         <input type="text" id="edit-scientific-input" list="scientific-list" placeholder="Selecione a espécie..." disabled />
+         <datalist id="scientific-list"></datalist>
       </div>
 
       <div class="form-group"><label>Observações</label><textarea id="edit-notes"></textarea></div>
@@ -183,6 +175,11 @@
       </div>
     </div>
   </div>
+</div>
+
+<div id="lightbox-modal" class="modal-backdrop lightbox" style="display: none;">
+    <button id="lightbox-close" class="btn-icon-close lightbox-close-btn">✕</button>
+    <img id="lightbox-img" src="" alt="Foto em tamanho real" />
 </div>
 
 <div id="nest-modal" class="modal-backdrop">

@@ -1,26 +1,8 @@
 import { state } from "./state.js";
-
-/* BASE DE DADOS DE ESPÉCIES */
-const SPECIES_DB = [
-  { val: "Não identificada", label: "Não identificada" },
-  { val: "Tetragonisca angustula", label: "Tetragonisca angustula (Jataí)" },
-  { val: "Melipona scutellaris", label: "Melipona scutellaris (Uruçu-nordestina)" },
-  { val: "Melipona quadrifasciata", label: "Melipona quadrifasciata (Mandaçaia)" },
-  { val: "Scaptotrigona depilis", label: "Scaptotrigona depilis (Mandaguari)" },
-  { val: "Nannotrigona testaceicornis", label: "Nannotrigona testaceicornis (Iraí)" },
-  { val: "Melipona fasciculata", label: "Melipona fasciculata (Tiúba)" },
-  { val: "Melipona subnitida", label: "Melipona subnitida (Jandaíra)" },
-  { val: "Plebeia droryana", label: "Plebeia droryana (Mirim Droryana)" },
-  { val: "Cephalotrigona femorata", label: "Cephalotrigona femorata (Mumbuca)" },
-  { val: "Frieseomelitta varia", label: "Frieseomelitta varia (Marmelada)" },
-  { val: "Melipona rufiventris", label: "Melipona rufiventris (Uruçu-amarela)" },
-  { val: "Melipona mondury", label: "Melipona mondury (Bugia)" },
-  { val: "Tetragona clavipes", label: "Tetragona clavipes (Borá)" },
-  { val: "Scaptotrigona bipunctata", label: "Scaptotrigona bipunctata (Tubuna)" },
-  { val: "Lestrimelitta limao", label: "Lestrimelitta limao (Iratim)" }
-];
+import { supabaseClient } from "./auth.js";
 
 export const ui = {
+  // ELEMENTOS DOM
   authScreen: document.getElementById("auth-screen"),
   appScreen: document.getElementById("app-screen"),
   authEmail: document.getElementById("auth-email"),
@@ -33,9 +15,7 @@ export const ui = {
   sidebar: document.getElementById("sidebar"),
   userEmailLabel: document.getElementById("user-email-label"),
   btnLogout: document.getElementById("btn-logout"),
-  // NOVO BOTÃO DE LOGOUT MOBILE
   btnLogoutMobile: document.getElementById("btn-logout-mobile"),
-  
   btnOpenSidebar: document.getElementById("btn-open-sidebar"),
   btnCloseSidebar: document.getElementById("close-sidebar"),
   navLinks: document.querySelectorAll(".nav-item[data-target]"),
@@ -50,7 +30,6 @@ export const ui = {
   cardGotoCaptures: document.getElementById("card-goto-captures"),
   
   badgeCapturas: document.getElementById("badge-capturas"),
-  // NOVO BADGE INFERIOR
   badgeCapturasBottom: document.getElementById("badge-capturas-bottom"),
   cardBadgeCaptures: document.getElementById("card-badge-captures"),
 
@@ -64,7 +43,6 @@ export const ui = {
   infoRouteName: document.getElementById("info-route-name"),
   infoDistance: document.getElementById("info-distance"),
   infoNests: document.getElementById("info-nests"),
-  
   latestRouteContainer: document.getElementById("latest-route-container"),
   btnViewAllHistory: document.getElementById("btn-view-all-history"),
   
@@ -76,22 +54,28 @@ export const ui = {
   btnRefreshHistory: document.getElementById("btn-refresh-history"),
   capturesList: document.getElementById("captures-list"),
 
+  // MODAL DE EDIÇÃO
   photoModal: document.getElementById("photo-modal"),
   photoModalImg: document.getElementById("photo-modal-img"),
   photoModalClose: document.getElementById("photo-modal-close"),
-  
   btnEditNest: document.getElementById("btn-edit-nest"),
   btnDeleteNest: document.getElementById("btn-delete-nest"),
   editNestForm: document.getElementById("edit-nest-form"),
   editStatusSelect: document.getElementById("edit-status-select"),
   editNotes: document.getElementById("edit-notes"),
-  
-  speciesGroup: document.getElementById("species-group"),
-  editSpeciesInput: document.getElementById("edit-species-input"),
-  speciesList: document.getElementById("species-list"),
-  
+  groupCommon: document.getElementById("group-common"),
+  groupScientific: document.getElementById("group-scientific"),
+  editCommonInput: document.getElementById("edit-common-input"),
+  commonList: document.getElementById("common-list"),
+  editScientificInput: document.getElementById("edit-scientific-input"),
+  scientificList: document.getElementById("scientific-list"),
   btnCancelEdit: document.getElementById("btn-cancel-edit"),
   btnSaveEdit: document.getElementById("btn-save-edit"),
+
+  // NOVO LIGHTBOX
+  lightboxModal: document.getElementById("lightbox-modal"),
+  lightboxImg: document.getElementById("lightbox-img"),
+  lightboxClose: document.getElementById("lightbox-close"),
   
   nestModal: document.getElementById("nest-modal"),
   nestNotes: document.getElementById("nest-notes"),
@@ -101,10 +85,11 @@ export const ui = {
   nestSave: document.getElementById("nest-save"),
 };
 
+let cachedSpecies = [];
+
 export function initNavigation() {
   ui.btnOpenSidebar?.addEventListener("click", () => { ui.sidebar.classList.add("open"); ui.sidebar.classList.remove("hidden-mobile"); });
   ui.btnCloseSidebar?.addEventListener("click", () => { ui.sidebar.classList.remove("open"); setTimeout(() => ui.sidebar.classList.add("hidden-mobile"), 300); });
-  
   ui.navLinks.forEach(link => {
     link.addEventListener("click", (e) => {
       e.preventDefault(); if (link.classList.contains("disabled")) return;
@@ -114,29 +99,56 @@ export function initNavigation() {
       link.classList.add("active");
     });
   });
-
   ui.cardGotoTracker?.addEventListener("click", () => { switchPanel("tracker"); updateActiveLink("tracker"); });
   ui.cardGotoColonies?.addEventListener("click", () => { switchPanel("colonies"); updateActiveLink("colonies"); });
   ui.cardGotoCaptures?.addEventListener("click", () => { switchPanel("captures"); updateActiveLink("captures"); });
-
   ui.btnViewAllHistory?.addEventListener("click", () => { switchPanel("colonies"); updateActiveLink("colonies"); switchColonyTab("history"); });
   ui.tabBtnMatrices?.addEventListener("click", () => switchColonyTab("matrices"));
   ui.tabBtnHistory?.addEventListener("click", () => switchColonyTab("history"));
-  
-  populateSpeciesList();
+  loadSpeciesFromDB();
 }
 
-function populateSpeciesList() {
-  ui.speciesList.innerHTML = "";
-  SPECIES_DB.forEach(sp => {
+async function loadSpeciesFromDB() {
+  if (!navigator.onLine) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('species')
+      .select('scientific_name, common_name')
+      .order('scientific_name', { ascending: true }); // Ordem alfabética para facilitar a seleção automática
+
+    if (error) throw error;
+    cachedSpecies = data || [];
+    populateCommonNames(cachedSpecies);
+  } catch (err) {
+    console.error("Erro ao carregar espécies:", err);
+  }
+}
+
+function populateCommonNames(data) {
+  ui.commonList.innerHTML = "";
+  const uniqueCommons = [...new Set(data.map(i => i.common_name))];
+  uniqueCommons.sort().forEach(name => {
     const opt = document.createElement("option");
-    opt.value = sp.val; opt.label = sp.label;
-    ui.speciesList.appendChild(opt);
+    opt.value = name;
+    ui.commonList.appendChild(opt);
   });
 }
 
-function updateActiveLink(targetName) { ui.navLinks.forEach(l => l.classList.toggle("active", l.dataset.target === targetName)); }
+// Filtra e retorna os dados para uso na lógica de auto-fill
+function filterScientificNames(commonName) {
+  ui.scientificList.innerHTML = "";
+  const filtered = cachedSpecies.filter(s => s.common_name === commonName);
+  
+  filtered.forEach(sp => {
+    const opt = document.createElement("option");
+    opt.value = sp.scientific_name;
+    ui.scientificList.appendChild(opt);
+  });
+  
+  return filtered;
+}
 
+function updateActiveLink(targetName) { ui.navLinks.forEach(l => l.classList.toggle("active", l.dataset.target === targetName)); }
 export function switchPanel(panelName) {
   ui.panelDashboard.classList.add("hidden"); ui.panelTracker.classList.add("hidden"); ui.panelColonies.classList.add("hidden"); ui.panelCaptures.classList.add("hidden");
   if (panelName === "dashboard") ui.panelDashboard.classList.remove("hidden");
@@ -144,7 +156,6 @@ export function switchPanel(panelName) {
   if (panelName === "captures") ui.panelCaptures.classList.remove("hidden");
   if (panelName === "tracker") { ui.panelTracker.classList.remove("hidden"); setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 100); }
 }
-
 export function switchColonyTab(tabName) {
   if (tabName === "matrices") { ui.contentMatrices.classList.remove("hidden"); ui.contentHistory.classList.add("hidden"); ui.tabBtnMatrices.classList.add("active"); ui.tabBtnHistory.classList.remove("active"); }
   else { ui.contentMatrices.classList.add("hidden"); ui.contentHistory.classList.remove("hidden"); ui.tabBtnMatrices.classList.remove("active"); ui.tabBtnHistory.classList.add("active"); }
@@ -174,7 +185,9 @@ export function initNestModalHandlers() {
   ui.nestSave.addEventListener("click", () => { if (!pendingNestResolve) { ui.nestModal.style.display = "none"; return; } const payload = { description: ui.nestNotes.value.trim(), file: selectedNestFile }; ui.nestModal.style.display = "none"; pendingNestResolve(payload); pendingNestResolve = null; });
 }
 
+/* ===== MODAL FOTO, EDIÇÃO & LIGHTBOX ===== */
 let currentNestData = null; let currentRouteId = null; let editSaveCallback = null; let deleteCallback = null;
+
 export function openPhotoModal(nestData, routeId, onSave, onDelete) {
   currentNestData = nestData; currentRouteId = routeId; editSaveCallback = onSave; deleteCallback = onDelete;
   ui.photoModalImg.src = nestData.photoUrl; ui.photoModal.style.display = "flex";
@@ -183,31 +196,84 @@ export function openPhotoModal(nestData, routeId, onSave, onDelete) {
   const currentStatus = nestData.status || 'catalogado';
   ui.editStatusSelect.value = currentStatus;
   ui.editNotes.value = nestData.description || '';
-  ui.editSpeciesInput.value = nestData.species || "Não identificada";
   
-  if (currentStatus === 'capturado') ui.speciesGroup.classList.remove("hidden");
-  else ui.speciesGroup.classList.add("hidden");
+  // Preencher valores atuais
+  ui.editCommonInput.value = nestData.commonName || "";
+  ui.editScientificInput.value = nestData.scientificName || "";
+  
+  if (nestData.commonName) {
+      filterScientificNames(nestData.commonName);
+      ui.editScientificInput.disabled = false;
+  } else {
+      ui.editScientificInput.disabled = true;
+  }
+
+  toggleSpeciesFields(currentStatus === 'capturado');
 
   if (!nestData.id) { ui.btnEditNest.classList.add("hidden"); ui.btnDeleteNest.classList.add("hidden"); }
   else { ui.btnEditNest.classList.remove("hidden"); ui.btnDeleteNest.classList.remove("hidden"); }
 }
+
+function toggleSpeciesFields(show) {
+    if(show) {
+        ui.groupCommon.classList.remove("hidden");
+        ui.groupScientific.classList.remove("hidden");
+    } else {
+        ui.groupCommon.classList.add("hidden");
+        ui.groupScientific.classList.add("hidden");
+    }
+}
+
 export function closePhotoModal() { ui.photoModal.style.display = "none"; ui.photoModalImg.src = ""; currentNestData = null; }
+
 export function initPhotoModalHandlers() {
   ui.photoModalClose.addEventListener("click", closePhotoModal);
   ui.photoModal.addEventListener("click", (e) => { if (e.target === ui.photoModal && ui.editNestForm.classList.contains("hidden")) closePhotoModal(); });
-  ui.btnEditNest.addEventListener("click", () => { ui.editNestForm.classList.remove("hidden"); });
-  ui.editStatusSelect.addEventListener("change", (e) => {
-     if(e.target.value === 'capturado') ui.speciesGroup.classList.remove("hidden");
-     else ui.speciesGroup.classList.add("hidden");
+
+  // ABRE O LIGHTBOX AO CLICAR NA FOTO
+  ui.photoModalImg.addEventListener("click", () => {
+      ui.lightboxImg.src = ui.photoModalImg.src;
+      ui.lightboxModal.style.display = "flex";
   });
+  ui.lightboxClose.addEventListener("click", () => { ui.lightboxModal.style.display = "none"; });
+  ui.lightboxModal.addEventListener("click", (e) => { if(e.target === ui.lightboxModal) ui.lightboxModal.style.display = "none"; });
+
+  ui.btnEditNest.addEventListener("click", () => { ui.editNestForm.classList.remove("hidden"); });
+  ui.editStatusSelect.addEventListener("change", (e) => { toggleSpeciesFields(e.target.value === 'capturado'); });
+
+  // AUTO-PREENCHIMENTO INTELIGENTE
+  ui.editCommonInput.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (val) {
+          const filtered = filterScientificNames(val);
+          ui.editScientificInput.disabled = false;
+          
+          // Se tiver resultados, preenche o primeiro automaticamente
+          if (filtered.length > 0) {
+              ui.editScientificInput.value = filtered[0].scientific_name;
+          } else {
+              ui.editScientificInput.value = "";
+          }
+      } else {
+          ui.editScientificInput.disabled = true;
+          ui.editScientificInput.value = "";
+      }
+  });
+
   ui.btnCancelEdit.addEventListener("click", () => { ui.editNestForm.classList.add("hidden"); });
   ui.btnSaveEdit.addEventListener("click", () => { 
       const newStatus = ui.editStatusSelect.value; 
       const newNotes = ui.editNotes.value; 
-      const newSpecies = newStatus === 'capturado' ? ui.editSpeciesInput.value : null;
-      if(editSaveCallback) editSaveCallback(currentRouteId, currentNestData.id, newStatus, newNotes, newSpecies); 
+      let common = null; let scientific = null;
+
+      if (newStatus === 'capturado') {
+          common = ui.editCommonInput.value.trim() || "Não informado";
+          scientific = ui.editScientificInput.value.trim() || "Espécie não identificada";
+      }
+      if(editSaveCallback) editSaveCallback(currentRouteId, currentNestData.id, newStatus, newNotes, common, scientific); 
       closePhotoModal(); 
   });
+
   ui.btnDeleteNest.addEventListener("click", () => { 
       const reason = prompt("Motivo da exclusão:"); 
       if (reason && confirm("Confirmar?")) { if(deleteCallback) deleteCallback(currentRouteId, currentNestData.id, reason); closePhotoModal(); } 
