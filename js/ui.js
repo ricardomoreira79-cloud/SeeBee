@@ -1,11 +1,8 @@
 import { state } from "./state.js";
 
 export const ui = {
-  // Telas Principais
   authScreen: document.getElementById("auth-screen"),
   appScreen: document.getElementById("app-screen"),
-  
-  // Login
   authEmail: document.getElementById("auth-email"),
   authPassword: document.getElementById("auth-password"),
   authMsg: document.getElementById("auth-msg"),
@@ -13,7 +10,6 @@ export const ui = {
   btnSignUp: document.getElementById("btn-signup"),
   btnGoogle: document.getElementById("btn-google"),
   
-  // Sidebar
   sidebar: document.getElementById("sidebar"),
   userEmailLabel: document.getElementById("user-email-label"),
   btnLogout: document.getElementById("btn-logout"),
@@ -25,12 +21,17 @@ export const ui = {
   panelDashboard: document.getElementById("panel-dashboard"),
   panelTracker: document.getElementById("panel-tracker"),
   panelColonies: document.getElementById("panel-colonies"),
+  panelCaptures: document.getElementById("panel-captures"), // Novo
   
   // Cards Dashboard
   cardGotoTracker: document.getElementById("card-goto-tracker"),
   cardGotoColonies: document.getElementById("card-goto-colonies"),
+  cardGotoCaptures: document.getElementById("card-goto-captures"), // Novo
 
-  // Tracker Controls
+  // Badges
+  badgeCapturas: document.getElementById("badge-capturas"),
+  cardBadgeCaptures: document.getElementById("card-badge-captures"),
+
   statusPill: document.getElementById("status-pill"),
   cloudStatus: document.getElementById("cloud-status"),
   btnToggleRoute: document.getElementById("btn-toggle-route"),
@@ -42,23 +43,23 @@ export const ui = {
   infoDistance: document.getElementById("info-distance"),
   infoNests: document.getElementById("info-nests"),
   
-  // Tracker Footer
   latestRouteContainer: document.getElementById("latest-route-container"),
   btnViewAllHistory: document.getElementById("btn-view-all-history"),
   
-  // Colônias & Abas
   tabBtnMatrices: document.getElementById("tab-btn-matrices"),
   tabBtnHistory: document.getElementById("tab-btn-history"),
   contentMatrices: document.getElementById("content-matrices"),
   contentHistory: document.getElementById("content-history"),
   fullHistoryList: document.getElementById("full-history-list"),
   btnRefreshHistory: document.getElementById("btn-refresh-history"),
+  
+  // Lista de Capturas
+  capturesList: document.getElementById("captures-list"),
 
   // Modais
   photoModal: document.getElementById("photo-modal"),
   photoModalImg: document.getElementById("photo-modal-img"),
   photoModalClose: document.getElementById("photo-modal-close"),
-  // Novos elementos do Photo Modal (Edição)
   btnEditNest: document.getElementById("btn-edit-nest"),
   btnDeleteNest: document.getElementById("btn-delete-nest"),
   editNestForm: document.getElementById("edit-nest-form"),
@@ -75,14 +76,11 @@ export const ui = {
   nestSave: document.getElementById("nest-save"),
 };
 
-/* ===== NAVEGAÇÃO ===== */
-
 export function initNavigation() {
   ui.btnOpenSidebar?.addEventListener("click", () => {
     ui.sidebar.classList.add("open");
     ui.sidebar.classList.remove("hidden-mobile");
   });
-  
   ui.btnCloseSidebar?.addEventListener("click", () => {
     ui.sidebar.classList.remove("open");
     setTimeout(() => ui.sidebar.classList.add("hidden-mobile"), 300);
@@ -100,14 +98,10 @@ export function initNavigation() {
     });
   });
 
-  ui.cardGotoTracker?.addEventListener("click", () => {
-    switchPanel("tracker");
-    updateActiveLink("tracker");
-  });
-  ui.cardGotoColonies?.addEventListener("click", () => {
-    switchPanel("colonies");
-    updateActiveLink("colonies");
-  });
+  ui.cardGotoTracker?.addEventListener("click", () => { switchPanel("tracker"); updateActiveLink("tracker"); });
+  ui.cardGotoColonies?.addEventListener("click", () => { switchPanel("colonies"); updateActiveLink("colonies"); });
+  ui.cardGotoCaptures?.addEventListener("click", () => { switchPanel("captures"); updateActiveLink("captures"); });
+
   ui.btnViewAllHistory?.addEventListener("click", () => {
     switchPanel("colonies");
     updateActiveLink("colonies");
@@ -119,18 +113,18 @@ export function initNavigation() {
 }
 
 function updateActiveLink(targetName) {
-  ui.navLinks.forEach(l => {
-    l.classList.toggle("active", l.dataset.target === targetName);
-  });
+  ui.navLinks.forEach(l => l.classList.toggle("active", l.dataset.target === targetName));
 }
 
 export function switchPanel(panelName) {
   ui.panelDashboard.classList.add("hidden");
   ui.panelTracker.classList.add("hidden");
   ui.panelColonies.classList.add("hidden");
+  ui.panelCaptures.classList.add("hidden");
 
   if (panelName === "dashboard") ui.panelDashboard.classList.remove("hidden");
   if (panelName === "colonies") ui.panelColonies.classList.remove("hidden");
+  if (panelName === "captures") ui.panelCaptures.classList.remove("hidden");
   
   if (panelName === "tracker") {
     ui.panelTracker.classList.remove("hidden");
@@ -152,175 +146,59 @@ export function switchColonyTab(tabName) {
   }
 }
 
-/* ===== UTILS UI ===== */
-
+/* OUTRAS FUNÇÕES UI (Auth, Status, Modals) - IDÊNTICAS AO ANTERIOR */
 export function setAuthMessage(text, isError = false) {
   ui.authMsg.textContent = text || "";
   ui.authMsg.classList.toggle("error", !!text && isError);
 }
-
-export function showAuthScreen() {
-  ui.authScreen.classList.remove("hidden");
-  ui.appScreen.classList.add("hidden");
-}
-
+export function showAuthScreen() { ui.authScreen.classList.remove("hidden"); ui.appScreen.classList.add("hidden"); }
 export function showAppScreen(email) {
-  ui.authScreen.classList.add("hidden");
-  ui.appScreen.classList.remove("hidden");
+  ui.authScreen.classList.add("hidden"); ui.appScreen.classList.remove("hidden");
   const name = email ? email.split("@")[0] : "Usuário";
   ui.userEmailLabel.textContent = name.charAt(0).toUpperCase() + name.slice(1);
-  
-  if (!ui.appScreen.dataset.navInit) {
-    initNavigation();
-    ui.appScreen.dataset.navInit = "true";
-  }
+  if (!ui.appScreen.dataset.navInit) { initNavigation(); ui.appScreen.dataset.navInit = "true"; }
   switchPanel("dashboard");
 }
-
 export function updateOnlineStatusPill() {
-  state.isOnline = navigator.onLine;
-  const color = state.isOnline ? "#238636" : "#da3633";
-  ui.statusPill.style.borderColor = color;
-  ui.cloudStatus.textContent = state.isOnline ? "Online" : "Offline";
-  const dot = ui.statusPill.querySelector(".status-dot");
-  if(dot) dot.style.background = color;
+  state.isOnline = navigator.onLine; const color = state.isOnline ? "#238636" : "#da3633";
+  ui.statusPill.style.borderColor = color; ui.cloudStatus.textContent = state.isOnline ? "Online" : "Offline";
+  const dot = ui.statusPill.querySelector(".status-dot"); if(dot) dot.style.background = color;
 }
-
 export function setRecordingUI(isRecording) {
   if (isRecording) {
-    ui.btnAddNest.disabled = false;
-    ui.badgeStatus.textContent = "Gravando";
-    ui.badgeStatus.style.borderColor = "#238636";
-    ui.badgeStatus.style.color = "#238636";
-    ui.btnToggleText.textContent = "Finalizar";
-    ui.btnToggleIcon.textContent = "⏹";
-    ui.btnToggleRoute.style.background = "#da3633";
+    ui.btnAddNest.disabled = false; ui.badgeStatus.textContent = "Gravando"; ui.badgeStatus.style.borderColor = "#238636"; ui.badgeStatus.style.color = "#238636";
+    ui.btnToggleText.textContent = "Finalizar"; ui.btnToggleIcon.textContent = "⏹"; ui.btnToggleRoute.style.background = "#da3633";
     ui.infoRouteName.textContent = "Trajeto: gravando...";
   } else {
-    ui.btnAddNest.disabled = true;
-    ui.badgeStatus.textContent = "Parado";
-    ui.badgeStatus.style.borderColor = "#30363d";
-    ui.badgeStatus.style.color = "#8b949e";
-    ui.btnToggleText.textContent = "Iniciar trajeto";
-    ui.btnToggleIcon.textContent = "▶";
-    ui.btnToggleRoute.style.background = "#238636";
+    ui.btnAddNest.disabled = true; ui.badgeStatus.textContent = "Parado"; ui.badgeStatus.style.borderColor = "#30363d"; ui.badgeStatus.style.color = "#8b949e";
+    ui.btnToggleText.textContent = "Iniciar trajeto"; ui.btnToggleIcon.textContent = "▶"; ui.btnToggleRoute.style.background = "#238636";
   }
 }
 
-/* ===== MODAL CADASTRO NINHO ===== */
-let pendingNestResolve = null;
-let selectedNestFile = null;
-
-export function openNestModal() {
-  selectedNestFile = null;
-  ui.nestNotes.value = "";
-  ui.nestFileInput.value = "";
-  ui.nestFileName.textContent = "";
-  ui.nestModal.style.display = "flex";
-  return new Promise((resolve) => { pendingNestResolve = resolve; });
-}
-
-export function closeNestModal() {
-  ui.nestModal.style.display = "none";
-  if (pendingNestResolve) { pendingNestResolve(null); pendingNestResolve = null; }
-}
-
+let pendingNestResolve = null; let selectedNestFile = null;
+export function openNestModal() { selectedNestFile = null; ui.nestNotes.value = ""; ui.nestFileInput.value = ""; ui.nestFileName.textContent = ""; ui.nestModal.style.display = "flex"; return new Promise((resolve) => { pendingNestResolve = resolve; }); }
+export function closeNestModal() { ui.nestModal.style.display = "none"; if (pendingNestResolve) { pendingNestResolve(null); pendingNestResolve = null; } }
 export function initNestModalHandlers() {
   ui.nestCancel.addEventListener("click", () => closeNestModal());
-  ui.nestFileInput.addEventListener("change", (ev) => {
-    const file = ev.target.files[0];
-    selectedNestFile = file || null;
-    ui.nestFileName.textContent = file ? file.name : "";
-  });
-  ui.nestSave.addEventListener("click", () => {
-    if (!pendingNestResolve) { ui.nestModal.style.display = "none"; return; }
-    const payload = { description: ui.nestNotes.value.trim(), file: selectedNestFile };
-    ui.nestModal.style.display = "none";
-    pendingNestResolve(payload);
-    pendingNestResolve = null;
-  });
+  ui.nestFileInput.addEventListener("change", (ev) => { const file = ev.target.files[0]; selectedNestFile = file || null; ui.nestFileName.textContent = file ? file.name : ""; });
+  ui.nestSave.addEventListener("click", () => { if (!pendingNestResolve) { ui.nestModal.style.display = "none"; return; } const payload = { description: ui.nestNotes.value.trim(), file: selectedNestFile }; ui.nestModal.style.display = "none"; pendingNestResolve(payload); pendingNestResolve = null; });
 }
 
-/* ===== NOVO MODAL FOTO & EDIÇÃO ===== */
-let currentNestData = null;
-let currentRouteId = null;
-let editSaveCallback = null;
-let deleteCallback = null;
-
+let currentNestData = null; let currentRouteId = null; let editSaveCallback = null; let deleteCallback = null;
 export function openPhotoModal(nestData, routeId, onSave, onDelete) {
-  currentNestData = nestData;
-  currentRouteId = routeId;
-  editSaveCallback = onSave;
-  deleteCallback = onDelete;
-
-  ui.photoModalImg.src = nestData.photoUrl;
-  ui.photoModal.style.display = "flex";
-  
-  // Reset do formulário de edição
+  currentNestData = nestData; currentRouteId = routeId; editSaveCallback = onSave; deleteCallback = onDelete;
+  ui.photoModalImg.src = nestData.photoUrl; ui.photoModal.style.display = "flex";
   ui.editNestForm.classList.add("hidden");
-  ui.editStatusSelect.value = nestData.status || 'catalogado';
-  ui.editNotes.value = nestData.description || '';
-
-  // Se o ninho não tiver ID (legado), não permite editar/excluir
-  if (!nestData.id) {
-      ui.btnEditNest.classList.add("hidden");
-      ui.btnDeleteNest.classList.add("hidden");
-  } else {
-      ui.btnEditNest.classList.remove("hidden");
-      ui.btnDeleteNest.classList.remove("hidden");
-  }
+  ui.editStatusSelect.value = nestData.status || 'catalogado'; ui.editNotes.value = nestData.description || '';
+  if (!nestData.id) { ui.btnEditNest.classList.add("hidden"); ui.btnDeleteNest.classList.add("hidden"); }
+  else { ui.btnEditNest.classList.remove("hidden"); ui.btnDeleteNest.classList.remove("hidden"); }
 }
-
-export function closePhotoModal() {
-    ui.photoModal.style.display = "none";
-    ui.photoModalImg.src = "";
-    currentNestData = null;
-}
-
+export function closePhotoModal() { ui.photoModal.style.display = "none"; ui.photoModalImg.src = ""; currentNestData = null; }
 export function initPhotoModalHandlers() {
   ui.photoModalClose.addEventListener("click", closePhotoModal);
-
-  // Clicar fora fecha (se não estiver editando)
-  ui.photoModal.addEventListener("click", (e) => {
-    if (e.target === ui.photoModal && ui.editNestForm.classList.contains("hidden")) {
-      closePhotoModal();
-    }
-  });
-
-  // Botão Editar (Lápis)
-  ui.btnEditNest.addEventListener("click", () => {
-      ui.editNestForm.classList.remove("hidden");
-  });
-
-  // Botão Cancelar Edição
-  ui.btnCancelEdit.addEventListener("click", () => {
-    ui.editNestForm.classList.add("hidden");
-    // Reseta valores para o original
-    ui.editStatusSelect.value = currentNestData.status || 'catalogado';
-    ui.editNotes.value = currentNestData.description || '';
-  });
-
-  // Botão Salvar Edição
-  ui.btnSaveEdit.addEventListener("click", () => {
-      const newStatus = ui.editStatusSelect.value;
-      const newNotes = ui.editNotes.value;
-      
-      if(editSaveCallback) {
-          editSaveCallback(currentRouteId, currentNestData.id, newStatus, newNotes);
-      }
-      closePhotoModal();
-  });
-
-  // Botão Excluir (Lixeira)
-  ui.btnDeleteNest.addEventListener("click", () => {
-      const reason = prompt("Motivo da exclusão (ex: 'manutenção', 'danificado'):");
-      if (reason) {
-          if(confirm("Tem certeza que deseja excluir este registro de ninho? Esta ação não pode ser desfeita.")) {
-              if(deleteCallback) {
-                  deleteCallback(currentRouteId, currentNestData.id, reason);
-              }
-              closePhotoModal();
-          }
-      }
-  });
+  ui.photoModal.addEventListener("click", (e) => { if (e.target === ui.photoModal && ui.editNestForm.classList.contains("hidden")) closePhotoModal(); });
+  ui.btnEditNest.addEventListener("click", () => { ui.editNestForm.classList.remove("hidden"); });
+  ui.btnCancelEdit.addEventListener("click", () => { ui.editNestForm.classList.add("hidden"); ui.editStatusSelect.value = currentNestData.status || 'catalogado'; ui.editNotes.value = currentNestData.description || ''; });
+  ui.btnSaveEdit.addEventListener("click", () => { const newStatus = ui.editStatusSelect.value; const newNotes = ui.editNotes.value; if(editSaveCallback) editSaveCallback(currentRouteId, currentNestData.id, newStatus, newNotes); closePhotoModal(); });
+  ui.btnDeleteNest.addEventListener("click", () => { const reason = prompt("Motivo da exclusão (ex: 'manutenção'):"); if (reason && confirm("Confirmar exclusão?")) { if(deleteCallback) deleteCallback(currentRouteId, currentNestData.id, reason); closePhotoModal(); } });
 }
