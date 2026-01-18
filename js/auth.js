@@ -1,6 +1,7 @@
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY, STORAGE_KEY_ROUTES } from "./config.js";
 import { setAuthMessage, showAppScreen, showAuthScreen } from "./ui.js";
 
+// Inicializa o cliente Supabase
 export const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export async function signUp(email, password) {
@@ -39,8 +40,14 @@ export async function signInWithGoogle() {
 }
 
 export async function logout() {
+  // 1. Desloga do servidor
   await supabaseClient.auth.signOut();
-  await checkSessionAndRoute();
+  
+  // 2. SEGURANÇA: Limpa os dados locais do usuário anterior
+  localStorage.removeItem(STORAGE_KEY_ROUTES);
+  
+  // 3. Força um recarregamento da página para limpar variáveis de memória (RAM)
+  window.location.reload();
 }
 
 export async function checkSessionAndRoute() {
@@ -58,6 +65,11 @@ export async function checkSessionAndRoute() {
 
 export function onAuthChange(handler) {
   supabaseClient.auth.onAuthStateChange((event, session) => {
+    // Se o usuário deslogar por outro meio (ex: expiração de token), forçamos a limpeza
+    if (event === 'SIGNED_OUT') {
+       localStorage.removeItem(STORAGE_KEY_ROUTES);
+       window.location.reload();
+    }
     handler?.(event, session);
   });
 }
