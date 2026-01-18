@@ -52,9 +52,11 @@
 
   <main class="main-content">
     <header class="mobile-header mobile-only">
-      <button id="btn-open-sidebar" class="hamburger-btn">☰</button>
-      <h2>SeeBee</h2>
-      <div class="spacer"></div>
+      <div class="header-left">
+        <div class="bee-icon-sm">🐝</div>
+        <h2>SeeBee</h2>
+      </div>
+      <button id="btn-logout-mobile" class="btn-icon-logout" title="Sair">🚪</button>
     </header>
 
     <div id="panel-dashboard" class="content-panel">
@@ -118,6 +120,31 @@
       </div>
     </div>
   </main>
+
+  <nav class="bottom-nav mobile-only">
+    <a href="#" class="nav-item bottom-item active" data-target="dashboard">
+      <span class="icon">🏠</span>
+      <span class="label">Início</span>
+    </a>
+    <a href="#" class="nav-item bottom-item" data-target="tracker">
+      <span class="icon">🗺️</span>
+      <span class="label">Instalar</span>
+    </a>
+    <a href="#" class="nav-item bottom-item" data-target="colonies">
+      <span class="icon">📦</span>
+      <span class="label">Colônias</span>
+    </a>
+    <a href="#" class="nav-item bottom-item" data-target="captures">
+      <span class="icon">🐝</span>
+      <span class="label">Capturas</span>
+      <span id="badge-capturas-bottom" class="nav-badge hidden">0</span>
+    </a>
+    <a href="#" class="nav-item bottom-item disabled" data-target="profile">
+      <span class="icon">👤</span>
+      <span class="label">Perfil</span>
+    </a>
+  </nav>
+
 </div>
 
 <div id="photo-modal" class="modal-backdrop">

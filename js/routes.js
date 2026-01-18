@@ -100,7 +100,6 @@ export async function stopRoute() {
   await saveRoute(route);
 }
 
-// ESTA É A FUNÇÃO QUE ESTAVA DANDO ERRO NO SEU PRINT
 export async function handleAddNest() {
   if (!state.currentRoute || state.currentRoute.path.length === 0) {
     alert("Comece o trajeto antes.");
@@ -224,22 +223,26 @@ export function registerNestActionHandlers(updateCb, deleteCb) {
 
 export function renderRoutesList() {
   // Lista Resumida (Último)
-  ui.latestRouteContainer.innerHTML = "";
-  if (state.allRoutes.length > 0) {
-    const latest = state.allRoutes[0];
-    ui.latestRouteContainer.appendChild(createRouteCard(latest, false));
-  } else {
-    ui.latestRouteContainer.innerHTML = '<div class="empty-placeholder">Nenhuma instalação recente.</div>';
+  if (ui.latestRouteContainer) {
+      ui.latestRouteContainer.innerHTML = "";
+      if (state.allRoutes.length > 0) {
+        const latest = state.allRoutes[0];
+        ui.latestRouteContainer.appendChild(createRouteCard(latest, false));
+      } else {
+        ui.latestRouteContainer.innerHTML = '<div class="empty-placeholder">Nenhuma instalação recente.</div>';
+      }
   }
 
   // Lista Completa
-  ui.fullHistoryList.innerHTML = "";
-  if (state.allRoutes.length > 0) {
-    state.allRoutes.forEach(route => {
-      ui.fullHistoryList.appendChild(createRouteCard(route, true));
-    });
-  } else {
-    ui.fullHistoryList.innerHTML = '<div class="empty-placeholder">Histórico vazio.</div>';
+  if (ui.fullHistoryList) {
+      ui.fullHistoryList.innerHTML = "";
+      if (state.allRoutes.length > 0) {
+        state.allRoutes.forEach(route => {
+          ui.fullHistoryList.appendChild(createRouteCard(route, true));
+        });
+      } else {
+        ui.fullHistoryList.innerHTML = '<div class="empty-placeholder">Histórico vazio.</div>';
+      }
   }
   
   // Renderizar capturas
@@ -357,10 +360,13 @@ export function renderCapturesList() {
   
   if (totalCaptures > 0) {
     if(ui.badgeCapturas) { ui.badgeCapturas.textContent = totalCaptures; ui.badgeCapturas.classList.remove("hidden"); }
+    // Atualiza o novo badge inferior também
+    if(ui.badgeCapturasBottom) { ui.badgeCapturasBottom.textContent = totalCaptures; ui.badgeCapturasBottom.classList.remove("hidden"); }
     if(ui.cardBadgeCaptures) { ui.cardBadgeCaptures.textContent = totalCaptures; ui.cardBadgeCaptures.classList.remove("hidden"); }
   } else {
     ui.capturesList.innerHTML = '<div class="empty-placeholder">Nenhuma captura ativa no momento.</div>';
     if(ui.badgeCapturas) ui.badgeCapturas.classList.add("hidden");
+    if(ui.badgeCapturasBottom) ui.badgeCapturasBottom.classList.add("hidden");
     if(ui.cardBadgeCaptures) ui.cardBadgeCaptures.classList.add("hidden");
   }
 }

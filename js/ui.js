@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 
-/* BASE DE DADOS DE ESPÉCIES (PDF) */
+/* BASE DE DADOS DE ESPÉCIES */
 const SPECIES_DB = [
   { val: "Não identificada", label: "Não identificada" },
   { val: "Tetragonisca angustula", label: "Tetragonisca angustula (Jataí)" },
@@ -18,7 +18,6 @@ const SPECIES_DB = [
   { val: "Tetragona clavipes", label: "Tetragona clavipes (Borá)" },
   { val: "Scaptotrigona bipunctata", label: "Scaptotrigona bipunctata (Tubuna)" },
   { val: "Lestrimelitta limao", label: "Lestrimelitta limao (Iratim)" }
-  // Adicionei as principais. A lista completa do PDF pode ser inserida aqui.
 ];
 
 export const ui = {
@@ -34,6 +33,9 @@ export const ui = {
   sidebar: document.getElementById("sidebar"),
   userEmailLabel: document.getElementById("user-email-label"),
   btnLogout: document.getElementById("btn-logout"),
+  // NOVO BOTÃO DE LOGOUT MOBILE
+  btnLogoutMobile: document.getElementById("btn-logout-mobile"),
+  
   btnOpenSidebar: document.getElementById("btn-open-sidebar"),
   btnCloseSidebar: document.getElementById("close-sidebar"),
   navLinks: document.querySelectorAll(".nav-item[data-target]"),
@@ -48,6 +50,8 @@ export const ui = {
   cardGotoCaptures: document.getElementById("card-goto-captures"),
   
   badgeCapturas: document.getElementById("badge-capturas"),
+  // NOVO BADGE INFERIOR
+  badgeCapturasBottom: document.getElementById("badge-capturas-bottom"),
   cardBadgeCaptures: document.getElementById("card-badge-captures"),
 
   statusPill: document.getElementById("status-pill"),
@@ -76,14 +80,12 @@ export const ui = {
   photoModalImg: document.getElementById("photo-modal-img"),
   photoModalClose: document.getElementById("photo-modal-close"),
   
-  // EDIÇÃO
   btnEditNest: document.getElementById("btn-edit-nest"),
   btnDeleteNest: document.getElementById("btn-delete-nest"),
   editNestForm: document.getElementById("edit-nest-form"),
   editStatusSelect: document.getElementById("edit-status-select"),
   editNotes: document.getElementById("edit-notes"),
   
-  // ESPÉCIE
   speciesGroup: document.getElementById("species-group"),
   editSpeciesInput: document.getElementById("edit-species-input"),
   speciesList: document.getElementById("species-list"),
@@ -183,7 +185,6 @@ export function openPhotoModal(nestData, routeId, onSave, onDelete) {
   ui.editNotes.value = nestData.description || '';
   ui.editSpeciesInput.value = nestData.species || "Não identificada";
   
-  // Exibir campo espécie se já estiver capturado
   if (currentStatus === 'capturado') ui.speciesGroup.classList.remove("hidden");
   else ui.speciesGroup.classList.add("hidden");
 
