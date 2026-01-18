@@ -12,19 +12,14 @@ a { text-decoration: none; color: inherit; }
 button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .hidden { display: none !important; }
 
-/* AUTH - Ajuste de Centralização */
+/* AUTH - CENTRALIZAÇÃO VISUAL */
 #auth-screen { 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  height: 100vh; 
-  height: 100dvh; /* Garante altura total em mobile */
+  display: flex; align-items: center; justify-content: center; 
+  height: 100vh; height: 100dvh;
   background: radial-gradient(circle at top, #161b22 0%, #010409 100%); 
   padding: 20px;
-  /* TRUQUE: Adiciona espaço extra embaixo para empurrar o card visualmente para cima */
-  padding-bottom: 15vh; 
+  padding-bottom: 15vh; /* Levanta o card visualmente */
 }
-
 .auth-container { width: 100%; max-width: 400px; text-align: center; }
 .auth-brand { margin-bottom: 40px; } .bee-icon { font-size: 4rem; filter: drop-shadow(0 0 20px rgba(35, 134, 54, 0.3)); }
 .auth-brand h1 { margin: 10px 0 0; color: #fff; font-size: 2rem; }
@@ -38,7 +33,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .auth-divider { text-align: center; margin: 15px 0; font-size: 0.8rem; color: var(--text-secondary); }
 .auth-msg { margin-top: 15px; text-align: center; font-size: 0.9rem; } .auth-msg.error { color: var(--brand-red); }
 
-/* LAYOUT */
+/* LAYOUT GERAL */
 #app-screen { display: flex; width: 100vw; height: 100vh; }
 .sidebar { width: var(--sidebar-width); background: var(--bg-panel); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; z-index: 100; transition: transform 0.3s ease; }
 .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; }
@@ -54,17 +49,14 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .content-panel { padding: 24px; width: 100%; max-width: 1200px; margin: 0 auto; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* MOBILE HEADER */
+/* HEADER MOBILE */
 .mobile-only { display: none; }
 .mobile-header { background: var(--bg-panel); border-bottom: 1px solid var(--border-color); padding: 10px 15px; display: flex; align-items: center; gap: 15px; }
 .hamburger-btn { background: transparent; color: #fff; font-size: 1.5rem; } .mobile-header h2 { margin: 0; font-size: 1.1rem; color: #fff; } .mobile-close-btn { display: none; background: transparent; color: #fff; font-size: 1.2rem; margin-left: auto; }
 
-/* DASHBOARD & GRID */
+/* DASHBOARD */
 .dashboard-head { text-align: center; margin-bottom: 40px; margin-top: 20px; } .dashboard-head h1 { font-size: 2.5rem; color: #fff; margin: 0; }
-
-/* Grid Desktop padrão */
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-
 .dashboard-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: transform 0.2s; position: relative; }
 .dashboard-card:hover { transform: translateY(-5px); border-color: var(--brand-green); } .dashboard-card.disabled { opacity: 0.4; pointer-events: none; }
 .card-icon { font-size: 2.5rem; margin-bottom: 15px; } .dashboard-card h3 { margin: 0 0 5px; color: #fff; font-size: 1.1rem; } .dashboard-card p { margin: 0; font-size: 0.9rem; color: var(--brand-green); }
@@ -120,7 +112,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .modal-header h4 { margin: 0; color: #fff; }
 .modal-body { padding: 20px; }
 .form-group { margin-bottom: 15px; } .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: var(--text-secondary); }
-.form-group textarea, .form-group select { width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: 6px; }
+.form-group textarea, .form-group select, .form-group input { width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 10px; border-radius: 6px; }
 .form-group textarea { min-height: 80px; }
 .file-upload-btn { display: block; padding: 12px; border: 1px dashed var(--border-color); border-radius: 6px; text-align: center; cursor: pointer; color: var(--text-primary); } .file-upload-btn input { display: none; }
 .file-name-display { font-size: 0.8rem; color: var(--brand-green); margin-top: 5px; text-align: center; }
@@ -147,7 +139,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .edit-form { padding: 20px; background: var(--bg-panel); border-top: 1px solid var(--border-color); flex-shrink: 0; }
 .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-bottom: 20px; }
 
-/* RESPONSIVE & MOBILE */
+/* RESPONSIVE */
 @media (max-width: 900px) {
   .mobile-only { display: flex; } .hidden-mobile { display: none; }
   .sidebar { position: fixed; inset: 0; width: 85%; max-width: 300px; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.5); } .sidebar.open { transform: translateX(0); display: flex; }
@@ -156,20 +148,9 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   .tracker-layout { grid-template-columns: 1fr; } .map-container { height: 350px; order: -1; }
   .content-panel { padding: 15px; }
 
-  /* Ajuste para 2 colunas no dashboard mobile */
-  .cards-grid { 
-    grid-template-columns: 1fr 1fr; 
-    gap: 12px; 
-  }
-  .dashboard-card {
-    padding: 20px 15px;
-  }
-  .card-icon {
-    font-size: 2rem;
-    margin-bottom: 10px;
-  }
-  .dashboard-card h3 {
-    font-size: 0.95rem;
-    justify-content: center;
-  }
+  /* DASHBOARD MOBILE (2 colunas) */
+  .cards-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dashboard-card { padding: 20px 15px; }
+  .card-icon { font-size: 2rem; margin-bottom: 10px; }
+  .dashboard-card h3 { font-size: 0.95rem; }
 }
