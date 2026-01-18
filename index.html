@@ -19,8 +19,8 @@
     <div class="auth-brand"><div class="bee-icon">🐝</div><h1>SeeBee</h1></div>
     <div class="auth-card">
       <h2>Entrar</h2>
-      <div class="input-group"><label for="auth-email">E-mail</label><input id="auth-email" type="email" placeholder="seu@email.com" autocomplete="email" /></div>
-      <div class="input-group"><label for="auth-password">Senha</label><input id="auth-password" type="password" placeholder="Sua senha" autocomplete="current-password" /></div>
+      <div class="input-group"><label>E-mail</label><input id="auth-email" type="email" autocomplete="email" /></div>
+      <div class="input-group"><label>Senha</label><input id="auth-password" type="password" autocomplete="current-password" /></div>
       <button class="btn-primary-full" id="btn-signin">Entrar</button>
       <div class="auth-divider">ou</div>
       <button class="btn-outline-full" id="btn-signup">Criar Conta</button>
@@ -129,7 +129,9 @@
       </div>
       <button id="photo-modal-close" class="btn-icon-close">✕</button>
     </div>
+    
     <div class="photo-container"><img id="photo-modal-img" src="" alt="Foto do ninho" /></div>
+    
     <div id="edit-nest-form" class="edit-form hidden">
       <div class="form-group">
         <label>Status Atual</label>
@@ -138,7 +140,16 @@
           <option value="capturado">Capturado 🐝</option>
         </select>
       </div>
+      
+      <div class="form-group hidden" id="species-group">
+         <label>Espécie (Pesquisa Inteligente)</label>
+         <input type="text" id="edit-species-input" list="species-list" placeholder="Digite para buscar..." />
+         <datalist id="species-list">
+             </datalist>
+      </div>
+
       <div class="form-group"><label>Observações</label><textarea id="edit-notes"></textarea></div>
+      
       <div class="form-actions">
         <button id="btn-cancel-edit" class="btn-secondary-sm">Cancelar</button>
         <button id="btn-save-edit" class="btn-primary-sm">Salvar Alterações</button>

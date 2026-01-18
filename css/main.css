@@ -12,8 +12,19 @@ a { text-decoration: none; color: inherit; }
 button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .hidden { display: none !important; }
 
-/* AUTH */
-#auth-screen { display: flex; align-items: center; justify-content: center; height: 100vh; background: radial-gradient(circle at top, #161b22 0%, #010409 100%); padding: 20px; }
+/* AUTH - Ajuste de Centralização */
+#auth-screen { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  height: 100vh; 
+  height: 100dvh; /* Garante altura total em mobile */
+  background: radial-gradient(circle at top, #161b22 0%, #010409 100%); 
+  padding: 20px;
+  /* TRUQUE: Adiciona espaço extra embaixo para empurrar o card visualmente para cima */
+  padding-bottom: 15vh; 
+}
+
 .auth-container { width: 100%; max-width: 400px; text-align: center; }
 .auth-brand { margin-bottom: 40px; } .bee-icon { font-size: 4rem; filter: drop-shadow(0 0 20px rgba(35, 134, 54, 0.3)); }
 .auth-brand h1 { margin: 10px 0 0; color: #fff; font-size: 2rem; }
@@ -48,9 +59,12 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .mobile-header { background: var(--bg-panel); border-bottom: 1px solid var(--border-color); padding: 10px 15px; display: flex; align-items: center; gap: 15px; }
 .hamburger-btn { background: transparent; color: #fff; font-size: 1.5rem; } .mobile-header h2 { margin: 0; font-size: 1.1rem; color: #fff; } .mobile-close-btn { display: none; background: transparent; color: #fff; font-size: 1.2rem; margin-left: auto; }
 
-/* DASHBOARD */
+/* DASHBOARD & GRID */
 .dashboard-head { text-align: center; margin-bottom: 40px; margin-top: 20px; } .dashboard-head h1 { font-size: 2.5rem; color: #fff; margin: 0; }
+
+/* Grid Desktop padrão */
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
 .dashboard-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: transform 0.2s; position: relative; }
 .dashboard-card:hover { transform: translateY(-5px); border-color: var(--brand-green); } .dashboard-card.disabled { opacity: 0.4; pointer-events: none; }
 .card-icon { font-size: 2.5rem; margin-bottom: 15px; } .dashboard-card h3 { margin: 0 0 5px; color: #fff; font-size: 1.1rem; } .dashboard-card p { margin: 0; font-size: 0.9rem; color: var(--brand-green); }
@@ -87,7 +101,6 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .thumb-small.capturado { border-color: var(--brand-green); }
 .thumb-status { font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 .thumb-status.capturado { color: var(--brand-green); font-weight: bold; }
-/* Contador de dias */
 .thumb-days { font-size: 0.6rem; color: var(--brand-orange); margin-top: 1px; text-align: center; font-weight: bold; }
 .thumb-days.ready { color: var(--brand-blue); }
 
@@ -100,7 +113,7 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .empty-state-box { text-align: center; padding: 40px; border: 1px dashed var(--border-color); border-radius: 8px; color: var(--text-secondary); }
 .margin-top { margin-top: 10px; margin-bottom: 20px; }
 
-/* MODAL FIX */
+/* MODALS */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
 .modal-card { width: 100%; max-width: 400px; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; }
 .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
@@ -115,14 +128,10 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .btn-secondary-sm { padding: 8px 16px; background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; }
 .btn-primary-sm { padding: 8px 16px; background: var(--brand-green); color: #fff; border-radius: 6px; }
 
-/* CORREÇÃO DO MODAL DE FOTO (COM SCROLL) */
+/* MODAL FOTO (COM SCROLL) */
 .photo-card-layout { 
-  max-width: 500px; 
-  width: 90%; 
-  max-height: 90vh; 
-  overflow-y: auto; /* IMPORTANTE: Permite rolagem se o conteúdo estourar */
-  display: flex;
-  flex-direction: column;
+  max-width: 500px; width: 90%; max-height: 90vh; 
+  overflow-y: auto; display: flex; flex-direction: column;
 }
 .photo-header { background: rgba(0,0,0,0.2); border-bottom: none; padding: 10px 15px; flex-shrink: 0; }
 .photo-actions { display: flex; gap: 10px; }
@@ -132,14 +141,13 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
 .btn-icon-close { background: transparent; color: var(--text-secondary); font-size: 1.2rem; }
 .photo-container { 
   text-align: center; background: #000; padding: 10px; 
-  min-height: 200px; 
-  display: flex; align-items: center; justify-content: center; 
-  flex-shrink: 0;
+  min-height: 200px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 #photo-modal-img { max-width: 100%; max-height: 40vh; object-fit: contain; }
 .edit-form { padding: 20px; background: var(--bg-panel); border-top: 1px solid var(--border-color); flex-shrink: 0; }
 .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-bottom: 20px; }
 
+/* RESPONSIVE & MOBILE */
 @media (max-width: 900px) {
   .mobile-only { display: flex; } .hidden-mobile { display: none; }
   .sidebar { position: fixed; inset: 0; width: 85%; max-width: 300px; transform: translateX(-100%); box-shadow: 10px 0 30px rgba(0,0,0,0.5); } .sidebar.open { transform: translateX(0); display: flex; }
@@ -147,4 +155,21 @@ button { font-family: inherit; cursor: pointer; border: none; outline: none; }
   #app-screen { flex-direction: column; }
   .tracker-layout { grid-template-columns: 1fr; } .map-container { height: 350px; order: -1; }
   .content-panel { padding: 15px; }
+
+  /* Ajuste para 2 colunas no dashboard mobile */
+  .cards-grid { 
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px; 
+  }
+  .dashboard-card {
+    padding: 20px 15px;
+  }
+  .card-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+  .dashboard-card h3 {
+    font-size: 0.95rem;
+    justify-content: center;
+  }
 }

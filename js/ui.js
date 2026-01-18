@@ -1,8 +1,54 @@
 import { state } from "./state.js";
 
+/* ===== DADOS DAS ESPÉCIES (Baseado no PDF) ===== */
+const SPECIES_DB = [
+  { val: "Não identificada", label: "Não identificada" },
+  { val: "Cephalotrigona femorata", label: "Cephalotrigona femorata (Mumbuca, Mombracão)" },
+  { val: "Frieseomelitta doederleini", label: "Frieseomelitta doederleini (Moça-branca)" },
+  { val: "Frieseomelitta varia", label: "Frieseomelitta varia (Marmelada-amarela)" },
+  { val: "Lestrimelitta ehrhardti", label: "Lestrimelitta ehrhardti (Iratim-vermelha)" },
+  { val: "Lestrimelitta sulina", label: "Lestrimelitta sulina (Iratim, Iratim-preta)" },
+  { val: "Leurotrigona muelleri", label: "Leurotrigona muelleri (Lambe-olhos)" },
+  { val: "Melipona asilvai", label: "Melipona asilvai (Rajada, Manduri)" },
+  { val: "Melipona bicolor", label: "Melipona bicolor (Guarupu, Guaraipo)" },
+  { val: "Melipona compressipes", label: "Melipona compressipes (Jupará)" },
+  { val: "Melipona fasciculata", label: "Melipona fasciculata (Tiúba, Uruçu-cinzenta)" },
+  { val: "Melipona flavolineata", label: "Melipona flavolineata (Uruçu-amarela)" },
+  { val: "Melipona mandacaia", label: "Melipona mandacaia (Mandaçaia-da-caatinga)" },
+  { val: "Melipona marginata", label: "Melipona marginata (Manduri, Manduri-preta)" },
+  { val: "Melipona mondury", label: "Melipona mondury (Monduri, Bugia)" },
+  { val: "Melipona quadrifasciata", label: "Melipona quadrifasciata (Mandaçaia)" },
+  { val: "Melipona rufiventris", label: "Melipona rufiventris (Uruçu-amarela, Tujuba)" },
+  { val: "Melipona scutellaris", label: "Melipona scutellaris (Uruçu, Uruçu-nordestina)" },
+  { val: "Melipona seminigra", label: "Melipona seminigra (Uruçu-boca-de-renda)" },
+  { val: "Melipona subnitida", label: "Melipona subnitida (Jandaíra)" },
+  { val: "Melipona torrida", label: "Melipona torrida (Manduri, Manduri-vermelha)" },
+  { val: "Mourella caerulea", label: "Mourella caerulea (Bieira, Mirim-de-chão)" },
+  { val: "Nannotrigona testaceicornis", label: "Nannotrigona testaceicornis (Iraí)" },
+  { val: "Oxytrigona tataira", label: "Oxytrigona tataira (Caga-fogo)" },
+  { val: "Paratrigona subnuda", label: "Paratrigona subnuda (Jataí-da-terra)" },
+  { val: "Partamona helleri", label: "Partamona helleri (Boca-de-sapo)" },
+  { val: "Plebeia droryana", label: "Plebeia droryana (Mirim Droryana)" },
+  { val: "Plebeia emerina", label: "Plebeia emerina (Mirim-emerina)" },
+  { val: "Plebeia nigriceps", label: "Plebeia nigriceps (Mirim, Mosquito)" },
+  { val: "Plebeia remota", label: "Plebeia remota (Mirim-guaçu)" },
+  { val: "Plebeia saiqui", label: "Plebeia saiqui (Mirim Saiqui)" },
+  { val: "Plebeia wittmanni", label: "Plebeia wittmanni (Mirim-wittmanni)" },
+  { val: "Scaptotrigona bipunctata", label: "Scaptotrigona bipunctata (Tubuna)" },
+  { val: "Scaptotrigona depilis", label: "Scaptotrigona depilis (Mandaguari)" },
+  { val: "Scaptotrigona tubiba", label: "Scaptotrigona tubiba (Tubiba)" },
+  { val: "Schwarziana quadripunctata", label: "Schwarziana quadripunctata (Guiruçu)" },
+  { val: "Tetragona clavipes", label: "Tetragona clavipes (Borá)" },
+  { val: "Tetragonisca angustula", label: "Tetragonisca angustula (Jataí, Abelha-ouro)" },
+  { val: "Tetragonisca fiebrigi", label: "Tetragonisca fiebrigi (Jataí, Yatei)" }
+];
+
 export const ui = {
+  // Telas
   authScreen: document.getElementById("auth-screen"),
   appScreen: document.getElementById("app-screen"),
+  
+  // Auth Elements
   authEmail: document.getElementById("auth-email"),
   authPassword: document.getElementById("auth-password"),
   authMsg: document.getElementById("auth-msg"),
@@ -10,6 +56,7 @@ export const ui = {
   btnSignUp: document.getElementById("btn-signup"),
   btnGoogle: document.getElementById("btn-google"),
   
+  // Sidebar & Nav
   sidebar: document.getElementById("sidebar"),
   userEmailLabel: document.getElementById("user-email-label"),
   btnLogout: document.getElementById("btn-logout"),
@@ -17,21 +64,20 @@ export const ui = {
   btnCloseSidebar: document.getElementById("close-sidebar"),
   navLinks: document.querySelectorAll(".nav-item[data-target]"),
   
-  // Painéis
+  // Panels
   panelDashboard: document.getElementById("panel-dashboard"),
   panelTracker: document.getElementById("panel-tracker"),
   panelColonies: document.getElementById("panel-colonies"),
-  panelCaptures: document.getElementById("panel-captures"), // Novo
+  panelCaptures: document.getElementById("panel-captures"),
   
-  // Cards Dashboard
+  // Dashboard
   cardGotoTracker: document.getElementById("card-goto-tracker"),
   cardGotoColonies: document.getElementById("card-goto-colonies"),
-  cardGotoCaptures: document.getElementById("card-goto-captures"), // Novo
-
-  // Badges
+  cardGotoCaptures: document.getElementById("card-goto-captures"),
   badgeCapturas: document.getElementById("badge-capturas"),
   cardBadgeCaptures: document.getElementById("card-badge-captures"),
 
+  // Tracker Controls
   statusPill: document.getElementById("status-pill"),
   cloudStatus: document.getElementById("cloud-status"),
   btnToggleRoute: document.getElementById("btn-toggle-route"),
@@ -39,6 +85,7 @@ export const ui = {
   btnToggleText: document.getElementById("btn-toggle-text"),
   btnAddNest: document.getElementById("btn-add-nest"),
   badgeStatus: document.getElementById("badge-status"),
+  
   infoRouteName: document.getElementById("info-route-name"),
   infoDistance: document.getElementById("info-distance"),
   infoNests: document.getElementById("info-nests"),
@@ -46,28 +93,36 @@ export const ui = {
   latestRouteContainer: document.getElementById("latest-route-container"),
   btnViewAllHistory: document.getElementById("btn-view-all-history"),
   
+  // Colonies Tabs
   tabBtnMatrices: document.getElementById("tab-btn-matrices"),
   tabBtnHistory: document.getElementById("tab-btn-history"),
   contentMatrices: document.getElementById("content-matrices"),
   contentHistory: document.getElementById("content-history"),
   fullHistoryList: document.getElementById("full-history-list"),
   btnRefreshHistory: document.getElementById("btn-refresh-history"),
-  
-  // Lista de Capturas
   capturesList: document.getElementById("captures-list"),
 
-  // Modais
+  // Modals
   photoModal: document.getElementById("photo-modal"),
   photoModalImg: document.getElementById("photo-modal-img"),
   photoModalClose: document.getElementById("photo-modal-close"),
   btnEditNest: document.getElementById("btn-edit-nest"),
   btnDeleteNest: document.getElementById("btn-delete-nest"),
+  
+  // Form Edição
   editNestForm: document.getElementById("edit-nest-form"),
   editStatusSelect: document.getElementById("edit-status-select"),
   editNotes: document.getElementById("edit-notes"),
+  
+  // NOVOS CAMPOS DE ESPÉCIE
+  speciesGroup: document.getElementById("species-group"),
+  editSpeciesInput: document.getElementById("edit-species-input"),
+  speciesList: document.getElementById("species-list"),
+  
   btnCancelEdit: document.getElementById("btn-cancel-edit"),
   btnSaveEdit: document.getElementById("btn-save-edit"),
   
+  // Modal Cadastro
   nestModal: document.getElementById("nest-modal"),
   nestNotes: document.getElementById("nest-notes"),
   nestFileInput: document.getElementById("nest-file-input"),
@@ -76,6 +131,7 @@ export const ui = {
   nestSave: document.getElementById("nest-save"),
 };
 
+/* ===== NAVEGAÇÃO ===== */
 export function initNavigation() {
   ui.btnOpenSidebar?.addEventListener("click", () => {
     ui.sidebar.classList.add("open");
@@ -85,7 +141,7 @@ export function initNavigation() {
     ui.sidebar.classList.remove("open");
     setTimeout(() => ui.sidebar.classList.add("hidden-mobile"), 300);
   });
-
+  
   ui.navLinks.forEach(link => {
     link.addEventListener("click", (e) => {
       e.preventDefault();
@@ -110,6 +166,19 @@ export function initNavigation() {
 
   ui.tabBtnMatrices?.addEventListener("click", () => switchColonyTab("matrices"));
   ui.tabBtnHistory?.addEventListener("click", () => switchColonyTab("history"));
+  
+  // POPULAR A LISTA DE ESPÉCIES UMA VEZ
+  populateSpeciesList();
+}
+
+function populateSpeciesList() {
+  ui.speciesList.innerHTML = "";
+  SPECIES_DB.forEach(sp => {
+    const opt = document.createElement("option");
+    opt.value = sp.val;
+    opt.label = sp.label;
+    ui.speciesList.appendChild(opt);
+  });
 }
 
 function updateActiveLink(targetName) {
@@ -146,7 +215,7 @@ export function switchColonyTab(tabName) {
   }
 }
 
-/* OUTRAS FUNÇÕES UI (Auth, Status, Modals) - IDÊNTICAS AO ANTERIOR */
+/* ===== UTILS UI ===== */
 export function setAuthMessage(text, isError = false) {
   ui.authMsg.textContent = text || "";
   ui.authMsg.classList.toggle("error", !!text && isError);
@@ -184,21 +253,66 @@ export function initNestModalHandlers() {
   ui.nestSave.addEventListener("click", () => { if (!pendingNestResolve) { ui.nestModal.style.display = "none"; return; } const payload = { description: ui.nestNotes.value.trim(), file: selectedNestFile }; ui.nestModal.style.display = "none"; pendingNestResolve(payload); pendingNestResolve = null; });
 }
 
+/* ===== MODAL DE FOTO E EDIÇÃO AVANÇADA ===== */
 let currentNestData = null; let currentRouteId = null; let editSaveCallback = null; let deleteCallback = null;
+
 export function openPhotoModal(nestData, routeId, onSave, onDelete) {
   currentNestData = nestData; currentRouteId = routeId; editSaveCallback = onSave; deleteCallback = onDelete;
   ui.photoModalImg.src = nestData.photoUrl; ui.photoModal.style.display = "flex";
+  
+  // Reset Form
   ui.editNestForm.classList.add("hidden");
-  ui.editStatusSelect.value = nestData.status || 'catalogado'; ui.editNotes.value = nestData.description || '';
+  const currentStatus = nestData.status || 'catalogado';
+  ui.editStatusSelect.value = currentStatus;
+  ui.editNotes.value = nestData.description || '';
+  
+  // Configurar campo espécie
+  ui.editSpeciesInput.value = nestData.species || "Não identificada";
+  toggleSpeciesField(currentStatus === 'capturado');
+
   if (!nestData.id) { ui.btnEditNest.classList.add("hidden"); ui.btnDeleteNest.classList.add("hidden"); }
   else { ui.btnEditNest.classList.remove("hidden"); ui.btnDeleteNest.classList.remove("hidden"); }
 }
+
+function toggleSpeciesField(isVisible) {
+    if (isVisible) {
+        ui.speciesGroup.classList.remove("hidden");
+    } else {
+        ui.speciesGroup.classList.add("hidden");
+    }
+}
+
 export function closePhotoModal() { ui.photoModal.style.display = "none"; ui.photoModalImg.src = ""; currentNestData = null; }
+
 export function initPhotoModalHandlers() {
   ui.photoModalClose.addEventListener("click", closePhotoModal);
   ui.photoModal.addEventListener("click", (e) => { if (e.target === ui.photoModal && ui.editNestForm.classList.contains("hidden")) closePhotoModal(); });
   ui.btnEditNest.addEventListener("click", () => { ui.editNestForm.classList.remove("hidden"); });
-  ui.btnCancelEdit.addEventListener("click", () => { ui.editNestForm.classList.add("hidden"); ui.editStatusSelect.value = currentNestData.status || 'catalogado'; ui.editNotes.value = currentNestData.description || ''; });
-  ui.btnSaveEdit.addEventListener("click", () => { const newStatus = ui.editStatusSelect.value; const newNotes = ui.editNotes.value; if(editSaveCallback) editSaveCallback(currentRouteId, currentNestData.id, newStatus, newNotes); closePhotoModal(); });
-  ui.btnDeleteNest.addEventListener("click", () => { const reason = prompt("Motivo da exclusão (ex: 'manutenção'):"); if (reason && confirm("Confirmar exclusão?")) { if(deleteCallback) deleteCallback(currentRouteId, currentNestData.id, reason); closePhotoModal(); } });
+  
+  // Listener para mostrar/esconder espécie ao mudar status
+  ui.editStatusSelect.addEventListener("change", (e) => {
+     toggleSpeciesField(e.target.value === 'capturado');
+  });
+
+  ui.btnCancelEdit.addEventListener("click", () => { 
+      ui.editNestForm.classList.add("hidden"); 
+  });
+
+  ui.btnSaveEdit.addEventListener("click", () => { 
+      const newStatus = ui.editStatusSelect.value; 
+      const newNotes = ui.editNotes.value; 
+      // Pega a espécie se for capturado, senão nulo/vazio
+      const newSpecies = newStatus === 'capturado' ? ui.editSpeciesInput.value : null;
+
+      if(editSaveCallback) editSaveCallback(currentRouteId, currentNestData.id, newStatus, newNotes, newSpecies); 
+      closePhotoModal(); 
+  });
+  
+  ui.btnDeleteNest.addEventListener("click", () => { 
+      const reason = prompt("Motivo da exclusão (ex: 'manutenção'):"); 
+      if (reason && confirm("Confirmar exclusão?")) { 
+          if(deleteCallback) deleteCallback(currentRouteId, currentNestData.id, reason); 
+          closePhotoModal(); 
+      } 
+  });
 }
